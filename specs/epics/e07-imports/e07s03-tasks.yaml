@@ -1,7 +1,7 @@
 story_id: e07s03
 title: "Match transfers across two imports"
 spec: e07s03-transfer-matching.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: A queued line becomes a transfer to another own account; its twin from the other statement is found (opposite amount, ±3 days) and merged after confirmation.
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
