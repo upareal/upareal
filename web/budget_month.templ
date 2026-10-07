@@ -1,4 +1,4 @@
-// story: e05s03
+// story: e05s03 e08s02
 package web
 
 templ budgetMonthPage(v monthView, errMsg string) {
@@ -13,6 +13,7 @@ templ budgetMonthPage(v monthView, errMsg string) {
 		if errMsg != "" {
 			<p class="error" role="alert">{ errMsg }</p>
 		}
+		<p class="totals"><strong>A distribuir: { v.ToBeAssigned }</strong></p>
 		<p class="totals">Despesas: { v.ExpenseTotal } · Receitas: { v.IncomeTotal }</p>
 		for _, g := range v.Groups {
 			<section class="group">
@@ -24,9 +25,22 @@ templ budgetMonthPage(v monthView, errMsg string) {
 								<label>{ row.Name } <input name="valor" value={ row.Value } inputmode="decimal" required/></label>
 								<button type="submit">Salvar</button>
 							</form>
+							if row.Income {
+								<span class="muted">Recebido { row.Received }</span>
+							} else {
+								<span class="muted">Gasto { row.Spent }</span>
+								<span class={ templ.KV("negative", row.Overspent) }>Disponível { row.Available }</span>
+							}
 						</li>
 					}
 				</ul>
+			</section>
+		}
+		if v.UnmappedSpent != "" {
+			<section class="group">
+				<h2>Sem categoria</h2>
+				<p>Gasto { v.UnmappedSpent } · Recebido { v.UnmappedReceived }</p>
+				<p class="muted">Contas sem categoria e lançamentos a categorizar. <a href="/planejamento/mapa">Ligue as contas no Mapa</a> ou revise em <a href="/revisao">Revisão</a>.</p>
 			</section>
 		}
 	}

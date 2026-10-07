@@ -42,6 +42,7 @@ label { display: block; margin: 1rem 0; }
 .tag { font-size: 0.75rem; padding: 0 0.4rem; margin-left: 0.4rem; border: 1px solid #bbb; border-radius: 0.5rem; }
 .balance { float: right; font-variant-numeric: tabular-nums; }
 .muted { color: #777; }
+.negative { color: #b00020; font-weight: 600; }
 form.inline { display: flex; gap: 0.5rem; align-items: end; flex-wrap: wrap; margin: 0.25rem 0 0.75rem; }
 form.inline label { margin: 0; }
 section.accounts li { padding: 0.5rem 0; border-bottom: 1px solid #eee; }

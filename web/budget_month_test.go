@@ -88,9 +88,9 @@ func TestBudgetMonthPage_ShowsSpentAvailableAndToBeAssigned(t *testing.T) {
 	b.postForm(t, "/planejamento/mapa/"+shell, url.Values{"categoria": {fuel}})
 	b.postForm(t, "/planejamento/mapa/"+recebimentos, url.Values{"categoria": {salary}})
 	b.postForm(t, "/orcamento/2026-01/"+fuel, url.Values{"valor": {"300,00"}})
-	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(shell, "120,00", "2026-01-15", "", "Gasolina"))
-	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(recebimentos, "8.000,00", "2026-01-05", "", "Salário"))
-	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(padaria, "50,00", "2026-01-16", "", "Pão"))
+	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(shell, "120,00", "2026-01-15", "10:00", "Gasolina"))
+	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(recebimentos, "8.000,00", "2026-01-05", "10:00", "Salário"))
+	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(padaria, "50,00", "2026-01-16", "10:00", "Pão"))
 
 	_, body := b.get(t, "/orcamento?mes=2026-01")
 	for _, want := range []string{
@@ -103,7 +103,7 @@ func TestBudgetMonthPage_ShowsSpentAvailableAndToBeAssigned(t *testing.T) {
 			t.Errorf("month page missing %q", want)
 		}
 	}
-	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(shell, "200,00", "2026-01-20", "", "Gasolina"))
+	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(shell, "200,00", "2026-01-20", "10:00", "Gasolina"))
 	if _, body = b.get(t, "/orcamento?mes=2026-01"); !strings.Contains(body, `class="negative">Disponível -R$ 20,00`) {
 		t.Error("overspent category is not shown as negative")
 	}

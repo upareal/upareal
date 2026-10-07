@@ -1,4 +1,4 @@
-// story: e05s03
+// story: e05s03 e08s02
 package web
 
 import (
@@ -11,6 +11,7 @@ import (
 
 	"github.com/upareal/upareal/budget"
 	"github.com/upareal/upareal/internal/money"
+	"github.com/upareal/upareal/planning"
 	"github.com/upareal/upareal/users"
 )
 
@@ -22,6 +23,9 @@ type monthView struct {
 	Month, Label, Prev, Next  string
 	Groups                    []monthGroupView
 	ExpenseTotal, IncomeTotal string
+	ToBeAssigned              string
+	UnmappedSpent             string // "" when nothing is Sem categoria
+	UnmappedReceived          string
 }
 
 type monthGroupView struct {
@@ -31,9 +35,13 @@ type monthGroupView struct {
 
 type monthRowView struct {
 	CategoryID, Name, Value string
+	Income                  bool
+	Spent, Available        string // expense
+	Overspent               bool
+	Received                string // income
 }
 
-func budgetMonthGet(svc *users.Service, bud *budget.Service) http.HandlerFunc {
+func budgetMonthGet(svc *users.Service, bud *budget.Service, plan *planning.Service) http.HandlerFunc {
 	return signedInPage(svc, func(w http.ResponseWriter, r *http.Request, u users.User) {
 		m := budget.MonthOf(time.Now())
 		if s := r.URL.Query().Get("mes"); s != "" {
@@ -43,11 +51,11 @@ func budgetMonthGet(svc *users.Service, bud *budget.Service) http.HandlerFunc {
 				return
 			}
 		}
-		renderBudgetMonth(w, r, bud, u.ID, m, http.StatusOK, "")
+		renderBudgetMonth(w, r, bud, plan, u.ID, m, http.StatusOK, "")
 	})
 }
 
-func budgetMonthSet(svc *users.Service, bud *budget.Service) http.HandlerFunc {
+func budgetMonthSet(svc *users.Service, bud *budget.Service, plan *planning.Service) http.HandlerFunc {
 	return signedInPage(svc, func(w http.ResponseWriter, r *http.Request, u users.User) {
 		m, err := budget.ParseMonth(r.PathValue("mes"))
 		if err != nil {
@@ -64,18 +72,18 @@ func budgetMonthSet(svc *users.Service, bud *budget.Service) http.HandlerFunc {
 		case errors.Is(err, budget.ErrNotFound):
 			renderError(w, r, http.StatusNotFound, "Categoria", "Categoria não encontrada.")
 		default: // malformed or negative (B4)
-			renderBudgetMonth(w, r, bud, u.ID, m, http.StatusBadRequest, "Valor inválido. Use o formato 1.234,56.")
+			renderBudgetMonth(w, r, bud, plan, u.ID, m, http.StatusBadRequest, "Valor inválido. Use o formato 1.234,56.")
 		}
 	})
 }
 
-func renderBudgetMonth(w http.ResponseWriter, r *http.Request, bud *budget.Service, userID string, m budget.Month, status int, errMsg string) {
+func renderBudgetMonth(w http.ResponseWriter, r *http.Request, bud *budget.Service, plan *planning.Service, userID string, m budget.Month, status int, errMsg string) {
 	groups, err := bud.Categories(r.Context(), userID)
 	if err != nil {
 		renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Não foi possível carregar o orçamento.")
 		return
 	}
-	amounts, err := bud.OpenMonth(r.Context(), userID, m)
+	p, err := plan.Month(r.Context(), userID, m)
 	if err != nil {
 		renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Não foi possível carregar o orçamento.")
 		return
@@ -88,8 +96,11 @@ func renderBudgetMonth(w http.ResponseWriter, r *http.Request, bud *budget.Servi
 		gv := monthGroupView{Name: g.Name}
 		var total int64
 		for _, c := range g.Categories {
-			total += amounts[c.ID]
-			gv.Rows = append(gv.Rows, monthRowView{CategoryID: c.ID, Name: c.Name, Value: brlInput(amounts[c.ID])})
+			cp := p.Categories[c.ID]
+			total += cp.Amount
+			gv.Rows = append(gv.Rows, monthRowView{CategoryID: c.ID, Name: c.Name, Value: brlInput(cp.Amount),
+				Income: g.Kind == "income", Spent: money.FormatBRL(cp.Spent), Available: money.FormatBRL(cp.Available),
+				Overspent: cp.Available < 0, Received: money.FormatBRL(cp.Received)})
 		}
 		gv.Total = money.FormatBRL(total)
 		if g.Kind == "income" {
@@ -100,6 +111,10 @@ func renderBudgetMonth(w http.ResponseWriter, r *http.Request, bud *budget.Servi
 		v.Groups = append(v.Groups, gv)
 	}
 	v.ExpenseTotal, v.IncomeTotal = money.FormatBRL(expense), money.FormatBRL(income)
+	v.ToBeAssigned = money.FormatBRL(p.ToBeAssigned)
+	if p.UnmappedSpent != 0 || p.UnmappedReceived != 0 {
+		v.UnmappedSpent, v.UnmappedReceived = money.FormatBRL(p.UnmappedSpent), money.FormatBRL(p.UnmappedReceived)
+	}
 	renderHTML(w, r, status, budgetMonthPage(v, errMsg))
 }
 
