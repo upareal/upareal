@@ -1,4 +1,4 @@
-// story: e01s01 e03s01
+// story: e01s01 e03s01 e03s02
 package web
 
 // layout is the base page: pt-BR, mobile viewport, app CSS and vendored HTMX.
@@ -30,6 +30,12 @@ templ homePage(signedIn bool, firstName string) {
 			} else {
 				<p>Olá!</p>
 			}
+			<form method="post" action="/auth/logout">
+				<button type="submit">Sair</button>
+			</form>
+			<form method="post" action="/auth/logout-all">
+				<button type="submit">Sair de todos os dispositivos</button>
+			</form>
 		} else {
 			<p>Seu orçamento pessoal, com cada real no lugar certo.</p>
 			<p><a class="button" href="/auth/login">Entrar com Google</a></p>

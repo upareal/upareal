@@ -93,3 +93,19 @@ func hashToken(token string) []byte {
 // stamp formats t as UTC RFC 3339 (second precision), so stored timestamps
 // compare correctly as strings in SQL.
 func stamp(t time.Time) string { return t.UTC().Format(time.RFC3339) }
+
+// EndSession signs out one session (logout). Unknown tokens are not an error.
+func (s *Service) EndSession(ctx context.Context, token string) error {
+	if err := s.q.DeleteSession(ctx, hashToken(token)); err != nil {
+		return fmt.Errorf("users: end session: %w", err)
+	}
+	return nil
+}
+
+// EndAllSessions signs userID out everywhere (e.g. after losing a phone).
+func (s *Service) EndAllSessions(ctx context.Context, userID string) error {
+	if err := s.q.DeleteUserSessions(ctx, userID); err != nil {
+		return fmt.Errorf("users: end all sessions of user %s: %w", userID, err)
+	}
+	return nil
+}

@@ -1,4 +1,4 @@
-// story: e03s01
+// story: e03s01 e03s02
 package web
 
 import (
@@ -114,4 +114,31 @@ func renderError(w http.ResponseWriter, r *http.Request, status int, title, mess
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
 	_ = errorPage(title, message).Render(r.Context(), w)
+}
+
+// logout ends this session, or all of the user's sessions when everywhere is
+// true, clears the cookie and goes home. Without a session it just goes home.
+func logout(svc *users.Service, everywhere bool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		clearCookie(w, sessionCookie, "/")
+		c, err := r.Cookie(sessionCookie)
+		if err != nil {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+		if everywhere {
+			u, signedIn, err := currentUser(r, svc)
+			if err == nil && signedIn {
+				err = svc.EndAllSessions(r.Context(), u.ID)
+			}
+			if err != nil {
+				renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Não foi possível sair. Tente novamente.")
+				return
+			}
+		} else if err := svc.EndSession(r.Context(), c.Value); err != nil {
+			renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Não foi possível sair. Tente novamente.")
+			return
+		}
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	}
 }

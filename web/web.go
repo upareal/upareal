@@ -1,4 +1,4 @@
-// story: e01s01 e03s01
+// story: e01s01 e03s01 e03s02
 
 // Package web renders all HTML pages and HTMX fragments and wires the HTTP routes.
 package web
@@ -37,6 +37,8 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("GET /{$}", home(d.Users))
 	mux.HandleFunc("GET /auth/login", login(d.Google))
 	mux.HandleFunc("GET /auth/callback", callback(d.Users, d.Google))
+	mux.HandleFunc("POST /auth/logout", logout(d.Users, false))
+	mux.HandleFunc("POST /auth/logout-all", logout(d.Users, true))
 	// CSRF: reject cross-origin unsafe methods (Sec-Fetch-Site / Origin checks).
 	return http.NewCrossOriginProtection().Handler(mux)
 }
