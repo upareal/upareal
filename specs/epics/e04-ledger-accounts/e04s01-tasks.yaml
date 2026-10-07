@@ -10,13 +10,13 @@ tasks:
     description: "Rewrite unmerged ledger migration and queries without groups (user_key, account)"
     verify: "make gen && go build ./... && go test -race ./internal/db/... ./cmd/upareal/..."
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Database"]}
   - id: t2
     description: "EnsureDefaults: data key + system accounts only; idempotent; concurrent-safe"
     verify: "go test -race ./ledger/... -run TestEnsureDefaults"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger", "integration"]}
   - id: t3
     description: "Accounts: decrypted, ordered by type then position, active only; user isolation"

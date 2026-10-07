@@ -39,7 +39,6 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("GET /healthz", healthz(d.DB))
 	mux.Handle("GET /static/", staticHandler())
 	mux.HandleFunc("GET /{$}", home(d.Users))
-	mux.HandleFunc("GET /categorias", categories(d.Users, d.Ledger))
 	mux.Handle("GET /privacidade", templ.Handler(privacyPage()))
 	mux.Handle("GET /termos", templ.Handler(termsPage()))
 	mux.HandleFunc("GET /termos/aceitar", acceptTermsForm(d.Users))

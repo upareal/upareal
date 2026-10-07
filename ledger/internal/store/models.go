@@ -12,20 +12,9 @@ type LedgerAccount struct {
 	ID         string
 	UserID     string
 	Type       string
-	GroupID    sql.NullString
 	Name       []byte
 	Position   int64
 	SystemRole sql.NullString
-	ArchivedAt sql.NullString
-	CreatedAt  string
-}
-
-type LedgerGroup struct {
-	ID         string
-	UserID     string
-	Kind       string
-	Name       []byte
-	Position   int64
 	ArchivedAt sql.NullString
 	CreatedAt  string
 }

@@ -32,9 +32,8 @@ func NewService(conn *sql.DB, kr *vault.Keyring) *Service {
 	return &Service{conn: conn, q: store.New(conn), kr: kr, now: time.Now}
 }
 
-// EnsureDefaults gives userID its ledger data key, the default groups and
-// categories (only if the user has no groups yet) and any missing system
-// accounts. Safe to call on every sign-in; concurrent calls create one set.
+// EnsureDefaults gives userID its ledger data key and any missing system
+// account. Safe to call on every sign-in; concurrent calls create one set.
 func (s *Service) EnsureDefaults(ctx context.Context, userID string) error {
 	if userID == "" {
 		return errors.New("ledger: EnsureDefaults needs a user ID")
@@ -44,76 +43,34 @@ func (s *Service) EnsureDefaults(ctx context.Context, userID string) error {
 		if err != nil {
 			return err
 		}
-		n, err := q.CountGroups(ctx, userID)
+		existing, err := q.ListSystemRoles(ctx, userID)
 		if err != nil {
-			return fmt.Errorf("ledger: count groups: %w", err)
+			return fmt.Errorf("ledger: list system accounts: %w", err)
 		}
-		if n == 0 {
-			if err := s.createDefaultGroups(ctx, q, dk, userID); err != nil {
+		have := map[string]bool{}
+		for _, r := range existing {
+			have[r.String] = true
+		}
+		for _, sa := range systemAccounts {
+			if have[sa.role] {
+				continue
+			}
+			if err := s.insertAccount(ctx, q, dk, userID, sa.accountType, sa.name, 0, sql.NullString{String: sa.role, Valid: true}); err != nil {
 				return err
 			}
 		}
-		return s.createMissingSystemAccounts(ctx, q, dk, userID)
+		return nil
 	})
 }
 
-func (s *Service) createDefaultGroups(ctx context.Context, q *store.Queries, dk *vault.DataKey, userID string) error {
-	for gi, g := range defaultGroups {
-		groupID, err := s.insertGroup(ctx, q, dk, userID, g.kind, g.name, int64(gi))
-		if err != nil {
-			return err
-		}
-		for ci, name := range g.categories {
-			if err := s.insertAccount(ctx, q, dk, userID, g.kind, sql.NullString{String: groupID, Valid: true}, name, int64(ci), sql.NullString{}); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (s *Service) createMissingSystemAccounts(ctx context.Context, q *store.Queries, dk *vault.DataKey, userID string) error {
-	existing, err := q.ListSystemRoles(ctx, userID)
-	if err != nil {
-		return fmt.Errorf("ledger: list system accounts: %w", err)
-	}
-	have := map[string]bool{}
-	for _, r := range existing {
-		have[r.String] = true
-	}
-	for _, sa := range systemAccounts {
-		if have[sa.role] {
-			continue
-		}
-		if err := s.insertAccount(ctx, q, dk, userID, sa.accountType, sql.NullString{}, sa.name, 0, sql.NullString{String: sa.role, Valid: true}); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *Service) insertGroup(ctx context.Context, q *store.Queries, dk *vault.DataKey, userID, kind, name string, position int64) (string, error) {
-	id, sealed, err := newSealedRow(dk, name)
-	if err != nil {
-		return "", err
-	}
-	err = q.CreateGroup(ctx, store.CreateGroupParams{
-		ID: id, UserID: userID, Kind: kind, Name: sealed, Position: position, CreatedAt: stamp(s.now()),
-	})
-	if err != nil {
-		return "", fmt.Errorf("ledger: create group: %w", err)
-	}
-	return id, nil
-}
-
-func (s *Service) insertAccount(ctx context.Context, q *store.Queries, dk *vault.DataKey, userID, accountType string,
-	groupID sql.NullString, name string, position int64, role sql.NullString) error {
+func (s *Service) insertAccount(ctx context.Context, q *store.Queries, dk *vault.DataKey, userID, accountType, name string,
+	position int64, role sql.NullString) error {
 	id, sealed, err := newSealedRow(dk, name)
 	if err != nil {
 		return err
 	}
 	err = q.CreateAccount(ctx, store.CreateAccountParams{
-		ID: id, UserID: userID, Type: accountType, GroupID: groupID, Name: sealed,
+		ID: id, UserID: userID, Type: accountType, Name: sealed,
 		Position: position, SystemRole: role, CreatedAt: stamp(s.now()),
 	})
 	if err != nil {
