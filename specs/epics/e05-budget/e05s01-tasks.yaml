@@ -10,7 +10,7 @@ tasks:
     description: "budget module: schema, sqlc, own data key, EnsureDefaults (idempotent, concurrent-safe); run() migrates budget"
     verify: "go test -race ./budget/... -run TestEnsureDefaults"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Budget", "integration"]}
   - id: t2
     description: "Categories in order, decrypted, active only; user isolation; no plaintext names at rest"
