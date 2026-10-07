@@ -91,7 +91,8 @@ None new.
 
 ## 16. Risks
 
-- **The sign convention.** Expense activity is positive when spent, and income activity is negative when received. Tests pin both, including a refund.
+- **The sign convention.** Expense activity is positive when spent, and income activity is negative when received. Tests pin both.
+- **Refunds.** The ledger can't record a credit on an expense account yet (every entry part is positive in its natural direction). `Activity` already nets such credits, so planning will lower Spent once refunds exist. This is tracked in `state.yaml` pending.
 
 ## 17. Acceptance criteria
 

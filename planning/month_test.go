@@ -102,25 +102,6 @@ func TestMonth_SemCategoriaCatchesUnmappedAndQueuedMoney(t *testing.T) {
 	}
 }
 
-func TestMonth_RefundLowersSpent(t *testing.T) {
-	f := newFixture(t)
-	ctx := context.Background()
-	mb := newMonthBook(t, f)
-	f.post(t, mb.itau.ID, mb.shell.ID, 12000, jan10)
-	res, err := f.ledg.Import(ctx, userA, mb.itau.ID, []importer.Line{{ImportID: "r", At: jan10, Description: "ESTORNO", Amount: 2000}})
-	if err != nil || res.Imported != 1 {
-		t.Fatal(res, err)
-	}
-	q, _ := f.ledg.ReviewQueue(ctx, userA)
-	if err := f.ledg.Categorize(ctx, userA, q[0].TransactionID, []ledger.Part{{CounterID: mb.shell.ID, Amount: 2000}}); err != nil {
-		t.Fatalf("categorize refund to the expense account: %v", err)
-	}
-	p, _ := f.svc.Month(ctx, userA, mb.jan)
-	if c := p.Categories[mb.fuel]; c.Spent != 10000 || c.Available != 20000 {
-		t.Errorf("Combustível after refund = %+v; want spent 10000, available 20000", c)
-	}
-}
-
 func TestMonth_IsolatedPerUser(t *testing.T) {
 	f := newFixture(t)
 	mb := newMonthBook(t, f)

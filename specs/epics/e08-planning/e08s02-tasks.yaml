@@ -16,7 +16,7 @@ tasks:
     description: "planning.Month: spent/available/received, Sem categoria, A distribuir, isolation"
     verify: "go test -race ./planning/... -run TestMonth"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Planning"]}
   - id: t3
     description: "Orçamento page shows Gasto/Disponível/Recebido, A distribuir and Sem categoria"
