@@ -47,3 +47,29 @@ func TestReviewCategorize_OpeningBalanceKeepsItsHint(t *testing.T) {
 		t.Error("opening balance must keep the Ajustar saldo hint and no Categorizar form")
 	}
 }
+
+func TestReviewQuickAssign_WholeAmountToOneAccount(t *testing.T) {
+	b := newBrowser(t)
+	signIn(t, b)
+	itau, mercado, _ := splitBook(t, b)
+	uploadCSV(t, b, itau, goodCSV)
+	_, queue := b.get(t, "/revisao")
+	link := txLink(t, queue, "SUPERMERCADO X")
+	txID := strings.TrimPrefix(strings.Split(link, "?")[0], "/lancamentos/")
+	if !strings.Contains(queue, `action="/revisao/`+txID+`"`) {
+		t.Fatal("review queue has no quick-assign form for the line")
+	}
+
+	res, body := b.postForm(t, "/revisao/"+txID, url.Values{"contra": {mercado}})
+	if res.Request.URL.Path != "/revisao" || strings.Contains(body, "SUPERMERCADO X") {
+		t.Errorf("after quick assign ended at %s; the line must leave the queue", res.Request.URL)
+	}
+	if _, contas := b.get(t, "/contas"); !strings.Contains(contas, "Mercado") {
+		t.Error("Mercado not listed")
+	}
+	salario := txLink(t, body, "SALARIO ACME")
+	salID := strings.TrimPrefix(strings.Split(salario, "?")[0], "/lancamentos/")
+	if res, _ := b.postForm(t, "/revisao/"+salID, url.Values{"contra": {mercado}}); res.StatusCode != http.StatusBadRequest {
+		t.Errorf("income line assigned to an expense account = %d, want 400", res.StatusCode)
+	}
+}
