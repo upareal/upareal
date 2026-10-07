@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e06s05 all tasks passing; awaiting user UAT (spec §19); then e06 done
+  next_skill: plan-work
+  note: e06 done and merged; plan e07s01 (generic CSV import into review queue)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -19,12 +19,12 @@ environment:
   smoke: no Go packages yet; first lint/test smoke runs in e01
 pending:
 - Replace provisional legal text in /privacidade and /termos (web) and bump web.CurrentTermsVersion
-active_epic: e06
+active_epic: e07
 git:
-  branch: feat/e06-transactions
+  branch: feat/e07-imports
   worktree: null
-  base: main@593e7b8
-active_story: e06s05
+  base: main@d770bd1
+active_story: e07s01
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'
