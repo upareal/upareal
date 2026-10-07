@@ -1,0 +1,50 @@
+// story: e06s05
+package web
+
+templ searchPage(v searchView, errMsg string) {
+	@layout("Buscar — upareal") {
+		<p><a href="/">← Início</a></p>
+		<h1>Buscar lançamentos</h1>
+		if errMsg != "" {
+			<p class="error" role="alert">{ errMsg }</p>
+		}
+		<form method="get" action="/buscar">
+			<label>De <input type="date" name="de" value={ v.From } required/></label>
+			<label>Até <input type="date" name="ate" value={ v.To } required/></label>
+			<label>
+				Conta
+				<select name="conta">
+					<option value="">Todas</option>
+					for _, a := range v.Accounts {
+						<option value={ a.ID } selected?={ a.ID == v.Account }>{ a.Name }</option>
+					}
+				</select>
+			</label>
+			<label>Valor mínimo <input name="min" value={ v.Min } inputmode="decimal" placeholder="0,00"/></label>
+			<label>Valor máximo <input name="max" value={ v.Max } inputmode="decimal" placeholder="0,00"/></label>
+			<label>Texto <input name="texto" value={ v.Text } placeholder="descrição ou conta"/></label>
+			<button type="submit">Buscar</button>
+		</form>
+		if v.Summary != "" {
+			<p class="totals">{ v.Summary }</p>
+		}
+		if v.Truncated {
+			<p class="hint">Mostrando 500 resultados; refine a busca.</p>
+		}
+		if len(v.Results) > 0 {
+			<table class="register">
+				<thead><tr><th>Quando</th><th>Descrição</th><th>Contas</th><th>Valor</th></tr></thead>
+				<tbody>
+					for _, res := range v.Results {
+						<tr>
+							<td>{ res.When }</td>
+							<td><a href={ templ.SafeURL(res.Link) }>{ res.Description }</a></td>
+							<td>{ res.Accounts }</td>
+							<td class="num">{ res.Amount }</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		}
+	}
+}
