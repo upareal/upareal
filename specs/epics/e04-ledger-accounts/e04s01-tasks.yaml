@@ -1,7 +1,7 @@
 story_id: e04s01
 title: "Ledger system accounts on sign-up"
 spec: e04s01-system-accounts.md
-status: failing
+status: passing
 bcps: 3
 risk: P0
 outcome: First sign-in creates the ledger data key and three hidden system accounts; repeated sign-ins change nothing.
@@ -40,5 +40,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}

@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: develop-tdd
-  note: domain split done; e04s01 re-planned (ledger system accounts only); rework code
+  next_skill: verify-work
+  note: reworked e04s01 all tasks passing; awaiting user UAT (spec §19); delete /tmp/upareal.db* first
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
