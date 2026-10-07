@@ -1,8 +1,9 @@
-# story: e01s01
+# story: e01s01 e03s01
 .PHONY: gen run build test lint preflight
 
 gen:
 	go tool templ generate
+	go tool sqlc generate
 
 run: gen
 	go run ./cmd/upareal
@@ -16,9 +17,9 @@ test:
 lint:
 	golangci-lint run
 
-# Generated code must be committed: fail if gen changed or added *_templ.go files.
+# Generated code must be committed: fail if gen changed or added templ or sqlc output.
 preflight: gen
-	@if [ -n "$$(git status --porcelain -- '*_templ.go')" ]; then \
-		echo "preflight: generated templ code is stale or uncommitted:"; \
-		git status --porcelain -- '*_templ.go'; exit 1; fi
+	@if [ -n "$$(git status --porcelain -- '*_templ.go' '*/internal/store/*')" ]; then \
+		echo "preflight: generated code is stale or uncommitted:"; \
+		git status --porcelain -- '*_templ.go' '*/internal/store/*'; exit 1; fi
 	$(MAKE) lint test build

@@ -22,7 +22,7 @@ tasks:
     description: "users schema (users_user, users_session) + sqlc queries + sqlc.yaml; pin sqlc tool; make gen runs sqlc"
     verify: "make gen && go build ./users/..."
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Database"]}
   - id: t3
     description: "internal/oidctest fake OIDC provider: discovery, JWKS, authorize, token with configurable claims"

@@ -1,0 +1,11 @@
+# story: e03s01
+# One entry per module; generated code stays private to the module (internal/store).
+version: "2"
+sql:
+  - engine: sqlite
+    schema: users/migrations
+    queries: users/queries
+    gen:
+      go:
+        package: store
+        out: users/internal/store
