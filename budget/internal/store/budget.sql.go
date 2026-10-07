@@ -86,6 +86,36 @@ func (q *Queries) CreateUserKey(ctx context.Context, arg CreateUserKeyParams) er
 	return err
 }
 
+const getCategory = `-- name: GetCategory :one
+SELECT c.id, c.group_id, c.position, g.kind FROM budget_category c
+JOIN budget_group g ON g.id = c.group_id
+WHERE c.id = ? AND c.user_id = ? AND c.archived_at IS NULL
+`
+
+type GetCategoryParams struct {
+	ID     string
+	UserID string
+}
+
+type GetCategoryRow struct {
+	ID       string
+	GroupID  string
+	Position int64
+	Kind     string
+}
+
+func (q *Queries) GetCategory(ctx context.Context, arg GetCategoryParams) (GetCategoryRow, error) {
+	row := q.db.QueryRowContext(ctx, getCategory, arg.ID, arg.UserID)
+	var i GetCategoryRow
+	err := row.Scan(
+		&i.ID,
+		&i.GroupID,
+		&i.Position,
+		&i.Kind,
+	)
+	return i, err
+}
+
 const getGroup = `-- name: GetGroup :one
 SELECT id, kind, position FROM budget_group WHERE id = ? AND user_id = ? AND archived_at IS NULL
 `
@@ -168,6 +198,45 @@ func (q *Queries) ListActiveCategories(ctx context.Context, userID string) ([]Li
 	return items, nil
 }
 
+const nextCategory = `-- name: NextCategory :one
+SELECT id, position FROM budget_category
+WHERE user_id = ? AND group_id = ? AND archived_at IS NULL AND position > ? ORDER BY position ASC LIMIT 1
+`
+
+type NextCategoryParams struct {
+	UserID   string
+	GroupID  string
+	Position int64
+}
+
+type NextCategoryRow struct {
+	ID       string
+	Position int64
+}
+
+func (q *Queries) NextCategory(ctx context.Context, arg NextCategoryParams) (NextCategoryRow, error) {
+	row := q.db.QueryRowContext(ctx, nextCategory, arg.UserID, arg.GroupID, arg.Position)
+	var i NextCategoryRow
+	err := row.Scan(&i.ID, &i.Position)
+	return i, err
+}
+
+const nextCategoryPosition = `-- name: NextCategoryPosition :one
+SELECT CAST(COALESCE(MAX(position), -1) + 1 AS INTEGER) FROM budget_category WHERE user_id = ? AND group_id = ?
+`
+
+type NextCategoryPositionParams struct {
+	UserID  string
+	GroupID string
+}
+
+func (q *Queries) NextCategoryPosition(ctx context.Context, arg NextCategoryPositionParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, nextCategoryPosition, arg.UserID, arg.GroupID)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const nextGroup = `-- name: NextGroup :one
 SELECT id, position FROM budget_group
 WHERE user_id = ? AND archived_at IS NULL AND position > ? ORDER BY position ASC LIMIT 1
@@ -201,6 +270,29 @@ func (q *Queries) NextGroupPosition(ctx context.Context, userID string) (int64, 
 	return column_1, err
 }
 
+const previousCategory = `-- name: PreviousCategory :one
+SELECT id, position FROM budget_category
+WHERE user_id = ? AND group_id = ? AND archived_at IS NULL AND position < ? ORDER BY position DESC LIMIT 1
+`
+
+type PreviousCategoryParams struct {
+	UserID   string
+	GroupID  string
+	Position int64
+}
+
+type PreviousCategoryRow struct {
+	ID       string
+	Position int64
+}
+
+func (q *Queries) PreviousCategory(ctx context.Context, arg PreviousCategoryParams) (PreviousCategoryRow, error) {
+	row := q.db.QueryRowContext(ctx, previousCategory, arg.UserID, arg.GroupID, arg.Position)
+	var i PreviousCategoryRow
+	err := row.Scan(&i.ID, &i.Position)
+	return i, err
+}
+
 const previousGroup = `-- name: PreviousGroup :one
 SELECT id, position FROM budget_group
 WHERE user_id = ? AND archived_at IS NULL AND position < ? ORDER BY position DESC LIMIT 1
@@ -223,6 +315,21 @@ func (q *Queries) PreviousGroup(ctx context.Context, arg PreviousGroupParams) (P
 	return i, err
 }
 
+const renameCategory = `-- name: RenameCategory :exec
+UPDATE budget_category SET name = ? WHERE id = ? AND user_id = ?
+`
+
+type RenameCategoryParams struct {
+	Name   []byte
+	ID     string
+	UserID string
+}
+
+func (q *Queries) RenameCategory(ctx context.Context, arg RenameCategoryParams) error {
+	_, err := q.db.ExecContext(ctx, renameCategory, arg.Name, arg.ID, arg.UserID)
+	return err
+}
+
 const renameGroup = `-- name: RenameGroup :exec
 UPDATE budget_group SET name = ? WHERE id = ? AND user_id = ?
 `
@@ -235,6 +342,42 @@ type RenameGroupParams struct {
 
 func (q *Queries) RenameGroup(ctx context.Context, arg RenameGroupParams) error {
 	_, err := q.db.ExecContext(ctx, renameGroup, arg.Name, arg.ID, arg.UserID)
+	return err
+}
+
+const setCategoryGroup = `-- name: SetCategoryGroup :exec
+UPDATE budget_category SET group_id = ?, position = ? WHERE id = ? AND user_id = ?
+`
+
+type SetCategoryGroupParams struct {
+	GroupID  string
+	Position int64
+	ID       string
+	UserID   string
+}
+
+func (q *Queries) SetCategoryGroup(ctx context.Context, arg SetCategoryGroupParams) error {
+	_, err := q.db.ExecContext(ctx, setCategoryGroup,
+		arg.GroupID,
+		arg.Position,
+		arg.ID,
+		arg.UserID,
+	)
+	return err
+}
+
+const setCategoryPosition = `-- name: SetCategoryPosition :exec
+UPDATE budget_category SET position = ? WHERE id = ? AND user_id = ?
+`
+
+type SetCategoryPositionParams struct {
+	Position int64
+	ID       string
+	UserID   string
+}
+
+func (q *Queries) SetCategoryPosition(ctx context.Context, arg SetCategoryPositionParams) error {
+	_, err := q.db.ExecContext(ctx, setCategoryPosition, arg.Position, arg.ID, arg.UserID)
 	return err
 }
 

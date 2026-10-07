@@ -16,7 +16,7 @@ tasks:
     description: "Categories: CreateCategory, RenameCategory, MoveCategory, SetCategoryGroup (same kind only, B2)"
     verify: "go test -race ./budget/... -run 'TestCategoryCRUD|TestReorder'"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Budget"]}
   - id: t3
     description: "Web: add forms and arrows on /categorias; group and category edit pages"

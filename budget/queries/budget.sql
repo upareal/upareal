@@ -43,3 +43,28 @@ WHERE user_id = ? AND archived_at IS NULL AND position > ? ORDER BY position ASC
 
 -- name: SetGroupPosition :exec
 UPDATE budget_group SET position = ? WHERE id = ? AND user_id = ?;
+
+-- name: GetCategory :one
+SELECT c.id, c.group_id, c.position, g.kind FROM budget_category c
+JOIN budget_group g ON g.id = c.group_id
+WHERE c.id = ? AND c.user_id = ? AND c.archived_at IS NULL;
+
+-- name: NextCategoryPosition :one
+SELECT CAST(COALESCE(MAX(position), -1) + 1 AS INTEGER) FROM budget_category WHERE user_id = ? AND group_id = ?;
+
+-- name: RenameCategory :exec
+UPDATE budget_category SET name = ? WHERE id = ? AND user_id = ?;
+
+-- name: SetCategoryGroup :exec
+UPDATE budget_category SET group_id = ?, position = ? WHERE id = ? AND user_id = ?;
+
+-- name: PreviousCategory :one
+SELECT id, position FROM budget_category
+WHERE user_id = ? AND group_id = ? AND archived_at IS NULL AND position < ? ORDER BY position DESC LIMIT 1;
+
+-- name: NextCategory :one
+SELECT id, position FROM budget_category
+WHERE user_id = ? AND group_id = ? AND archived_at IS NULL AND position > ? ORDER BY position ASC LIMIT 1;
+
+-- name: SetCategoryPosition :exec
+UPDATE budget_category SET position = ? WHERE id = ? AND user_id = ?;
