@@ -1,7 +1,7 @@
 story_id: e08s01
 title: "Map ledger accounts to budget categories"
 spec: e08s01-map-accounts.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: A user maps each income/expense account to at most one category of the same kind (P1, P2); unmapped accounts show as Sem categoria (P3, X1).
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
