@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: plan-work
-  note: e05 done and merged; plan e06s01 (record a simple expense or income)
+  next_skill: develop-tdd
+  note: e06s01 planned (5 tasks)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)

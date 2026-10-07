@@ -1,19 +1,38 @@
 story_id: e06s01
-title: Record a simple expense or income
-status: todo
+title: "Record a simple expense or income"
+spec: e06s01-simple-entry.md
+status: failing
 bcps: 5
-outcome: A user records a dated purchase or income against an income or expense account; the account list shows it with a running balance.
-note: "Before storing descriptions, re-check the deferred row-level AAD binding (planning-context out_of_scope.later). Adding it after data exists needs a migration."
+risk: P0
+outcome: A user records an expense or income against an income/expense account; the account register shows it by São Paulo month with a running balance.
 tasks:
-- id: t1
-  description: 'Form: account, income/expense account, amount, date/time (UTC stored, Sao Paulo shown), encrypted description'
-  verify: go test -race ./ledger/... ./web/... -run TestRecordTransaction
-  status: todo
-- id: t2
-  description: Account register with running balance, Sao Paulo dates
-  verify: go test -race ./web/... -run TestAccountRegister
-  status: todo
-- id: t3
-  description: 'Month boundary: 22:30 on the last day in Sao Paulo belongs to that month'
-  verify: go test -race ./internal/... -run TestMonthInSaoPaulo
-  status: todo
+  - id: t1
+    description: "ledger.RecordSimple: account asset/liability, counter income/expense, amount > 0, description <= 200 (sealed)"
+    verify: "go test -race ./ledger/... -run TestRecordSimple"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger"]}
+  - id: t2
+    description: "ledger.Register: [from,to) range, time order, running balance from prior balance, counterpart names, isolation"
+    verify: "go test -race ./ledger/... -run TestRegister"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger", "Security Review"]}
+  - id: t3
+    description: "Web: /contas/{id}/lancamentos register by month + new entry form; São Paulo month boundary"
+    verify: "go test -race ./web/... -run 'TestRecordTransaction|TestAccountRegister|TestMonthInSaoPaulo'"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t4
+    description: "Proof: descriptions not stored in plaintext"
+    verify: "go test -race ./ledger/... -run TestLedgerHasNoPlaintext"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Security Review"]}
+  - id: t5
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
