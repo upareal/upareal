@@ -64,3 +64,81 @@ func TestTransactionRead_NotFoundForUnknownOrForeign(t *testing.T) {
 		t.Errorf("user B reading user A's transaction = %v, want ErrTransactionNotFound", err)
 	}
 }
+
+func TestEditKeepsHistory_EntryAmountAndCounter(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	b := newBook(t, f)
+	casa := create(t, f, ledger.NewAccount{Name: "Casa", Type: "expense"})
+	id := expense(t, f, b, 15000, "Gasolina")
+
+	err := f.svc.EditEntry(ctx, userA, id, ledger.SplitEntry{AccountID: b.itau.ID, Total: 12000, At: jan10, Description: "Gasolina corrigida",
+		Parts: []ledger.Part{{CounterID: casa.ID, Amount: 12000}}})
+	if err != nil {
+		t.Fatalf("EditEntry: %v", err)
+	}
+	if balance(t, f, b.itau.ID) != 88000 || balance(t, f, b.shell.ID) != 0 || balance(t, f, casa.ID) != 12000 {
+		t.Errorf("after edit: Itaú %d, Shell %d, Casa %d; want 88000, 0, 12000",
+			balance(t, f, b.itau.ID), balance(t, f, b.shell.ID), balance(t, f, casa.ID))
+	}
+	tx, _ := f.svc.Transaction(ctx, userA, id)
+	if tx.Description != "Gasolina corrigida" {
+		t.Errorf("description = %q, want updated", tx.Description)
+	}
+	h, err := f.svc.History(ctx, userA, id)
+	if err != nil || len(h) != 1 || h[0].Action != "edit" || h[0].Previous.Description != "Gasolina" || legOf(h[0].Previous, b.shell.ID).Amount != 15000 {
+		t.Errorf("history = %+v, %v; want one edit with the previous Gasolina R$ 150,00", h, err)
+	}
+}
+
+func TestEditKeepsHistory_Transfer(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	b := newBook(t, f)
+	savings := create(t, f, ledger.NewAccount{Name: "Poupança", Type: "asset"})
+	id, err := f.svc.Transfer(ctx, userA, ledger.TransferEntry{FromID: b.itau.ID, ToID: b.nubank.ID, Amount: 10000, At: jan10})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := f.svc.EditTransfer(ctx, userA, id, ledger.TransferEntry{FromID: b.itau.ID, ToID: savings.ID, Amount: 7000, At: jan10}); err != nil {
+		t.Fatalf("EditTransfer: %v", err)
+	}
+	if balance(t, f, b.nubank.ID) != 0 || balance(t, f, savings.ID) != 7000 || balance(t, f, b.itau.ID) != 93000 {
+		t.Errorf("after transfer edit: Nubank %d, Poupança %d, Itaú %d; want 0, 7000, 93000",
+			balance(t, f, b.nubank.ID), balance(t, f, savings.ID), balance(t, f, b.itau.ID))
+	}
+}
+
+func TestEditKeepsHistory_InvalidEditChangesNothing(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	b := newBook(t, f)
+	id := expense(t, f, b, 15000, "Gasolina")
+	bad := ledger.SplitEntry{AccountID: b.itau.ID, Total: 12000, At: jan10, Parts: []ledger.Part{{CounterID: b.shell.ID, Amount: 11000}}}
+	if err := f.svc.EditEntry(ctx, userA, id, bad); !errors.Is(err, ledger.ErrSplitMismatch) {
+		t.Errorf("unbalanced edit = %v, want ErrSplitMismatch", err)
+	}
+	if balance(t, f, b.shell.ID) != 15000 {
+		t.Error("an invalid edit changed the balance")
+	}
+	if h, _ := f.svc.History(ctx, userA, id); len(h) != 0 {
+		t.Errorf("an invalid edit wrote %d history rows, want 0", len(h))
+	}
+}
+
+func TestEditKeepsHistory_SystemAndForeignNotEditable(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	b := newBook(t, f)
+	// Itaú's opening balance touches Saldo inicial.
+	lines, _ := f.svc.Register(ctx, userA, b.itau.ID, jan10.AddDate(0, 0, -1), jan10.AddDate(0, 0, 1))
+	opening := lines[0].TransactionID
+	if err := f.svc.EditEntry(ctx, userA, opening, ledger.SplitEntry{AccountID: b.itau.ID, Total: 1, At: jan10, Parts: []ledger.Part{{CounterID: b.shell.ID, Amount: 1}}}); !errors.Is(err, ledger.ErrNotEditable) {
+		t.Errorf("editing the opening balance = %v, want ErrNotEditable", err)
+	}
+	id := expense(t, f, b, 100, "")
+	_ = f.svc.EnsureDefaults(ctx, userB)
+	if err := f.svc.EditEntry(ctx, userB, id, ledger.SplitEntry{AccountID: b.itau.ID, Total: 1, At: jan10, Parts: []ledger.Part{{CounterID: b.shell.ID, Amount: 1}}}); !errors.Is(err, ledger.ErrTransactionNotFound) {
+		t.Errorf("user B editing user A's transaction = %v, want ErrTransactionNotFound", err)
+	}
+}
