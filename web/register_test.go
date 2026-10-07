@@ -74,3 +74,18 @@ func TestAccountRegister_CardInvalidInputAndLinks(t *testing.T) {
 		t.Error("accounts page has no link to the register")
 	}
 }
+
+// UAT feedback: with no expense or income accounts yet, the form cannot be used;
+// the page must say so and point to Contas.
+func TestAccountRegister_EmptyPickerExplainsWhatToDo(t *testing.T) {
+	b := newBrowser(t)
+	signIn(t, b)
+	_, body := createAccount(t, b, url.Values{"nome": {"Itaú"}, "tipo": {"asset"}})
+	_, page := b.get(t, "/contas/"+accountID(t, body, "Itaú")+"/lancamentos")
+	if !strings.Contains(page, "Crie uma conta de Despesa ou Receita") || !strings.Contains(page, `href="/contas#nova-conta"`) {
+		t.Error("empty picker: no hint pointing to Contas")
+	}
+	if strings.Contains(page, `name="contra"`) {
+		t.Error("empty picker: the unusable entry form is still shown")
+	}
+}
