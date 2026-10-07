@@ -50,26 +50,30 @@ func (f fixture) count(t *testing.T, query string, args ...any) int {
 
 const userA = "0196a000-0000-7000-8000-00000000000a"
 
-// Default set from ledger/defaults.go: 10 groups, 37 categories, 3 system accounts.
-const (
-	wantGroups     = 10
-	wantCategories = 37
-	wantSystem     = 3
-)
+// System accounts from ledger/defaults.go: Saldo inicial, A categorizar (income), A categorizar (expense).
+const wantSystem = 3
 
 func (f fixture) assertOneDefaultSet(t *testing.T, userID string) {
 	t.Helper()
-	if n := f.count(t, `SELECT count(*) FROM ledger_group WHERE user_id = ?`, userID); n != wantGroups {
-		t.Errorf("groups = %d, want %d", n, wantGroups)
+	if n := f.count(t, `SELECT count(*) FROM ledger_account WHERE user_id = ?`, userID); n != wantSystem {
+		t.Errorf("accounts = %d, want only the %d system accounts", n, wantSystem)
 	}
-	if n := f.count(t, `SELECT count(*) FROM ledger_account WHERE user_id = ? AND group_id IS NOT NULL`, userID); n != wantCategories {
-		t.Errorf("categories = %d, want %d", n, wantCategories)
-	}
-	if n := f.count(t, `SELECT count(*) FROM ledger_account WHERE user_id = ? AND system_role IS NOT NULL`, userID); n != wantSystem {
-		t.Errorf("system accounts = %d, want %d", n, wantSystem)
+	if n := f.count(t, `SELECT count(DISTINCT system_role) FROM ledger_account WHERE user_id = ?`, userID); n != wantSystem {
+		t.Errorf("distinct system roles = %d, want %d", n, wantSystem)
 	}
 	if n := f.count(t, `SELECT count(*) FROM ledger_user_key WHERE user_id = ?`, userID); n != 1 {
 		t.Errorf("ledger data keys = %d, want 1", n)
+	}
+}
+
+// The ledger holds money movement only: categories live in the budget module.
+func TestEnsureDefaults_LedgerHasNoCategories(t *testing.T) {
+	f := newFixture(t)
+	if n := f.count(t, `SELECT count(*) FROM sqlite_master WHERE name = 'ledger_group'`); n != 0 {
+		t.Error("ledger_group table exists; groups and categories belong to the budget module")
+	}
+	if n := f.count(t, `SELECT count(*) FROM pragma_table_info('ledger_account') WHERE name = 'group_id'`); n != 0 {
+		t.Error("ledger_account.group_id exists; categories belong to the budget module")
 	}
 }
 
