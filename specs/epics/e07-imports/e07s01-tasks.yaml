@@ -1,7 +1,7 @@
 story_id: e07s01
 title: "Generic CSV import into the review queue"
 spec: e07s01-generic-csv-import.md
-status: failing
+status: passing
 bcps: 8
 risk: P0
 outcome: A user uploads the positional CSV (id;data;hora;descricao;valor;conta) to an account; lines land in the review queue against A categorizar; re-importing adds nothing.
@@ -40,5 +40,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
