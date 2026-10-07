@@ -98,3 +98,42 @@ func TestSearchFilters_IsolationAndValidation(t *testing.T) {
 		}
 	}
 }
+
+func TestSearchText_AccentAndCaseInsensitive(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	searchBook(t, f)
+	for text, want := range map[string][]string{
+		"agua":        {"Conta de Água"},
+		"ÁGUA":        {"Conta de Água"},
+		"conta de":    {"Conta de Água"},
+		"posto shell": {"Conta de Água", "Gasolina"}, // matches the account name too
+		"salario":     {"Salário fevereiro"},
+		"apagada":     nil, // deleted never appear
+		"inexistente": nil,
+	} {
+		got, _, err := f.svc.Search(ctx, userA, ledger.SearchQuery{From: feb1, To: mar1, Text: text})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if d := descriptions(got); len(d) != len(want) || (len(want) > 0 && d[0] != want[0]) {
+			t.Errorf("text %q = %v, want %v", text, d, want)
+		}
+	}
+}
+
+func TestSearchText_CapsAt500(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	b := newBook(t, f)
+	for i := range 501 {
+		if _, err := f.svc.RecordSimple(ctx, userA, ledger.SimpleEntry{AccountID: b.itau.ID, CounterID: b.shell.ID, Amount: 1,
+			At: feb1.Add(time.Duration(i) * time.Minute), Description: "Café"}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got, truncated, err := f.svc.Search(ctx, userA, ledger.SearchQuery{From: feb1, To: mar1, Text: "cafe"})
+	if err != nil || len(got) != 500 || !truncated {
+		t.Errorf("501 matches = %d results, truncated %v, %v; want 500, true", len(got), truncated, err)
+	}
+}
