@@ -52,6 +52,8 @@ domain:
   import:
     - "bank stored on each account; one parser per supported bank (best format the bank offers) behind a small Parser interface"
     - "generic CSV fallback with documented column order, formats and example file"
+    - "generic CSV format: UTF-8, ';' separator, header row required but ignored; columns by position: id;data;hora;descricao;valor;conta"
+    - "id = row id (dedupe per account); data = dd/mm/aaaa; hora = hh:mm or empty (00:00 Sao Paulo); valor = pt-BR decimal, negative = money left the account; conta = optional free text kept encrypted for future auto-categorization, never matched to accounts; trailing empty conta column may be omitted"
     - "all parsers return the same Line (import id, time, description, amount in centavos)"
     - "imported lines go to a review queue with second leg on Uncategorized income/expense"
     - "dedupe by OFX FITID or CSV row id, per account"
@@ -242,3 +244,5 @@ key_decisions:
     rationale: "matches every example agreed during elaboration (e.g. Mercado +15000 | Conta corrente -15000; Cartao -20000 on purchase); one sign rule for all sums"
   - decision: "liability accounts carry is_card; cards are always on-budget, loans choose; asset accounts choose on_budget"
     rationale: "planning (e08s04) needs to know which liabilities get card payment envelopes"
+  - decision: "generic CSV is positional (id;data;hora;descricao;valor;conta); the header is required but ignored; columns in the wrong order are not corrected"
+    rationale: "simple contract; the optional conta text is stored encrypted for future auto-categorization"
