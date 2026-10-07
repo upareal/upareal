@@ -16,7 +16,7 @@ tasks:
     description: "planning.Month: carry-over, cumulative A distribuir with Saldo inicial and Sem categoria spending; identity test"
     verify: "go test -race ./planning/... -run 'TestMonth|TestCarry'"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Planning"]}
   - id: t3
     description: "Orçamento shows Do mês anterior per expense row (red when negative)"
