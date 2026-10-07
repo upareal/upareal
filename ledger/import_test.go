@@ -85,3 +85,39 @@ func TestImportDedupe_AllOrNothingAndGuards(t *testing.T) {
 		t.Errorf("user B importing into user A's account = %v, want ErrAccountNotFound", err)
 	}
 }
+
+func TestReviewQueue_OnlyUncategorizedNewestFirst(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	b := newBook(t, f)
+	if _, err := f.svc.Import(ctx, userA, b.itau.ID, statement()); err != nil {
+		t.Fatal(err)
+	}
+	expense(t, f, b, 500, "Manual, já categorizado") // not in the queue
+
+	q, err := f.svc.ReviewQueue(ctx, userA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(q) != 2 {
+		t.Fatalf("queue = %+v, want only the 2 imported lines", q)
+	}
+	first, second := q[0], q[1]
+	if first.Description != "SALARIO ACME" || first.Amount != 800000 || first.AccountName != "Itaú" || first.Conta != "" {
+		t.Errorf("first = %+v, want SALARIO ACME +800000 on Itaú (newest first)", first)
+	}
+	if second.Description != "SUPERMERCADO X" || second.Amount != -15000 || second.Conta != "Cartão final 1234" {
+		t.Errorf("second = %+v, want SUPERMERCADO X -15000 with conta text", second)
+	}
+}
+
+func TestReviewQueue_IsolatedPerUser(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	b := newBook(t, f)
+	_, _ = f.svc.Import(ctx, userA, b.itau.ID, statement())
+	_ = f.svc.EnsureDefaults(ctx, userB)
+	if q, err := f.svc.ReviewQueue(ctx, userB); err != nil || len(q) != 0 {
+		t.Errorf("user B queue = %+v, %v; want empty", q, err)
+	}
+}
