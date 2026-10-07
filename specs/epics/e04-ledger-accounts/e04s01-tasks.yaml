@@ -28,7 +28,7 @@ tasks:
     description: "Web: callback keeps EnsureDefaults; /categorias and home link removed until e05s01"
     verify: "go test -race ./web/... -run 'TestGoogleSignIn|TestSystemAccountsOnSignIn'"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["integration"]}
   - id: t5
     description: "Proof: database copy holds no plaintext system account names"

@@ -25,6 +25,7 @@ type testApp struct {
 	handler http.Handler
 	conn    *sql.DB
 	fake    *oidctest.Provider
+	ledger  *ledger.Service
 }
 
 // newTestApp builds the app as if served at baseURL (used for the OAuth redirect).
@@ -52,8 +53,9 @@ func newTestApp(t *testing.T, baseURL string) testApp {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h := web.NewHandler(web.Deps{DB: conn, Users: users.NewService(conn, kr), Ledger: ledger.NewService(conn, kr), Google: google})
-	return testApp{handler: h, conn: conn, fake: fake}
+	ledg := ledger.NewService(conn, kr)
+	h := web.NewHandler(web.Deps{DB: conn, Users: users.NewService(conn, kr), Ledger: ledg, Google: google})
+	return testApp{handler: h, conn: conn, fake: fake, ledger: ledg}
 }
 
 // newHandler is the app handler for tests that do not sign in.
