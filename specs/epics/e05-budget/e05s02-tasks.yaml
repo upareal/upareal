@@ -22,7 +22,7 @@ tasks:
     description: "Web: add forms and arrows on /categorias; group and category edit pages"
     verify: "go test -race ./web/... -run TestOrganizeCategories"
     risk: P2
-    status: failing
+    status: passing
     allure: {severity: normal, categories: ["UI", "integration"]}
   - id: t4
     description: "Full local gate green"

@@ -1,21 +1,88 @@
-// story: e05s01
+// story: e05s01 e05s02
 package web
 
 import "github.com/upareal/upareal/budget"
 
-templ categoriesPage(groups []budget.Group) {
+templ categoriesPage(groups []budget.Group, errMsg string) {
 	@layout("Categorias — upareal") {
 		<p><a href="/">← Início</a></p>
 		<h1>Categorias</h1>
+		if errMsg != "" {
+			<p class="error" role="alert">{ errMsg }</p>
+		}
 		for _, g := range groups {
 			<section class="group">
-				<h2>{ g.Name }</h2>
+				<h2>
+					<a href={ templ.SafeURL("/grupos/" + g.ID) }>{ g.Name }</a>
+					<form method="post" action={ templ.SafeURL("/grupos/" + g.ID + "/mover?dir=up") } class="move"><button type="submit" aria-label="Mover grupo para cima">↑</button></form>
+					<form method="post" action={ templ.SafeURL("/grupos/" + g.ID + "/mover?dir=down") } class="move"><button type="submit" aria-label="Mover grupo para baixo">↓</button></form>
+				</h2>
 				<ul>
 					for _, c := range g.Categories {
-						<li>{ c.Name }</li>
+						<li>
+							<a href={ templ.SafeURL("/categorias/" + c.ID) }>{ c.Name }</a>
+							<form method="post" action={ templ.SafeURL("/categorias/" + c.ID + "/mover?dir=up") } class="move"><button type="submit" aria-label="Mover para cima">↑</button></form>
+							<form method="post" action={ templ.SafeURL("/categorias/" + c.ID + "/mover?dir=down") } class="move"><button type="submit" aria-label="Mover para baixo">↓</button></form>
+						</li>
 					}
 				</ul>
+				<form method="post" action="/categorias" class="inline">
+					<input type="hidden" name="grupo" value={ g.ID }/>
+					<label>Nova categoria <input name="nome" maxlength="100" required/></label>
+					<button type="submit">Adicionar</button>
+				</form>
 			</section>
 		}
+		<section>
+			<h2>Novo grupo</h2>
+			<form method="post" action="/grupos" class="inline">
+				<label>Nome <input name="nome" maxlength="100" required/></label>
+				<label>
+					Tipo
+					<select name="tipo">
+						<option value="expense">Despesas</option>
+						<option value="income">Receitas</option>
+					</select>
+				</label>
+				<button type="submit">Criar grupo</button>
+			</form>
+		</section>
+	}
+}
+
+templ groupEditPage(g budget.Group, errMsg string) {
+	@layout("Editar grupo — upareal") {
+		<p><a href="/categorias">← Categorias</a></p>
+		<h1>Editar grupo</h1>
+		if errMsg != "" {
+			<p class="error" role="alert">{ errMsg }</p>
+		}
+		<form method="post" action={ templ.SafeURL("/grupos/" + g.ID) }>
+			<label>Nome <input name="nome" value={ g.Name } maxlength="100" required/></label>
+			<button type="submit">Salvar</button>
+		</form>
+	}
+}
+
+// categoryEditPage offers only groups of the same kind (B2).
+templ categoryEditPage(c budget.Category, current budget.Group, sameKind []budget.Group, errMsg string) {
+	@layout("Editar categoria — upareal") {
+		<p><a href="/categorias">← Categorias</a></p>
+		<h1>Editar categoria</h1>
+		if errMsg != "" {
+			<p class="error" role="alert">{ errMsg }</p>
+		}
+		<form method="post" action={ templ.SafeURL("/categorias/" + c.ID) }>
+			<label>Nome <input name="nome" value={ c.Name } maxlength="100" required/></label>
+			<label>
+				Grupo
+				<select name="grupo">
+					for _, g := range sameKind {
+						<option value={ g.ID } selected?={ g.ID == current.ID }>{ g.Name }</option>
+					}
+				</select>
+			</label>
+			<button type="submit">Salvar</button>
+		</form>
 	}
 }

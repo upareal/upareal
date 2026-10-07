@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01
+// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02
 
 // Package web renders all HTML pages and HTMX fragments and wires the HTTP routes.
 package web
@@ -42,6 +42,24 @@ func NewHandler(d Deps) http.Handler {
 	mux.Handle("GET /static/", staticHandler())
 	mux.HandleFunc("GET /{$}", home(d.Users))
 	mux.HandleFunc("GET /categorias", categories(d.Users, d.Budget))
+	mux.HandleFunc("POST /categorias", budgetAction(d.Users, d.Budget, func(r *http.Request, userID string) error {
+		_, err := d.Budget.CreateCategory(r.Context(), userID, r.FormValue("grupo"), r.FormValue("nome"))
+		return err
+	}))
+	mux.HandleFunc("GET /categorias/{id}", categoryEditGet(d.Users, d.Budget))
+	mux.HandleFunc("POST /categorias/{id}", categoryEditPost(d.Users, d.Budget))
+	mux.HandleFunc("POST /categorias/{id}/mover", budgetAction(d.Users, d.Budget, func(r *http.Request, userID string) error {
+		return d.Budget.MoveCategory(r.Context(), userID, r.PathValue("id"), r.URL.Query().Get("dir") == "up")
+	}))
+	mux.HandleFunc("POST /grupos", budgetAction(d.Users, d.Budget, func(r *http.Request, userID string) error {
+		_, err := d.Budget.CreateGroup(r.Context(), userID, r.FormValue("tipo"), r.FormValue("nome"))
+		return err
+	}))
+	mux.HandleFunc("GET /grupos/{id}", groupEditGet(d.Users, d.Budget))
+	mux.HandleFunc("POST /grupos/{id}", groupEditPost(d.Users, d.Budget))
+	mux.HandleFunc("POST /grupos/{id}/mover", budgetAction(d.Users, d.Budget, func(r *http.Request, userID string) error {
+		return d.Budget.MoveGroup(r.Context(), userID, r.PathValue("id"), r.URL.Query().Get("dir") == "up")
+	}))
 	mux.HandleFunc("GET /contas", accountsGet(d.Users, d.Ledger))
 	mux.HandleFunc("POST /contas", accountsCreate(d.Users, d.Ledger))
 	mux.HandleFunc("POST /contas/{id}/ajuste", accountsAdjust(d.Users, d.Ledger))

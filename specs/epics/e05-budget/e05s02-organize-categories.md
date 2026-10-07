@@ -21,7 +21,7 @@ Any create, rename or reorder action, or moving a category to another group.
 ## 5. Main flow
 
 1. **Create group:** a name and a kind (Despesas or Receitas). It goes last.
-2. **Rename group** (`/categorias/grupos/{id}`).
+2. **Rename group** (`/grupos/{id}`).
 3. **Move group** ↑ or ↓ among the groups.
 4. **Create category** inside a group. It goes last in that group.
 5. **Edit category** (`/categorias/{id}`): rename it, or move it to another group **of the same kind**. Moved categories go last in the target group.
@@ -56,7 +56,7 @@ No schema change. New queries rename and reposition rows, change a category's gr
 | `(*budget.Service).MoveCategory(ctx, userID, id string, up bool) error` | Moves within its group |
 | `(*budget.Service).SetCategoryGroup(ctx, userID, id, groupID) error` | Same kind only |
 | Errors | `ErrInvalidName`, `ErrInvalidKind`, `ErrKindMismatch`, `ErrNotFound` |
-| `POST /categorias/grupos`, `GET+POST /categorias/grupos/{id}`, `POST /categorias/grupos/{id}/mover?dir=` | |
+| `POST /grupos`, `GET+POST /grupos/{id}`, `POST /grupos/{id}/mover?dir=` | |
 | `POST /categorias` (with `grupo`), `GET+POST /categorias/{id}`, `POST /categorias/{id}/mover?dir=` | Redirect 303 to `/categorias` |
 
 ## 10. Non-functional
