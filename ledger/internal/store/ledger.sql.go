@@ -66,6 +66,49 @@ func (q *Queries) GetUserKey(ctx context.Context, userID string) ([]byte, error)
 	return data_key, err
 }
 
+const listActiveAccounts = `-- name: ListActiveAccounts :many
+SELECT id, type, name, system_role FROM ledger_account
+WHERE user_id = ? AND archived_at IS NULL
+ORDER BY CASE type WHEN 'asset' THEN 1 WHEN 'liability' THEN 2 WHEN 'income' THEN 3
+                   WHEN 'expense' THEN 4 ELSE 5 END,
+         position, created_at
+`
+
+type ListActiveAccountsRow struct {
+	ID         string
+	Type       string
+	Name       []byte
+	SystemRole sql.NullString
+}
+
+func (q *Queries) ListActiveAccounts(ctx context.Context, userID string) ([]ListActiveAccountsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveAccounts, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListActiveAccountsRow
+	for rows.Next() {
+		var i ListActiveAccountsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Type,
+			&i.Name,
+			&i.SystemRole,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSystemRoles = `-- name: ListSystemRoles :many
 SELECT system_role FROM ledger_account WHERE user_id = ? AND system_role IS NOT NULL
 `

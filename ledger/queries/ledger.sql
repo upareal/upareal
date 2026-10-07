@@ -12,3 +12,10 @@ VALUES (?, ?, ?, ?, ?, ?, ?);
 
 -- name: ListSystemRoles :many
 SELECT system_role FROM ledger_account WHERE user_id = ? AND system_role IS NOT NULL;
+
+-- name: ListActiveAccounts :many
+SELECT id, type, name, system_role FROM ledger_account
+WHERE user_id = ? AND archived_at IS NULL
+ORDER BY CASE type WHEN 'asset' THEN 1 WHEN 'liability' THEN 2 WHEN 'income' THEN 3
+                   WHEN 'expense' THEN 4 ELSE 5 END,
+         position, created_at;

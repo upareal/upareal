@@ -22,7 +22,7 @@ tasks:
     description: "Accounts: decrypted, ordered by type then position, active only; user isolation"
     verify: "go test -race ./ledger/... -run 'TestAccounts|TestIsolation'"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger", "Security Review"]}
   - id: t4
     description: "Web: callback keeps EnsureDefaults; /categorias and home link removed until e05s01"
