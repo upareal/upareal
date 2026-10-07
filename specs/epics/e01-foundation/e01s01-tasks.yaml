@@ -10,7 +10,7 @@ tasks:
     description: "Pin templ as a go tool; Makefile gen/run/build/preflight (stale *_templ.go check); .golangci.yml version 2"
     verify: "go tool templ version && make -n preflight"
     risk: P2
-    status: failing
+    status: passing
     allure: {severity: normal, categories: ["Tooling"]}
   - id: t2
     description: "internal/config.Load(getenv) with required DB_PATH; fail fast naming the missing var"
