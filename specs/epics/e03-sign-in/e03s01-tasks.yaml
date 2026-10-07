@@ -58,7 +58,7 @@ tasks:
     description: "http.CrossOriginProtection wraps the handler"
     verify: "go test -race ./web/... -run TestCrossOrigin"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Security Review"]}
   - id: t9
     description: "Proof: after sign-in the database copy holds no plaintext email, name or sub"

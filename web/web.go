@@ -37,7 +37,8 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("GET /{$}", home(d.Users))
 	mux.HandleFunc("GET /auth/login", login(d.Google))
 	mux.HandleFunc("GET /auth/callback", callback(d.Users, d.Google))
-	return mux
+	// CSRF: reject cross-origin unsafe methods (Sec-Fetch-Site / Origin checks).
+	return http.NewCrossOriginProtection().Handler(mux)
 }
 
 // home greets the signed-in user by first name, or offers Google sign-in.
