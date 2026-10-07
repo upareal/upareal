@@ -1,10 +1,32 @@
 story_id: e07s02
-title: Categorize and split queued lines
-status: todo
+title: "Assign accounts to queued lines (and split them)"
+spec: e07s02-categorize-queued-lines.md
+status: failing
 bcps: 5
-outcome: A user assigns an income/expense account (or splits) for each queued line, which then leaves the queue.
+risk: P0
+outcome: Queued lines get real expense/income accounts (quick or split) with the bank amount fixed; they leave the queue.
 tasks:
-- id: t1
-  description: Assign account to queued line (reuse split form)
-  verify: go test -race ./ledger/... ./web/... -run TestReviewCategorize
-  status: todo
+  - id: t1
+    description: "ledger.Categorize: queued only, bank amount fixed, >= 1 lines, history, isolation"
+    verify: "go test -race ./ledger/... -run TestCategorize"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Import", "Ledger"]}
+  - id: t2
+    description: "Web: queued shape on the edit page (Categorizar form, fixed bank amount); misleading system hint fixed"
+    verify: "go test -race ./web/... -run TestReviewCategorize"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t3
+    description: "Web: quick assign on /revisao (one account, whole amount)"
+    verify: "go test -race ./web/... -run TestReviewQuickAssign"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t4
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
