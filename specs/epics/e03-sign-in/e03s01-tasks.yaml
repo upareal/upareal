@@ -16,7 +16,7 @@ tasks:
     description: "internal/db.Migrate: embedded goose migrations per module with table goose_<module>"
     verify: "go test -race ./internal/db/... -run TestMigrate"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Database", "integration"]}
   - id: t2
     description: "users schema (users_user, users_session) + sqlc queries + sqlc.yaml; pin sqlc tool; make gen runs sqlc"
