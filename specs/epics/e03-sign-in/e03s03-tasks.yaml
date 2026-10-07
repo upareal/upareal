@@ -1,7 +1,7 @@
 story_id: e03s03
 title: "Public pages and terms acceptance"
 spec: e03s03-public-pages-terms.md
-status: failing
+status: passing
 bcps: 3
 risk: P1
 outcome: Landing, /privacidade and /termos are public; signed-in users must accept the current terms version before using the app.
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
