@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e04s01 e05s01
+// story: e01s01 e03s01 e04s01 e05s01 e08s01
 package web_test
 
 import (
@@ -17,6 +17,7 @@ import (
 	"github.com/upareal/upareal/internal/oidctest"
 	"github.com/upareal/upareal/internal/vault"
 	"github.com/upareal/upareal/ledger"
+	"github.com/upareal/upareal/planning"
 	"github.com/upareal/upareal/users"
 	"github.com/upareal/upareal/web"
 )
@@ -41,7 +42,7 @@ func newTestApp(t *testing.T, baseURL string) testApp {
 	for _, m := range []struct {
 		name string
 		fsys fs.FS
-	}{{"users", users.Migrations}, {"ledger", ledger.Migrations}, {"budget", budget.Migrations}} {
+	}{{"users", users.Migrations}, {"ledger", ledger.Migrations}, {"budget", budget.Migrations}, {"planning", planning.Migrations}} {
 		name, fsys := m.name, m.fsys
 		if err := db.Migrate(ctx, conn, name, fsys); err != nil {
 			t.Fatal(err)
@@ -59,7 +60,9 @@ func newTestApp(t *testing.T, baseURL string) testApp {
 		t.Fatal(err)
 	}
 	ledg := ledger.NewService(conn, kr)
-	h := web.NewHandler(web.Deps{DB: conn, Users: users.NewService(conn, kr), Ledger: ledg, Budget: budget.NewService(conn, kr), Google: google})
+	bud := budget.NewService(conn, kr)
+	h := web.NewHandler(web.Deps{DB: conn, Users: users.NewService(conn, kr), Ledger: ledg, Budget: bud,
+		Planning: planning.NewService(conn, ledg, bud), Google: google})
 	return testApp{handler: h, conn: conn, fake: fake, ledger: ledg}
 }
 
