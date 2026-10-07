@@ -28,7 +28,7 @@ tasks:
     description: "internal/oidctest fake OIDC provider: discovery, JWKS, authorize, token with configurable claims"
     verify: "go test -race ./internal/oidctest/..."
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Test Infra"]}
   - id: t4
     description: "users.Service.SignIn: create by sub blind index, reuse on return, update changed email/name, refuse unverified"
