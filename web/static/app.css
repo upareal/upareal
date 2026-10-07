@@ -56,3 +56,5 @@ table.register th, table.register td { padding: 0.35rem 0.25rem; border-bottom: 
 table.register td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 nav.months { display: flex; justify-content: space-between; gap: 0.5rem; margin: 0.5rem 0 1rem; }
 .hint { padding: 0.5rem 0.75rem; background: #eef5ff; border: 1px solid #9cc0f0; }
+.split-line { display: flex; gap: 0.5rem; margin: 0.25rem 0; }
+.split-line select { flex: 2; } .split-line input { flex: 1; }

@@ -90,3 +90,15 @@ func TestRecordSplit_RejectsInvalid(t *testing.T) {
 		})
 	}
 }
+
+func TestRecordSplit_RemainingWorksForAnyNumberOfLines(t *testing.T) {
+	f := newFixture(t)
+	b := newBook(t, f)
+	rem, err := f.svc.SplitRemaining(context.Background(), userA, 10000, []ledger.Part{{CounterID: b.salario.ID, Amount: 500}})
+	if err != nil || rem != 10500 {
+		t.Errorf("one cashback line = %d, %v; want 10500 (income lines reduce what is distributed)", rem, err)
+	}
+	if rem, err := f.svc.SplitRemaining(context.Background(), userA, 10000, nil); err != nil || rem != 10000 {
+		t.Errorf("no lines = %d, %v; want 10000", rem, err)
+	}
+}

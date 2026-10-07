@@ -1,4 +1,4 @@
-// story: e06s01
+// story: e06s01 e06s02
 package web
 
 templ registerPage(v registerView, errMsg string) {
@@ -34,6 +34,7 @@ templ registerPage(v registerView, errMsg string) {
 		if v.CanRecord {
 			<section>
 				<h2>Novo lançamento</h2>
+				<p><a href={ templ.SafeURL("/contas/" + v.AccountID + "/dividido") }>Lançamento dividido (várias categorias)</a></p>
 				if len(v.Expenses) + len(v.Incomes) == 0 {
 					<p class="hint">
 						Para lançar, você precisa de pelo menos uma conta de despesa ou receita (ex.: "Mercado", "Salário").

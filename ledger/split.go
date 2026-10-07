@@ -59,6 +59,9 @@ func (s *Service) RecordSplit(ctx context.Context, userID string, e SplitEntry) 
 		if acc.Type != "asset" && acc.Type != "liability" {
 			return fmt.Errorf("%w: the paying account must be an asset or liability", ErrInvalidEntry)
 		}
+		if len(e.Parts) < 2 {
+			return fmt.Errorf("%w: a split needs at least two lines", ErrInvalidEntry)
+		}
 		legs, remaining, err := s.splitLegs(ctx, q, userID, e.Total, e.Parts)
 		if err != nil {
 			return err
@@ -74,7 +77,7 @@ func (s *Service) RecordSplit(ctx context.Context, userID string, e SplitEntry) 
 }
 
 // SplitRemaining says how much of total is still to distribute over parts
-// (negative = distributed too much). It writes nothing.
+// (negative = distributed too much), for any number of lines. It writes nothing.
 func (s *Service) SplitRemaining(ctx context.Context, userID string, total int64, parts []Part) (int64, error) {
 	_, remaining, err := s.splitLegs(ctx, s.q, userID, total, parts)
 	return remaining, err
@@ -83,9 +86,6 @@ func (s *Service) SplitRemaining(ctx context.Context, userID string, total int64
 // splitLegs turns lines into counter legs (direction from each counter's
 // type) and returns total minus what they distribute.
 func (s *Service) splitLegs(ctx context.Context, q *store.Queries, userID string, total int64, parts []Part) ([]Leg, int64, error) {
-	if len(parts) < 2 {
-		return nil, 0, fmt.Errorf("%w: a split needs at least two lines", ErrInvalidEntry)
-	}
 	legs := make([]Leg, 0, len(parts)+1)
 	remaining := total
 	for _, p := range parts {

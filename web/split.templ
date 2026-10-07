@@ -1,0 +1,52 @@
+// story: e06s02
+package web
+
+import "github.com/upareal/upareal/ledger"
+
+templ splitPage(v splitView, errMsg string) {
+	@layout("Lançamento dividido — upareal") {
+		<p><a href={ templ.SafeURL("/contas/" + v.AccountID + "/lancamentos") }>← { v.AccountName }</a></p>
+		<h1>Lançamento dividido</h1>
+		if errMsg != "" {
+			<p class="error" role="alert">{ errMsg }</p>
+		}
+		<form method="post" action={ templ.SafeURL("/contas/" + v.AccountID + "/dividido") }>
+			<label>Total pago <input name="total" value={ v.Total } inputmode="decimal" placeholder="0,00" required/></label>
+			<label>Data <input type="date" name="data" value={ v.Date } required/></label>
+			<label>Hora <input type="time" name="hora" value={ v.Time } required/></label>
+			<label>Descrição <input name="descricao" value={ v.Desc } maxlength="200"/></label>
+			<div id="linhas">
+				for _, l := range v.Lines {
+					@splitLineRow(l, v.Expenses, v.Incomes)
+				}
+			</div>
+			<button type="button" hx-get={ "/contas/" + v.AccountID + "/dividido/linha" } hx-target="#linhas" hx-swap="beforeend">Adicionar linha</button>
+			<p id="restante" class="hint" hx-post={ "/contas/" + v.AccountID + "/dividido/restante" } hx-trigger="input changed delay:300ms from:closest form, change from:closest form" hx-include="closest form">{ v.Remaining }</p>
+			<button type="submit">Salvar</button>
+		</form>
+	}
+}
+
+// splitLineRow is one line: an expense or income account and an amount.
+templ splitLineRow(l splitLineView, expenses, incomes []ledger.Account) {
+	<div class="split-line">
+		<select name="contra">
+			<option value="">—</option>
+			<optgroup label="Despesas">
+				for _, a := range expenses {
+					<option value={ a.ID } selected?={ a.ID == l.CounterID }>{ a.Name }</option>
+				}
+			</optgroup>
+			<optgroup label="Receitas">
+				for _, a := range incomes {
+					<option value={ a.ID } selected?={ a.ID == l.CounterID }>{ a.Name }</option>
+				}
+			</optgroup>
+		</select>
+		<input name="parte" value={ l.Amount } inputmode="decimal" placeholder="0,00"/>
+	</div>
+}
+
+templ splitRemainingText(msg string) {
+	{ msg }
+}

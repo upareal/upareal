@@ -16,7 +16,7 @@ tasks:
     description: "Web: split form, HTMX add-line and remaining fragments, submit with pt-BR errors"
     verify: "go test -race ./web/... -run 'TestSplitForm|TestSplitBalances'"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["UI", "integration"]}
   - id: t3
     description: "Full local gate green"
