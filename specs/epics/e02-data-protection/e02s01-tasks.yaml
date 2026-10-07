@@ -40,7 +40,7 @@ tasks:
     description: "Proof: sealed rows in temp SQLite; raw .db/-wal/-shm bytes contain no plaintext"
     verify: "go test -race ./internal/vault/... -run TestDatabaseCopyHasNoPlaintext"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Security Review", "integration"]}
   - id: t7
     description: "Full local gate green"
