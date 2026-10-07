@@ -62,7 +62,7 @@ func TestOFX_RejectsBadInput(t *testing.T) {
 	}
 	for name, in := range map[string]string{
 		"not OFX":           "hello",
-		"no transactions":   strings.Replace(strings.Replace(string(good), "<STMTTRN>", "<X>", -1), "</STMTTRN>", "</X>", -1),
+		"no transactions":   strings.ReplaceAll(strings.ReplaceAll(string(good), "<STMTTRN>", "<X>"), "</STMTTRN>", "</X>"),
 		"sub-centavo":       strings.Replace(string(good), "-89.90", "-89.905", 1),
 		"missing FITID":     strings.Replace(string(good), "<FITID>CC001</FITID>", "", 1),
 	} {
