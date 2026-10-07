@@ -147,3 +147,25 @@ func TestCopyPreviousMonth_NeverCopiesAcrossUsers(t *testing.T) {
 		t.Errorf("user B's new month = %v, want empty (nothing copied from user A)", got)
 	}
 }
+
+// story: e08s03
+func TestAmountsBefore_SumsEarlierMonthsPerCategory(t *testing.T) {
+	f := seeded(t)
+	ctx := context.Background()
+	fuel := categoryNamed(t, f, "Combustível").ID
+	for m, v := range map[string]int64{"2025-12": 10000, "2026-01": 30000, "2026-02": 99900} {
+		if err := f.svc.SetAmount(ctx, userA, fuel, month(t, m), v); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got, err := f.svc.AmountsBefore(ctx, userA, month(t, "2026-02"))
+	if err != nil {
+		t.Fatalf("AmountsBefore: %v", err)
+	}
+	if got[fuel] != 40000 {
+		t.Errorf("before February = %d, want 40000 (December + January, February excluded)", got[fuel])
+	}
+	if other, err := f.svc.AmountsBefore(ctx, userB, month(t, "2026-02")); err != nil || len(other) != 0 {
+		t.Errorf("user B = %v, %v; want empty", other, err)
+	}
+}
