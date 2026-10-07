@@ -1,18 +1,44 @@
 story_id: e04s03
-title: Organize, archive and delete accounts
-status: todo
+title: "Organize, archive and delete accounts"
+spec: e04s03-organize-archive-delete.md
+status: failing
 bcps: 5
-outcome: A user renames and reorders accounts; archives zero-balance accounts; deletes never-used ones; system accounts and used account types are protected.
+risk: P0
+outcome: Users edit, reorder, archive/restore and delete accounts while L5-L7 hold.
 tasks:
-- id: t1
-  description: Rename and reorder accounts
-  verify: go test -race ./ledger/... -run TestOrganizeAccounts
-  status: todo
-- id: t2
-  description: Archive/restore only at zero balance; archived accounts take no new legs (L6)
-  verify: go test -race ./ledger/... -run TestArchiveAccount
-  status: todo
-- id: t3
-  description: Hard delete only without legs; type change only without legs (L5); system accounts cannot be deleted or archived (L7)
-  verify: go test -race ./ledger/... -run TestProtectedAccounts
-  status: todo
+  - id: t1
+    description: "UpdateAccount: name, flags, type only without legs (L5); system accounts protected (L7)"
+    verify: "go test -race ./ledger/... -run TestUpdateAccount"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger"]}
+  - id: t2
+    description: "MoveAccount up/down within type"
+    verify: "go test -race ./ledger/... -run TestMoveAccount"
+    risk: P2
+    status: failing
+    allure: {severity: normal, categories: ["Ledger"]}
+  - id: t3
+    description: "Archive/restore only at zero balance; ArchivedAccounts; L6/L7"
+    verify: "go test -race ./ledger/... -run TestArchiveAccount"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger"]}
+  - id: t4
+    description: "DeleteAccount only without legs; L7"
+    verify: "go test -race ./ledger/... -run TestDeleteAccount"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger"]}
+  - id: t5
+    description: "Web: edit page, move, archive/restore (Arquivadas), delete"
+    verify: "go test -race ./web/... -run TestOrganizeAccounts"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t6
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
