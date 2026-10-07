@@ -1,7 +1,7 @@
 story_id: e08s03
 title: "Carry-over and overspending"
 spec: e08s03-carry-over.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: Category leftovers and overspending carry into the next month; A distribuir is cumulative and includes opening balances; A distribuir + Σ Disponível = on-budget balances.
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
