@@ -10,7 +10,7 @@ tasks:
     description: "importer.ParseOFX with fixtures: SGML 1.x Windows-1252 bank, XML 2.x card, dates with/without zone, centavos, errors"
     verify: "go test -race ./ledger/importer/... -run TestOFX"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Import", "unit"]}
   - id: t2
     description: "importer.Parse detects OFX/CSV; web upload uses it; help mentions OFX"

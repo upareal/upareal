@@ -9,6 +9,7 @@ tool (
 
 require (
 	github.com/a-h/templ v0.3.1070
+	github.com/aclindsa/ofxgo v0.1.3
 	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/go-jose/go-jose/v4 v4.1.4
 	github.com/google/uuid v1.6.0
@@ -23,6 +24,7 @@ require (
 	cel.dev/expr v0.25.2 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/a-h/parse v0.0.0-20250122154542-74294addb73e // indirect
+	github.com/aclindsa/xml v0.0.0-20201125035057-bbd5c9ec99ac // indirect
 	github.com/andybalholm/brotli v1.2.6 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
