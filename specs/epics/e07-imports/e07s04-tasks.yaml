@@ -1,7 +1,7 @@
 story_id: e07s04
 title: "Generic OFX import"
 spec: e07s04-generic-ofx.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: Users upload OFX 1.x/2.x bank and card statements (Windows-1252 converted, zone-less dates in São Paulo); lines join the review queue, deduped by FITID.
@@ -22,5 +22,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}

@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: develop-tdd
-  note: e07s04 planned (3 tasks)
+  next_skill: verify-work
+  note: e07s04 all tasks passing; awaiting user UAT (spec §19); e07s05 blocked on bank list
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
