@@ -1,26 +1,56 @@
 story_id: e04s02
-title: Create accounts with opening balance and manual adjustment
-status: todo
+title: "Create accounts with opening balance and manual adjustment"
+spec: e04s02-accounts-opening-balance.md
+status: failing
 bcps: 8
-outcome: A user creates asset, liability, income and expense accounts; an opening balance or adjustment posts a zero-sum transaction against Saldo inicial.
+risk: P0
+outcome: A user creates accounts of every type; opening balances and adjustments post zero-sum transactions against Saldo inicial; /contas shows balances.
 tasks:
-- id: t1
-  description: Transactions and legs schema; every write enforces L1-L3 (>=2 legs, sum zero, non-zero legs, same user)
-  verify: go test -race ./ledger/... -run TestTransactionInvariants
-  status: todo
-- id: t2
-  description: Create account of every type with name, position; asset/liability get bank and on_budget (cards always on-budget)
-  verify: go test -race ./ledger/... -run TestCreateAccount
-  status: todo
-- id: t3
-  description: pt-BR money parsing/formatting (1.234,56 <-> centavos)
-  verify: go test -race ./internal/... -run TestBRL
-  status: todo
-- id: t4
-  description: Opening balance and balance adjustment against Saldo inicial; balance = sum of legs (L4)
-  verify: go test -race ./ledger/... -run TestBalance
-  status: todo
-- id: t5
-  description: Accounts page grouped by type with balances; create-account form (HTMX)
-  verify: go test -race ./web/... -run TestAccountsPage
-  status: todo
+  - id: t1
+    description: "internal/money ParseBRL/FormatBRL (pt-BR, centavos, overflow-safe)"
+    verify: "go test -race ./internal/money/... -run TestBRL"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Money", "unit"]}
+  - id: t2
+    description: "Migration 00002: on_budget, is_card, ledger_transaction, ledger_leg; queries"
+    verify: "make gen && go build ./... && go test -race ./ledger/... -run TestEnsureDefaults"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Database"]}
+  - id: t3
+    description: "postTransaction: the only leg write path; enforces L1-L3 and L6 atomically"
+    verify: "go test -race ./ledger/... -run TestTransactionInvariants"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger", "Security Review"]}
+  - id: t4
+    description: "CreateAccount: all types, on_budget/is_card rules, opening balance vs Saldo inicial"
+    verify: "go test -race ./ledger/... -run TestCreateAccount"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger"]}
+  - id: t5
+    description: "Balance (sum of legs, L4) and AdjustBalance vs Saldo inicial"
+    verify: "go test -race ./ledger/... -run TestBalance"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger"]}
+  - id: t6
+    description: "/contas page grouped by type with displayed balances; create and adjust forms"
+    verify: "go test -race ./web/... -run TestAccountsPage"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t7
+    description: "Proof and isolation: no plaintext names/descriptions at rest; balances isolated per user"
+    verify: "go test -race ./ledger/... -run 'TestLedgerHasNoPlaintext|TestIsolation'"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Security Review"]}
+  - id: t8
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
