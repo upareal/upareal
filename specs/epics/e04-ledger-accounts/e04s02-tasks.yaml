@@ -34,7 +34,7 @@ tasks:
     description: "Balance (sum of legs, L4) and AdjustBalance vs Saldo inicial"
     verify: "go test -race ./ledger/... -run TestBalance"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger"]}
   - id: t6
     description: "/contas page grouped by type with displayed balances; create and adjust forms"
