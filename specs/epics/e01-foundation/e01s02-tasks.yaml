@@ -1,18 +1,32 @@
 story_id: e01s02
-title: Container and CI parity
-status: todo
+title: "Container and CI parity"
+spec: e01s02-container-ci.md
+status: failing
 bcps: 3
+risk: P1
 outcome: docker compose up serves the same app over plain HTTP; CI runs the same Preflight and builds the image.
 tasks:
-- id: t1
-  description: 'Multi-stage Dockerfile: CGO_ENABLED=0 static binary on distroless, time/tzdata embedded'
-  verify: docker build -t upareal:dev .
-  status: todo
-- id: t2
-  description: compose.yaml for local dev on http://localhost:8080 with a data volume and healthcheck
-  verify: docker compose up -d --build && curl -fsS http://localhost:8080/healthz; rc=$?; docker compose down; exit $rc
-  status: todo
-- id: t3
-  description: 'GitHub Actions workflow: make preflight + docker build on every push and PR'
-  verify: go run github.com/rhysd/actionlint/cmd/actionlint@latest .github/workflows/ci.yml
-  status: todo
+  - id: t1
+    description: "upareal healthcheck subcommand: GET 127.0.0.1:8080/healthz within 3s, exit 0/1"
+    verify: "go test -race ./cmd/upareal/... -run TestHealthcheckCommand"
+    risk: P2
+    status: failing
+    allure: {severity: normal, categories: ["Operability", "unit"]}
+  - id: t2
+    description: "Multi-stage Dockerfile: golang:1.26 CGO_ENABLED=0 -> distroless static-debian13:nonroot; /data owned by 65532; .dockerignore"
+    verify: "docker build -t upareal:dev ."
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Container"]}
+  - id: t3
+    description: "compose.yaml: app service, 8080:8080, upareal-data:/data, DB_PATH, healthcheck with start_period/retries"
+    verify: "docker compose up -d --build --wait && curl -fsS http://localhost:8080/healthz; rc=$?; docker compose down; exit $rc"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Container", "integration"]}
+  - id: t4
+    description: "GitHub Actions ci.yml: checkout@v7, setup-go@v7 (go.mod), golangci-lint v2.14.0, make preflight, docker build"
+    verify: "go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 .github/workflows/ci.yml"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["CI"]}

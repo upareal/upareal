@@ -1,6 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: plan-work
+  next_skill: kickoff-branch
+  note: e01 planned (e01s01, e01s02); branch feat/e01-foundation
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
