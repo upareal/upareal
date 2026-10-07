@@ -22,13 +22,13 @@ The user edits, moves, archives, restores or deletes an account.
 
 1. **Edit** (`/contas/{id}`): change the name; for asset and liability accounts, the on-budget and card flags; and the **type**, but only if the account has no legs.
 2. **Move** up or down within its type: this swaps the position with the neighbour.
-3. **Archive** an account whose balance is zero. It leaves the active list and appears under "Arquivadas", where **Restore** brings it back.
+3. **Archive**: asset and liability accounts only at **zero balance**, so money never vanishes from the totals. Income and expense accounts can be archived **at any time**, because their balance is cumulative flow ("Posto Shell" spent R$ 3.000 over time) that never returns to zero; archiving only stops new legs and keeps the history. Archived accounts leave the active list and appear under "Arquivadas", where **Restore** brings them back.
 4. **Delete** an account that has never had a leg.
 
 ## 6. Alternative flows
 
 - **6a. Type change on an account with legs** → rejected: "Contas com lançamentos não podem mudar de tipo." (**L5**)
-- **6b. Archive with a non-zero balance** → rejected: "Zere o saldo antes de arquivar."
+- **6b. Archive an asset or liability with a non-zero balance** → rejected: "Zere o saldo antes de arquivar." (Refined 2026-10-07: the rule does not apply to income and expense accounts.)
 - **6c. Delete with legs** → rejected: "Contas com lançamentos não podem ser excluídas. Arquive-a."
 - **6d. Any change to a system account** (rename, type, move, archive, delete) → rejected (**L7**). They aren't listed anyway.
 - **6e. Moving the first account up or the last down** → no change.

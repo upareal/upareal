@@ -167,3 +167,80 @@ func TestMoveAccount_GuardsSystemAndForeignAccounts(t *testing.T) {
 		t.Errorf("user B moving user A's account = %v, want ErrAccountNotFound", err)
 	}
 }
+
+func archivedNames(t *testing.T, f fixture) []string {
+	t.Helper()
+	archived, err := f.svc.ArchivedAccounts(context.Background(), userA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var names []string
+	for _, a := range archived {
+		names = append(names, a.Name)
+	}
+	return names
+}
+
+func TestArchiveAccount_AssetsOnlyAtZeroBalance(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	savings := create(t, f, ledger.NewAccount{Name: "Poupança", Type: "asset", Opening: 1000})
+	if err := f.svc.ArchiveAccount(ctx, userA, savings.ID); !errors.Is(err, ledger.ErrNonZeroBalance) {
+		t.Errorf("archiving with R$ 10,00 = %v, want ErrNonZeroBalance", err)
+	}
+	if err := f.svc.AdjustBalance(ctx, userA, savings.ID, 0, jan10); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.svc.ArchiveAccount(ctx, userA, savings.ID); err != nil {
+		t.Fatalf("archiving at zero: %v", err)
+	}
+	for _, a := range expenseNames(t, f) {
+		if a == "Poupança" {
+			t.Error("archived account still active")
+		}
+	}
+	if got := archivedNames(t, f); len(got) != 1 || got[0] != "Poupança" {
+		t.Errorf("ArchivedAccounts = %v, want [Poupança]", got)
+	}
+	equity := f.systemID(t, userA, "opening_balance")
+	if _, err := ledger.PostTransaction(ctx, f.svc, userA, jan10, "x", []ledger.Leg{{savings.ID, 100}, {equity, -100}}); !errors.Is(err, ledger.ErrAccountNotPostable) {
+		t.Errorf("posting to an archived account = %v, want ErrAccountNotPostable (L6)", err)
+	}
+	if err := f.svc.RestoreAccount(ctx, userA, savings.ID); err != nil {
+		t.Fatalf("RestoreAccount: %v", err)
+	}
+	if len(archivedNames(t, f)) != 0 || accountByID(t, f, savings.ID).Name != "Poupança" {
+		t.Error("restored account not back in the active list")
+	}
+}
+
+func TestArchiveAccount_IncomeAndExpenseAnytime(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	shell := create(t, f, ledger.NewAccount{Name: "Posto Shell", Type: "expense"})
+	checking := create(t, f, ledger.NewAccount{Name: "Conta", Type: "asset", Opening: 50000})
+	if _, err := ledger.PostTransaction(ctx, f.svc, userA, jan10, "Gasolina", []ledger.Leg{{shell.ID, 20000}, {checking.ID, -20000}}); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.svc.ArchiveAccount(ctx, userA, shell.ID); err != nil {
+		t.Errorf("archiving a used expense account = %v, want allowed (history kept)", err)
+	}
+	if b, _ := f.svc.Balance(ctx, userA, shell.ID); b != 20000 {
+		t.Errorf("archived expense history = %d, want 20000 kept", b)
+	}
+}
+
+func TestArchiveAccount_GuardsSystemAndForeignAccounts(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	a := create(t, f, ledger.NewAccount{Name: "A", Type: "expense"})
+	if err := f.svc.ArchiveAccount(ctx, userA, f.systemID(t, userA, "opening_balance")); !errors.Is(err, ledger.ErrSystemAccount) {
+		t.Errorf("archiving Saldo inicial = %v, want ErrSystemAccount (L7)", err)
+	}
+	if err := f.svc.ArchiveAccount(ctx, userB, a.ID); !errors.Is(err, ledger.ErrAccountNotFound) {
+		t.Errorf("user B archiving user A's account = %v, want ErrAccountNotFound", err)
+	}
+	if err := f.svc.RestoreAccount(ctx, userB, a.ID); !errors.Is(err, ledger.ErrAccountNotFound) {
+		t.Errorf("user B restoring user A's account = %v, want ErrAccountNotFound", err)
+	}
+}
