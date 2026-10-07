@@ -43,7 +43,6 @@ domain_change:
     revision.
   open_questions:
   - 'which ledger account types may be mapped (default v1: income/expense only)'
-  - credit card envelopes under the new split
   - default data per module
   - the missing invariants
   answers:
@@ -56,3 +55,5 @@ domain_change:
     q3_envelopes: 'envelope rules still apply. budget: amount per category per month; new month copies previous amounts. planning: spent (sum of mapped
       ledger accounts), available (amount + carry-over - spent), carry-over and overspending, to be assigned (income received - assigned). Nothing derived
       is stored.'
+    q4_cards: 'keep YNAB-style payment envelopes: planning computes a virtual envelope per card that sets aside money equal to the budgeted card spending
+      (and warns on unfunded card debt)'
