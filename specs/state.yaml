@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: plan-work
-  note: e04 done; push + merge feat/e04-accounts-categories, then plan e05 (budget) on a new branch
+  next_skill: develop-tdd
+  note: e05s01 planned (restore category code into budget module)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -21,9 +21,9 @@ pending:
 - Replace provisional legal text in /privacidade and /termos (web) and bump web.CurrentTermsVersion
 active_epic: e05
 git:
-  branch: feat/e04-accounts-categories
+  branch: feat/e05-budget
   worktree: null
-  base: main@90b3993
+  base: main@4a1ac80
 active_story: e05s01
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'

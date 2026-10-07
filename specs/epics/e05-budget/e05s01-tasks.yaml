@@ -1,18 +1,32 @@
 story_id: e05s01
-title: Default grouped categories and categories page
-status: todo
+title: "Default grouped categories and categories page"
+spec: e05s01-default-categories.md
+status: failing
 bcps: 3
+risk: P0
 outcome: A new user gets the default pt-BR groups and categories in the budget module and sees them on /categorias.
 tasks:
-- id: t1
-  description: 'budget module: own data key, groups and categories schema, EnsureDefaults (idempotent, concurrent-safe)'
-  verify: go test -race ./budget/... -run TestEnsureDefaults
-  status: todo
-- id: t2
-  description: Categories listing in order; user isolation; no plaintext names at rest
-  verify: go test -race ./budget/... -run 'TestCategories|TestIsolation|TestBudgetHasNoPlaintext'
-  status: todo
-- id: t3
-  description: Sign-in callback ensures budget defaults; /categorias page
-  verify: go test -race ./web/... -run TestCategoriesPage
-  status: todo
+  - id: t1
+    description: "budget module: schema, sqlc, own data key, EnsureDefaults (idempotent, concurrent-safe); run() migrates budget"
+    verify: "go test -race ./budget/... -run TestEnsureDefaults"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Budget", "integration"]}
+  - id: t2
+    description: "Categories in order, decrypted, active only; user isolation; no plaintext names at rest"
+    verify: "go test -race ./budget/... -run 'TestCategories|TestIsolation|TestBudgetHasNoPlaintext'"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Budget", "Security Review"]}
+  - id: t3
+    description: "Sign-in callback ensures budget defaults; /categorias page; home link"
+    verify: "go test -race ./web/... -run TestCategoriesPage"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t4
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
