@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: develop-tdd
-  note: 'baseline: no Go packages yet; first real Preflight is e01s01 t6'
+  next_skill: verify-work
+  note: e01s01 all tasks passing; awaiting user UAT (spec §19)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
