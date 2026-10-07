@@ -96,3 +96,74 @@ func TestIsolation_CannotUpdateAnotherUsersAccount(t *testing.T) {
 		t.Error("user A's account was renamed by user B")
 	}
 }
+
+func expenseNames(t *testing.T, f fixture) []string {
+	t.Helper()
+	accounts, _ := f.svc.Accounts(context.Background(), userA)
+	var names []string
+	for _, a := range accounts {
+		if a.Type == "expense" && a.SystemRole == "" {
+			names = append(names, a.Name)
+		}
+	}
+	return names
+}
+
+func TestMoveAccount_SwapsWithNeighbourWithinType(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	a := create(t, f, ledger.NewAccount{Name: "A", Type: "expense"})
+	_ = create(t, f, ledger.NewAccount{Name: "B", Type: "expense"})
+	c := create(t, f, ledger.NewAccount{Name: "C", Type: "expense"})
+	_ = create(t, f, ledger.NewAccount{Name: "Conta", Type: "asset"}) // other type, must not interfere
+
+	if err := f.svc.MoveAccount(ctx, userA, c.ID, true); err != nil {
+		t.Fatalf("MoveAccount up: %v", err)
+	}
+	if got := expenseNames(t, f); len(got) != 3 || got[0] != "A" || got[1] != "C" || got[2] != "B" {
+		t.Errorf("after moving C up = %v, want [A C B]", got)
+	}
+	if err := f.svc.MoveAccount(ctx, userA, a.ID, true); err != nil {
+		t.Errorf("moving the first account up: %v, want no-op", err)
+	}
+	if err := f.svc.MoveAccount(ctx, userA, c.ID, false); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.svc.MoveAccount(ctx, userA, c.ID, false); err != nil {
+		t.Errorf("moving the last account down: %v, want no-op", err)
+	}
+	if got := expenseNames(t, f); got[0] != "A" || got[1] != "B" || got[2] != "C" {
+		t.Errorf("after moving C back down = %v, want [A B C]", got)
+	}
+}
+
+func TestMoveAccount_TypeChangeGoesToEndOfNewType(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	_ = create(t, f, ledger.NewAccount{Name: "A", Type: "expense"})
+	x := create(t, f, ledger.NewAccount{Name: "X", Type: "income"})
+	if _, err := f.svc.UpdateAccount(ctx, userA, x.ID, ledger.AccountUpdate{Name: "X", Type: "expense"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := expenseNames(t, f); len(got) != 2 || got[1] != "X" {
+		t.Errorf("expenses after type change = %v, want X last", got)
+	}
+	if err := f.svc.MoveAccount(ctx, userA, x.ID, true); err != nil {
+		t.Fatal(err)
+	}
+	if got := expenseNames(t, f); got[0] != "X" {
+		t.Errorf("after moving X up = %v, want X first", got)
+	}
+}
+
+func TestMoveAccount_GuardsSystemAndForeignAccounts(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	a := create(t, f, ledger.NewAccount{Name: "A", Type: "expense"})
+	if err := f.svc.MoveAccount(ctx, userA, f.systemID(t, userA, "uncategorized_expense"), true); !errors.Is(err, ledger.ErrSystemAccount) {
+		t.Errorf("moving a system account = %v, want ErrSystemAccount", err)
+	}
+	if err := f.svc.MoveAccount(ctx, userB, a.ID, true); !errors.Is(err, ledger.ErrAccountNotFound) {
+		t.Errorf("user B moving user A's account = %v, want ErrAccountNotFound", err)
+	}
+}
