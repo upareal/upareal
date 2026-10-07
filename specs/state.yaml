@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e01s02 all tasks passing; UAT step 7 needs a push to see CI on GitHub
+  next_skill: plan-work
+  note: e01 done; merge feat/e01-foundation into main, then plan e02 on a new branch
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -19,9 +19,9 @@ environment:
       "$V"
   smoke: no Go packages yet; first lint/test smoke runs in e01
 pending: []
-active_epic: e01
+active_epic: e02
 git:
   branch: feat/e01-foundation
   worktree: null
   base: main@e9c7870
-active_story: e01s02
+active_story: e02s01

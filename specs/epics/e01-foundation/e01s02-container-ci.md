@@ -139,7 +139,7 @@ Feature: Container and CI parity
 2. Run `docker compose ps`. The `app` service shows `healthy`.
 3. Open http://localhost:8080. The pt-BR home page appears.
 4. Run `docker compose exec app /upareal healthcheck; echo $?`. Expect `0`.
-5. Run `docker compose down && docker compose up -d --wait`, then `docker compose exec app ls /data`. `upareal.db` is still there.
+5. Run `docker compose down && docker compose up -d --wait`, then `docker run --rm -v upareal_upareal-data:/data busybox ls /data`. `upareal.db` is still there (distroless has no `ls`).
 6. Run `docker compose down`.
 7. Push the branch. In GitHub → Actions, the `ci` workflow ends green.
 
