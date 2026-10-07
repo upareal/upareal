@@ -28,7 +28,7 @@ tasks:
     description: "DataKey.Seal/Open: AES-256-GCM random nonce, AAD user+field; empty/unicode round trip; wrong field/user/tamper fail"
     verify: "go test -race ./internal/vault/... -run TestSealOpen"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Security Review", "unit"]}
   - id: t5
     description: "Keyring.BlindIndex: HMAC-SHA256, deterministic, purpose-separated"
