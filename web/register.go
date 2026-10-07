@@ -91,10 +91,10 @@ func renderRegister(w http.ResponseWriter, r *http.Request, ledg *ledger.Service
 		})
 	}
 	for _, a := range all {
-		switch {
-		case a.Type == "expense":
+		switch a.Type {
+		case "expense":
 			v.Expenses = append(v.Expenses, a)
-		case a.Type == "income":
+		case "income":
 			v.Incomes = append(v.Incomes, a)
 		}
 	}
