@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e04s03 all tasks passing; awaiting user UAT (spec §19); then e04 done
+  next_skill: plan-work
+  note: e04 done; push + merge feat/e04-accounts-categories, then plan e05 (budget) on a new branch
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -19,12 +19,12 @@ environment:
   smoke: no Go packages yet; first lint/test smoke runs in e01
 pending:
 - Replace provisional legal text in /privacidade and /termos (web) and bump web.CurrentTermsVersion
-active_epic: e04
+active_epic: e05
 git:
   branch: feat/e04-accounts-categories
   worktree: null
   base: main@90b3993
-active_story: e04s03
+active_story: e05s01
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'
