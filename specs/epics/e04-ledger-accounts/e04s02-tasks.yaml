@@ -22,7 +22,7 @@ tasks:
     description: "postTransaction: the only leg write path; enforces L1-L3 and L6 atomically"
     verify: "go test -race ./ledger/... -run TestTransactionInvariants"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger", "Security Review"]}
   - id: t4
     description: "CreateAccount: all types, on_budget/is_card rules, opening balance vs Saldo inicial"

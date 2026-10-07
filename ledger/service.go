@@ -116,14 +116,26 @@ func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries) error) err
 }
 
 func newSealedRow(dk *vault.DataKey, name string) (id string, sealed []byte, err error) {
-	u, err := uuid.NewV7()
-	if err != nil {
-		return "", nil, fmt.Errorf("ledger: new id: %w", err)
-	}
-	if sealed, err = dk.Seal(fieldName, name); err != nil {
+	return newSealedField(dk, fieldName, name)
+}
+
+// newSealedField returns a fresh UUIDv7 and value sealed as field.
+func newSealedField(dk *vault.DataKey, field, value string) (id string, sealed []byte, err error) {
+	if id, err = newID(); err != nil {
 		return "", nil, err
 	}
-	return u.String(), sealed, nil
+	if sealed, err = dk.Seal(field, value); err != nil {
+		return "", nil, err
+	}
+	return id, sealed, nil
+}
+
+func newID() (string, error) {
+	u, err := uuid.NewV7()
+	if err != nil {
+		return "", fmt.Errorf("ledger: new id: %w", err)
+	}
+	return u.String(), nil
 }
 
 // stamp formats t as UTC RFC 3339 (second precision).
