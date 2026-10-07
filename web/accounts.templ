@@ -1,7 +1,7 @@
-// story: e04s02
+// story: e04s02 e04s03
 package web
 
-templ accountsPage(sections []accountSection, errMsg, today string) {
+templ accountsPage(sections []accountSection, archived []accountView, errMsg, today string) {
 	@layout("Contas — upareal") {
 		<p><a href="/">← Início</a></p>
 		<h1>Contas</h1>
@@ -17,7 +17,9 @@ templ accountsPage(sections []accountSection, errMsg, today string) {
 				<ul>
 					for _, a := range sec.Rows {
 						<li>
-							<strong>{ a.Name }</strong>
+							<strong><a href={ templ.SafeURL("/contas/" + a.ID) }>{ a.Name }</a></strong>
+							<form method="post" action={ templ.SafeURL("/contas/" + a.ID + "/mover?dir=up") } class="move"><button type="submit" aria-label="Mover para cima">↑</button></form>
+							<form method="post" action={ templ.SafeURL("/contas/" + a.ID + "/mover?dir=down") } class="move"><button type="submit" aria-label="Mover para baixo">↓</button></form>
 							if a.IsCard {
 								<span class="tag">Cartão</span>
 							}
@@ -31,6 +33,19 @@ templ accountsPage(sections []accountSection, errMsg, today string) {
 									<button type="submit">Ajustar</button>
 								</form>
 							}
+						</li>
+					}
+				</ul>
+			</section>
+		}
+		if len(archived) > 0 {
+			<section class="accounts">
+				<h2>Arquivadas</h2>
+				<ul>
+					for _, a := range archived {
+						<li>
+							{ a.Name }
+							<form method="post" action={ templ.SafeURL("/contas/" + a.ID + "/restaurar") } class="move"><button type="submit">Restaurar</button></form>
 						</li>
 					}
 				</ul>
@@ -56,5 +71,37 @@ templ accountsPage(sections []accountSection, errMsg, today string) {
 				<button type="submit">Criar conta</button>
 			</form>
 		</section>
+	}
+}
+
+// accountEditPage edits one account; the type is only changeable while unused (L5).
+templ accountEditPage(a accountView, errMsg string) {
+	@layout("Editar conta — upareal") {
+		<p><a href="/contas">← Contas</a></p>
+		<h1>Editar conta</h1>
+		if errMsg != "" {
+			<p class="error" role="alert">{ errMsg }</p>
+		}
+		<form method="post" action={ templ.SafeURL("/contas/" + a.ID) }>
+			<label>Nome <input name="nome" value={ a.Name } maxlength="100" required/></label>
+			<label>
+				Tipo
+				<select name="tipo">
+					<option value="asset" selected?={ a.Type == "asset" }>Conta ou dinheiro</option>
+					<option value="liability" selected?={ a.Type == "liability" }>Cartão ou dívida</option>
+					<option value="income" selected?={ a.Type == "income" }>Receita</option>
+					<option value="expense" selected?={ a.Type == "expense" }>Despesa</option>
+				</select>
+			</label>
+			<label><input type="checkbox" name="orcamento" checked?={ !a.OffBudget }/> No orçamento</label>
+			<label><input type="checkbox" name="cartao" checked?={ a.IsCard }/> É cartão de crédito</label>
+			<button type="submit">Salvar</button>
+		</form>
+		<form method="post" action={ templ.SafeURL("/contas/" + a.ID + "/arquivar") } class="inline">
+			<button type="submit">Arquivar</button>
+		</form>
+		<form method="post" action={ templ.SafeURL("/contas/" + a.ID + "/excluir") } class="inline">
+			<button type="submit">Excluir</button>
+		</form>
 	}
 }

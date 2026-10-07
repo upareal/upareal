@@ -1,4 +1,4 @@
-// story: e04s02
+// story: e04s02 e04s03
 package web
 
 import (
@@ -109,6 +109,15 @@ func renderAccounts(w http.ResponseWriter, r *http.Request, ledg *ledger.Service
 		renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Não foi possível carregar os saldos.")
 		return
 	}
+	archived, err := ledg.ArchivedAccounts(r.Context(), userID)
+	if err != nil {
+		renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Não foi possível carregar as contas.")
+		return
+	}
+	var archivedViews []accountView
+	for _, a := range archived {
+		archivedViews = append(archivedViews, accountView{ID: a.ID, Name: a.Name, Type: a.Type})
+	}
 	sections := make([]accountSection, 0, len(sectionOrder))
 	for _, so := range sectionOrder {
 		sec := accountSection{Title: so.title, Adjustable: so.typ == "asset" || so.typ == "liability"}
@@ -123,7 +132,7 @@ func renderAccounts(w http.ResponseWriter, r *http.Request, ledg *ledger.Service
 		}
 		sections = append(sections, sec)
 	}
-	renderHTML(w, r, status, accountsPage(sections, errMsg, time.Now().In(saoPaulo).Format("2006-01-02")))
+	renderHTML(w, r, status, accountsPage(sections, archivedViews, errMsg, time.Now().In(saoPaulo).Format("2006-01-02")))
 }
 
 // displayBalance turns a stored debit-positive balance into what people read:
@@ -182,6 +191,14 @@ func ledgerError(err error, invalidMsg string) (int, string) {
 		return http.StatusBadRequest, invalidMsg
 	case errors.Is(err, ledger.ErrAccountNotFound):
 		return http.StatusNotFound, "Conta não encontrada."
+	case errors.Is(err, ledger.ErrTypeLocked):
+		return http.StatusBadRequest, "Contas com lançamentos não podem mudar de tipo."
+	case errors.Is(err, ledger.ErrNonZeroBalance):
+		return http.StatusBadRequest, "Zere o saldo antes de arquivar."
+	case errors.Is(err, ledger.ErrHasLegs):
+		return http.StatusBadRequest, "Contas com lançamentos não podem ser excluídas. Arquive-a."
+	case errors.Is(err, ledger.ErrSystemAccount):
+		return http.StatusBadRequest, "Contas do sistema não podem ser alteradas."
 	}
 	return http.StatusInternalServerError, "Algo deu errado. Tente novamente em instantes."
 }

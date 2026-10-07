@@ -34,7 +34,7 @@ tasks:
     description: "Web: edit page, move, archive/restore (Arquivadas), delete"
     verify: "go test -race ./web/... -run TestOrganizeAccounts"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["UI", "integration"]}
   - id: t6
     description: "Full local gate green"
