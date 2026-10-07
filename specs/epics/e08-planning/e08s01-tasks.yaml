@@ -10,7 +10,7 @@ tasks:
     description: "planning module: migration, SetMapping (P1, P2, guards, isolation); run() migrates planning"
     verify: "go test -race ./planning/... -run TestMapping"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Planning"]}
   - id: t2
     description: "Mappings: one row per user income/expense account; Sem categoria for unmapped or stale mappings (X1, P3)"

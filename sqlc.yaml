@@ -1,4 +1,4 @@
-# story: e03s01 e04s01 e05s01
+# story: e03s01 e04s01 e05s01 e08s01
 # One entry per module; generated code stays private to the module (internal/store).
 version: "2"
 sql:
@@ -23,3 +23,10 @@ sql:
       go:
         package: store
         out: budget/internal/store
+  - engine: sqlite
+    schema: planning/migrations
+    queries: planning/queries
+    gen:
+      go:
+        package: store
+        out: planning/internal/store

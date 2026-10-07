@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e04s01 e05s01
+// story: e01s01 e03s01 e04s01 e05s01 e08s01
 
 // Command upareal runs the upareal web app.
 package main
@@ -24,6 +24,7 @@ import (
 	"github.com/upareal/upareal/internal/db"
 	"github.com/upareal/upareal/internal/vault"
 	"github.com/upareal/upareal/ledger"
+	"github.com/upareal/upareal/planning"
 	"github.com/upareal/upareal/users"
 	"github.com/upareal/upareal/web"
 )
@@ -112,7 +113,7 @@ func wireModules(ctx context.Context, cfg config.Config, conn *sql.DB) (web.Deps
 	for _, m := range []struct {
 		name string
 		fsys fs.FS
-	}{{"users", users.Migrations}, {"ledger", ledger.Migrations}, {"budget", budget.Migrations}} {
+	}{{"users", users.Migrations}, {"ledger", ledger.Migrations}, {"budget", budget.Migrations}, {"planning", planning.Migrations}} {
 		if err := db.Migrate(ctx, conn, m.name, m.fsys); err != nil {
 			return web.Deps{}, err
 		}
