@@ -1,30 +1,50 @@
 story_id: e02s01
-title: Encrypted field round trip with a database-copy proof
-status: todo
+title: "Encrypted field round trip with a database-copy proof"
+spec: e02s01-encrypted-fields.md
+status: failing
 bcps: 5
-outcome: A value written through the crypto helper reads back intact, and the SQLite file contains no plaintext.
+risk: P0
+outcome: A value written through the vault helper reads back intact, and the SQLite file contains no plaintext.
 tasks:
-- id: t1
-  description: Load MASTER_KEY (base64, 32 bytes) from config; fail fast on wrong length
-  verify: go test -race ./internal/crypto/... -run TestLoadMasterKey
-  status: todo
-- id: t2
-  description: Derive encryption and HMAC keys from the master key with crypto/hkdf (distinct info labels)
-  verify: go test -race ./internal/crypto/... -run TestDeriveKeys
-  status: todo
-- id: t3
-  description: Generate per-user data keys; wrap/unwrap with the master key; store key version
-  verify: go test -race ./internal/crypto/... -run TestDataKeyWrap
-  status: todo
-- id: t4
-  description: Seal/Open strings with AES-256-GCM, AAD bound to user id and field name
-  verify: go test -race ./internal/crypto/... -run TestSealOpen
-  status: todo
-- id: t5
-  description: HMAC blind index helper (normalized input, per-purpose label)
-  verify: go test -race ./internal/crypto/... -run TestBlindIndex
-  status: todo
-- id: t6
-  description: 'Proof: write encrypted rows to a temp SQLite file; raw file bytes contain no plaintext'
-  verify: go test -race ./internal/crypto/... -run TestDatabaseCopyHasNoPlaintext
-  status: todo
+  - id: t1
+    description: "ParseMasterKey: base64, exactly 32 bytes; errors never include the input"
+    verify: "go test -race ./internal/vault/... -run TestParseMasterKey"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Security Review", "unit"]}
+  - id: t2
+    description: "NewKeyring: HKDF-SHA256 wrap and index keys with distinct info labels"
+    verify: "go test -race ./internal/vault/... -run TestKeyring"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Security Review", "unit"]}
+  - id: t3
+    description: "NewDataKey/UnwrapDataKey: version byte, AES-GCM wrap bound to user ID; wrong user/tamper/unknown version fail"
+    verify: "go test -race ./internal/vault/... -run TestDataKeyWrap"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Security Review", "unit"]}
+  - id: t4
+    description: "DataKey.Seal/Open: AES-256-GCM random nonce, AAD user+field; empty/unicode round trip; wrong field/user/tamper fail"
+    verify: "go test -race ./internal/vault/... -run TestSealOpen"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Security Review", "unit"]}
+  - id: t5
+    description: "Keyring.BlindIndex: HMAC-SHA256, deterministic, purpose-separated"
+    verify: "go test -race ./internal/vault/... -run TestBlindIndex"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Security Review", "unit"]}
+  - id: t6
+    description: "Proof: sealed rows in temp SQLite; raw .db/-wal/-shm bytes contain no plaintext"
+    verify: "go test -race ./internal/vault/... -run TestDatabaseCopyHasNoPlaintext"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Security Review", "integration"]}
+  - id: t7
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}

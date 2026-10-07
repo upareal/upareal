@@ -4,6 +4,10 @@ status: todo
 bcps: 8
 outcome: A visitor signs in with Google; a user row with encrypted email/name is created and the home page greets them.
 tasks:
+- id: t0
+  description: 'Require MASTER_KEY in config.Load (vault.ParseMasterKey); decide how make run and compose supply a dev-only key without committing secrets'
+  verify: go test -race ./internal/config/... -run TestLoad
+  status: todo
 - id: t1
   description: Per-module goose migrations (embedded, goose_users table) run at startup
   verify: go test -race ./internal/db/... -run TestMigrateModules
