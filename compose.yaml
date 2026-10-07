@@ -1,0 +1,23 @@
+# story: e01s02
+# Local development: plain HTTP on http://localhost:8080. No secrets here.
+services:
+  app:
+    build: .
+    image: upareal:dev
+    ports:
+      - "8080:8080"
+    environment:
+      DB_PATH: /data/upareal.db
+    volumes:
+      - upareal-data:/data
+    healthcheck:
+      test: ["CMD", "/upareal", "healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+      start_interval: 1s
+    stop_grace_period: 15s
+
+volumes:
+  upareal-data:
