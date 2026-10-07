@@ -1,14 +1,26 @@
 story_id: e08s04
-title: Credit card payment envelopes
-status: todo
+title: "Credit card payment envelopes"
+spec: e08s04-card-envelopes.md
+status: failing
 bcps: 8
-outcome: A virtual payment envelope per card sets aside money equal to the budgeted card spending; unfunded card debt is flagged.
+risk: P0
+outcome: Orçamento shows each card's Para pagar (its debt, already set aside) and flags Sem cobertura when cash cannot back it; A distribuir + Σ Disponível + Σ Para pagar = Dinheiro.
 tasks:
-- id: t1
-  description: Per-card payment envelope from budgeted spending on the card
-  verify: go test -race ./planning/... -run TestCardEnvelope
-  status: todo
-- id: t2
-  description: Bill payment draws the envelope, not a category; unfunded debt warning
-  verify: go test -race ./planning/... -run TestCardPayment
-  status: todo
+  - id: t1
+    description: "planning.Month: Cards (Para pagar), Cash, Uncovered; identity extended with cards"
+    verify: "go test -race ./planning/... -run 'TestCards|TestCarry'"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Planning"]}
+  - id: t2
+    description: "Orçamento: Cartões de crédito section with Para pagar and Sem cobertura"
+    verify: "go test -race ./web/... -run TestBudgetMonthPage"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t3
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}

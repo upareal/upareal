@@ -73,7 +73,7 @@ domain:
     - "spent of a category in a month = sum of legs on its mapped ledger accounts; unmapped accounts are shown as 'Sem categoria' so no money is left out"
     - "envelope (zero-based) budgeting: to be assigned = income received - amounts assigned"
     - "available = amount + carry-over - spent; leftovers carry over; overspending reduces next month"
-    - "credit cards YNAB-style: a virtual payment envelope per card sets aside money equal to the budgeted card spending; unfunded card debt is flagged"
+    - "credit cards: card spending reduces its category and A distribuir excludes card debt, so each card's payment envelope (Para pagar) is its debt; Sem cobertura = debt that cash cannot back after A distribuir and positive envelopes (e08s04)"
     - "off-budget transfers need a category; inflows from off-budget become money to assign"
     - "everything derived is computed, never stored; editing past months recomputes carry-over"
     - "goals (later) will be referenced by planning"
