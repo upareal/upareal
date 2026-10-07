@@ -1,3 +1,21 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: write-document
+  next_skill: plan-work
+environment:
+  checked_at: '2026-10-07'
+  host: WSL 2 (Linux amd64)
+  tools:
+    go: 1.26.5
+    golangci-lint: 2.14.0
+    make: 4.4.1
+    git: 2.53.0
+    gh: 2.102.0
+    docker: 29.8.2
+    docker-compose: 5.5.1
+  install:
+    golangci-lint: V=v2.14.0; golangci-lint version 2>/dev/null | grep -q "${V#v}"
+      || curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b "$(go env GOPATH)/bin"
+      "$V"
+  smoke: no Go packages yet; first lint/test smoke runs in e01
+pending: []
+active_epic: e01

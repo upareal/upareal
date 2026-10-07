@@ -1,0 +1,26 @@
+story_id: e07s01
+title: Assign money this month
+status: todo
+bcps: 8
+outcome: The budget view shows to-be-assigned and, per category, assigned/spent/available; the user edits assigned inline.
+tasks:
+- id: t1
+  description: 'planning migrations (goose_planning, planning_ prefix): month assignments per category'
+  verify: make gen && git diff --exit-code
+  status: todo
+- id: t2
+  description: To be assigned = on-budget inflows minus assigned (derived, never stored)
+  verify: go test -race ./planning/... -run TestToBeAssigned
+  status: todo
+- id: t3
+  description: Spent and available per category from ledger legs (via ledger API, not tables)
+  verify: go test -race ./planning/... -run TestAvailable
+  status: todo
+- id: t4
+  description: Budget page grouped by category group; inline HTMX edit of assigned
+  verify: go test -race ./web/... -run TestBudgetPage
+  status: todo
+- id: t5
+  description: 'Isolation: user A cannot read user B''s plan'
+  verify: go test -race ./planning/... -run TestIsolation
+  status: todo

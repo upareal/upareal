@@ -1,0 +1,11 @@
+epic_id: e02
+slug: data-protection
+goal: Personal text is unreadable without the app's keys (master key from config).
+scope_items:
+- S02
+stories:
+- id: e02s01
+  title: Encrypted field round trip with a database-copy proof
+  bcps: 5
+  delta: ADDED
+bcps_total: 5

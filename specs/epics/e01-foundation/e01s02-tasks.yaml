@@ -1,0 +1,18 @@
+story_id: e01s02
+title: Container and CI parity
+status: todo
+bcps: 3
+outcome: docker compose up serves the same app over plain HTTP; CI runs the same Preflight and builds the image.
+tasks:
+- id: t1
+  description: 'Multi-stage Dockerfile: CGO_ENABLED=0 static binary on distroless, time/tzdata embedded'
+  verify: docker build -t upareal:dev .
+  status: todo
+- id: t2
+  description: compose.yaml for local dev on http://localhost:8080 with a data volume and healthcheck
+  verify: docker compose up -d --build && curl -fsS http://localhost:8080/healthz; rc=$?; docker compose down; exit $rc
+  status: todo
+- id: t3
+  description: 'GitHub Actions workflow: make preflight + docker build on every push and PR'
+  verify: go run github.com/rhysd/actionlint/cmd/actionlint@latest .github/workflows/ci.yml
+  status: todo

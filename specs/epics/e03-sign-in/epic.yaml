@@ -1,0 +1,21 @@
+epic_id: e03
+slug: sign-in
+goal: Users sign in with Google, stay signed in safely, and accept the current terms.
+scope_items:
+- S03
+- S04
+- S05
+stories:
+- id: e03s01
+  title: First Google sign-in creates the account
+  bcps: 8
+  delta: ADDED
+- id: e03s02
+  title: Session lifecycle and login protection
+  bcps: 5
+  delta: ADDED
+- id: e03s03
+  title: Public pages and terms acceptance
+  bcps: 3
+  delta: ADDED
+bcps_total: 16

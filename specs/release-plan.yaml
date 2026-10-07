@@ -1,0 +1,57 @@
+# Release index. Story status lives in execution-status.yaml, not here.
+# Order = dependency-driven WSJF: each epic builds on the previous ones. plan-release refines BCPs.
+release:
+  codename: v1
+  version: null
+  bump_hint: minor
+epics:
+- id: e01
+  slug: foundation
+  path: specs/epics/e01-foundation
+  wsjf_rank: 1
+  bcps: 8
+- id: e02
+  slug: data-protection
+  path: specs/epics/e02-data-protection
+  wsjf_rank: 2
+  bcps: 5
+- id: e03
+  slug: sign-in
+  path: specs/epics/e03-sign-in
+  wsjf_rank: 3
+  bcps: 16
+- id: e04
+  slug: accounts-categories
+  path: specs/epics/e04-accounts-categories
+  wsjf_rank: 4
+  bcps: 21
+- id: e05
+  slug: transactions
+  path: specs/epics/e05-transactions
+  wsjf_rank: 5
+  bcps: 23
+- id: e06
+  slug: imports
+  path: specs/epics/e06-imports
+  wsjf_rank: 6
+  bcps: 26
+- id: e07
+  slug: envelope-budget
+  path: specs/epics/e07-envelope-budget
+  wsjf_rank: 7
+  bcps: 29
+- id: e08
+  slug: admin
+  path: specs/epics/e08-admin
+  wsjf_rank: 8
+  bcps: 8
+- id: e09
+  slug: data-rights
+  path: specs/epics/e09-data-rights
+  wsjf_rank: 9
+  bcps: 8
+- id: e10
+  slug: production
+  path: specs/epics/e10-production
+  wsjf_rank: 10
+  bcps: 16

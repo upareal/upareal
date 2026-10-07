@@ -1,0 +1,18 @@
+story_id: e05s01
+title: Record a simple expense or income
+status: todo
+bcps: 5
+outcome: A user records a dated purchase or income with a category; the account list shows it with a running balance.
+tasks:
+- id: t1
+  description: 'Form: account, category, amount, date/time (UTC stored, Sao Paulo shown), encrypted description'
+  verify: go test -race ./ledger/... ./web/... -run TestRecordTransaction
+  status: todo
+- id: t2
+  description: Account register with running balance, Sao Paulo dates
+  verify: go test -race ./web/... -run TestAccountRegister
+  status: todo
+- id: t3
+  description: 'Month boundary: 22:30 on the last day in Sao Paulo belongs to that month'
+  verify: go test -race ./internal/... -run TestMonthInSaoPaulo
+  status: todo

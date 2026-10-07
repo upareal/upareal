@@ -1,0 +1,10 @@
+story_id: e06s02
+title: Categorize and split queued lines
+status: todo
+bcps: 5
+outcome: A user assigns a category (or splits) for each queued line, which then leaves the queue.
+tasks:
+- id: t1
+  description: Categorize queued line (reuse split form)
+  verify: go test -race ./ledger/... ./web/... -run TestReviewCategorize
+  status: todo

@@ -1,0 +1,14 @@
+story_id: e10s03
+title: Deploy to EC2
+status: todo
+bcps: 5
+outcome: The app runs on EC2 with encrypted EBS, instance role, S3 replica and SSM parameters; Google OAuth is published.
+tasks:
+- id: t1
+  description: Deployment runbook (docs/deploy.md) for EC2, role, bucket, SSM params, DNS
+  verify: 'verify-script: follow docs/deploy.md section Verify'
+  status: todo
+- id: t2
+  description: Smoke test against the live URL
+  verify: curl -fsS https://$UPAREAL_DOMAIN/healthz
+  status: todo

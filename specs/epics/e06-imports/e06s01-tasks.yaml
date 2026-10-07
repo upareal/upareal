@@ -1,0 +1,22 @@
+story_id: e06s01
+title: Generic CSV import into the review queue
+status: todo
+bcps: 8
+outcome: A user uploads the documented CSV to an account; valid files land in the review queue; re-importing adds nothing.
+tasks:
+- id: t1
+  description: Parser interface returning Line{importID, time, description, amount}; generic ;-CSV parser
+  verify: go test -race ./ledger/importer/... -run TestGenericCSV
+  status: todo
+- id: t2
+  description: Limits 5 MB / 10.000 lines; all-or-nothing validation with line-numbered errors
+  verify: go test -race ./ledger/importer/... -run TestValidation
+  status: todo
+- id: t3
+  description: Post lines against Uncategorized; mark as queued; skip duplicates by blind-indexed row id per account
+  verify: go test -race ./ledger/... -run TestImportDedupe
+  status: todo
+- id: t4
+  description: Upload page, CSV help page with example, review queue list; rate limit imports per user
+  verify: go test -race ./web/... -run TestImportFlow
+  status: todo

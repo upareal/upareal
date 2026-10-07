@@ -1,0 +1,14 @@
+story_id: e04s04
+title: Archive accounts; delete unused items
+status: todo
+bcps: 3
+outcome: A zero-balance account can be archived and restored; never-used accounts or categories can be hard-deleted.
+tasks:
+- id: t1
+  description: Archive/restore account only at zero balance
+  verify: go test -race ./ledger/... -run TestArchiveAccount
+  status: todo
+- id: t2
+  description: Hard delete only when no legs reference the item
+  verify: go test -race ./ledger/... -run TestDeleteUnused
+  status: todo

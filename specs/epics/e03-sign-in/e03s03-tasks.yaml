@@ -1,0 +1,14 @@
+story_id: e03s03
+title: Public pages and terms acceptance
+status: todo
+bcps: 3
+outcome: Landing, /privacidade and /termos are public; signed-in users must accept the current terms_version before using the app.
+tasks:
+- id: t1
+  description: Public pages with placeholder policy and terms text (pt-BR)
+  verify: go test -race ./web/... -run TestPublicPages
+  status: todo
+- id: t2
+  description: Store terms_version + accepted_at; redirect until the current version is accepted
+  verify: go test -race ./users/... ./web/... -run TestTermsAcceptance
+  status: todo

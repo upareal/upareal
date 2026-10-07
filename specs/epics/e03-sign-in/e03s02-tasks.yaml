@@ -1,0 +1,22 @@
+story_id: e03s02
+title: Session lifecycle and login protection
+status: todo
+bcps: 5
+outcome: Sessions expire (30 days idle, 90 days absolute); users log out or log out of all devices; login callback is rate limited.
+tasks:
+- id: t1
+  description: Idle and absolute expiry; each request renews idle timer
+  verify: go test -race ./users/... -run TestSessionExpiry
+  status: todo
+- id: t2
+  description: Logout and log out of all devices
+  verify: go test -race ./users/... ./web/... -run TestLogout
+  status: todo
+- id: t3
+  description: Rate limit login callback per IP (x/time/rate)
+  verify: go test -race ./web/... -run TestLoginRateLimit
+  status: todo
+- id: t4
+  description: http.Server read/write/idle timeouts and context deadline on OIDC calls
+  verify: go test -race ./cmd/upareal/... ./users/... -run TestTimeouts
+  status: todo

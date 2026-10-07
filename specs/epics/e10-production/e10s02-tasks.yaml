@@ -1,0 +1,18 @@
+story_id: e10s02
+title: Production stack with TLS and continuous backups
+status: todo
+bcps: 8
+outcome: Caddy terminates TLS; the app runs under litestream replicate -exec and restores itself on an empty volume.
+tasks:
+- id: t1
+  description: Image includes litestream; entrypoint restores -if-replica-exists then replicate -exec
+  verify: docker build -t upareal:prod .
+  status: todo
+- id: t2
+  description: compose.prod.yaml with Caddy + app; config validates
+  verify: docker compose -f compose.yaml -f compose.prod.yaml config -q
+  status: todo
+- id: t3
+  description: 'make restore-test against a local MinIO replica: restore + PRAGMA integrity_check'
+  verify: make restore-test
+  status: todo

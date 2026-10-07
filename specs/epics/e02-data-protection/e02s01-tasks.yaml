@@ -1,0 +1,30 @@
+story_id: e02s01
+title: Encrypted field round trip with a database-copy proof
+status: todo
+bcps: 5
+outcome: A value written through the crypto helper reads back intact, and the SQLite file contains no plaintext.
+tasks:
+- id: t1
+  description: Load MASTER_KEY (base64, 32 bytes) from config; fail fast on wrong length
+  verify: go test -race ./internal/crypto/... -run TestLoadMasterKey
+  status: todo
+- id: t2
+  description: Derive encryption and HMAC keys from the master key with crypto/hkdf (distinct info labels)
+  verify: go test -race ./internal/crypto/... -run TestDeriveKeys
+  status: todo
+- id: t3
+  description: Generate per-user data keys; wrap/unwrap with the master key; store key version
+  verify: go test -race ./internal/crypto/... -run TestDataKeyWrap
+  status: todo
+- id: t4
+  description: Seal/Open strings with AES-256-GCM, AAD bound to user id and field name
+  verify: go test -race ./internal/crypto/... -run TestSealOpen
+  status: todo
+- id: t5
+  description: HMAC blind index helper (normalized input, per-purpose label)
+  verify: go test -race ./internal/crypto/... -run TestBlindIndex
+  status: todo
+- id: t6
+  description: 'Proof: write encrypted rows to a temp SQLite file; raw file bytes contain no plaintext'
+  verify: go test -race ./internal/crypto/... -run TestDatabaseCopyHasNoPlaintext
+  status: todo

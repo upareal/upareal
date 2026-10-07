@@ -1,0 +1,19 @@
+epic_id: e10
+slug: production
+goal: Production is HTTPS-only, secrets stay off disk, and data recovers from backups.
+scope_items:
+- S23
+stories:
+- id: e10s01
+  title: Secrets from SSM
+  bcps: 3
+  delta: ADDED
+- id: e10s02
+  title: Production stack with TLS and continuous backups
+  bcps: 8
+  delta: ADDED
+- id: e10s03
+  title: Deploy to EC2
+  bcps: 5
+  delta: ADDED
+bcps_total: 16

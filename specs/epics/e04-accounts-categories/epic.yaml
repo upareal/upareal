@@ -1,0 +1,26 @@
+epic_id: e04
+slug: accounts-categories
+goal: Users manage accounts and grouped categories with opening balances.
+scope_items:
+- S06
+- S07
+- S08
+- S09
+stories:
+- id: e04s01
+  title: Default grouped categories on sign-up
+  bcps: 5
+  delta: ADDED
+- id: e04s02
+  title: Account with opening balance and manual adjustment
+  bcps: 8
+  delta: ADDED
+- id: e04s03
+  title: Organize groups and categories
+  bcps: 5
+  delta: ADDED
+- id: e04s04
+  title: Archive accounts; delete unused items
+  bcps: 3
+  delta: ADDED
+bcps_total: 21

@@ -1,0 +1,22 @@
+story_id: e04s01
+title: Default grouped categories on sign-up
+status: todo
+bcps: 5
+outcome: A new user sees default pt-BR category groups and categories; system accounts exist.
+tasks:
+- id: t1
+  description: 'ledger migrations (goose_ledger, ledger_ prefix): groups, accounts (5 types), position, archived_at'
+  verify: make gen && git diff --exit-code
+  status: todo
+- id: t2
+  description: Seed default groups/categories plus Opening Balances (equity) and Uncategorized income/expense on first sign-in
+  verify: go test -race ./ledger/... -run TestSeedDefaults
+  status: todo
+- id: t3
+  description: Categories page lists groups and categories by position (names decrypted)
+  verify: go test -race ./web/... -run TestCategoriesPage
+  status: todo
+- id: t4
+  description: 'Isolation: user A cannot read user B''s groups or accounts'
+  verify: go test -race ./ledger/... -run TestIsolation
+  status: todo

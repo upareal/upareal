@@ -1,0 +1,30 @@
+story_id: e03s01
+title: First Google sign-in creates the account
+status: todo
+bcps: 8
+outcome: A visitor signs in with Google; a user row with encrypted email/name is created and the home page greets them.
+tasks:
+- id: t1
+  description: Per-module goose migrations (embedded, goose_users table) run at startup
+  verify: go test -race ./internal/db/... -run TestMigrateModules
+  status: todo
+- id: t2
+  description: 'users schema + sqlc queries: user, data key, email blind index'
+  verify: make gen && git diff --exit-code
+  status: todo
+- id: t3
+  description: OIDC login/callback with go-oidc + x/oauth2; state and nonce checks; fake OIDC provider in tests
+  verify: go test -race ./users/... ./web/... -run TestGoogleSignIn
+  status: todo
+- id: t4
+  description: Create user on first sign-in (email/name encrypted, lookup by blind index); returning user reuses row
+  verify: go test -race ./users/... -run TestSignInCreatesOrFindsUser
+  status: todo
+- id: t5
+  description: 'Server-side session: random ID, SHA-256 stored, HttpOnly+Secure+SameSite=Lax cookie; CrossOriginProtection on'
+  verify: go test -race ./users/... ./web/... -run TestSession
+  status: todo
+- id: t6
+  description: Database copy after sign-in contains no plaintext email or name
+  verify: go test -race ./users/... -run TestUsersTableHasNoPlaintext
+  status: todo

@@ -1,0 +1,14 @@
+story_id: e05s02
+title: Split transactions
+status: todo
+bcps: 5
+outcome: A user splits one purchase across several categories; the form shows remaining to allocate until it is zero.
+tasks:
+- id: t1
+  description: Multi-leg form with HTMX add/remove rows and remaining-to-allocate
+  verify: go test -race ./web/... -run TestSplitForm
+  status: todo
+- id: t2
+  description: Save rejects splits that do not balance
+  verify: go test -race ./ledger/... -run TestSplitBalances
+  status: todo

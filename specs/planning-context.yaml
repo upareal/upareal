@@ -27,7 +27,7 @@ architecture:
 
 domain:
   users:
-    - "Google OIDC only; scopes openid email profile; first login creates the user"
+    - "Google OIDC only via github.com/coreos/go-oidc/v3 + golang.org/x/oauth2; scopes openid email profile; first login creates the user"
     - "server-side sessions: 32 random bytes, only SHA-256 hash stored; HttpOnly+Secure+SameSite=Lax cookie"
     - "session expiry: 30 days idle, 90 days absolute; logout and log out of all devices"
     - "admin role only from ADMIN_EMAILS env var; ADMIN_EMAILS users cannot be disabled/deleted via UI"
@@ -56,7 +56,7 @@ domain:
     - "dedupe by OFX FITID or CSV row id, per account"
     - "transfer matching in review queue: opposite amount, ±3 days, user confirms; both import ids recorded"
     - "limits: 5 MB and 10.000 lines per file; all-or-nothing validation with line-numbered errors"
-    - "OFX: handle 1.x SGML and 2.x XML and Latin-1/Windows-1252 charsets"
+    - "OFX: handle 1.x SGML and 2.x XML; transcode Latin-1/Windows-1252 to UTF-8 BEFORE ofxgo.ParseResponse (ofxgo ignores CHARSET)"
   planning:
     - "envelope (zero-based) budgeting: all income assigned to categories"
     - "leftovers carry over; overspending reduces next month's budget"
@@ -77,19 +77,21 @@ privacy_security:
   - "field-level AES-256-GCM encryption of sensitive text (email, names, account/category names, descriptions, history, import payloads)"
   - "per-user data keys wrapped by a master key, with key version for rotation; deleting the user key crypto-shreds data in backups"
   - "HMAC blind indexes for email lookup and import dedupe ids"
+  - "encryption key and HMAC key are derived from the single master key with stdlib crypto/hkdf (distinct info labels)"
   - "amounts and dates stay plaintext"
   - "text search: filter in SQL on plaintext columns, decrypt and search/sort in Go; search always date-bounded (default last 12 months)"
   - "isolation tests prove user A can never read user B's data"
-  - "encrypted EBS volume and S3 bucket; HTTPS only; CSRF protection on HTMX requests"
+  - "encrypted EBS volume and S3 bucket; HTTPS only; CSRF protection via stdlib net/http.CrossOriginProtection (no tokens)"
   - "logs never contain amounts, descriptions or emails; only user ids"
   - "limited Litestream retention (e.g. 30 days)"
   - "static pages /, /privacidade, /termos (templ, pt-BR) for Google OAuth consent screen publishing"
 
 tech_stack:
-  - "Go; templ; HTMX"
+  - "Go; templ; HTMX (vendored under web/static, no CDN)"
+  - "github.com/coreos/go-oidc/v3 + golang.org/x/oauth2 for Google sign-in"
   - "SQLite via modernc.org/sqlite (no CGO); PRAGMA foreign_keys = ON in DSN"
   - "goose (library, embedded SQL migrations); sqlc"
-  - "github.com/aclindsa/ofxgo for OFX; golang.org/x/text/encoding/charmap for charsets"
+  - "github.com/aclindsa/ofxgo (pinned v0.1.3, covered by fixture tests) for OFX; golang.org/x/text/encoding/charmap for charset transcoding"
   - "log/slog JSON to stdout"
 
 operations:
@@ -172,3 +174,13 @@ key_decisions:
     rationale: "one storage rule; correct month boundaries for Brazilian users"
   - decision: "secrets from SSM or env, never .env files"
     rationale: "no plaintext secrets on disk"
+  - decision: "local-first delivery: e01 runs over plain HTTP with master key from config; HTTPS, SSM secrets and Litestream backups ship in the last epic (e10-production)"
+    rationale: "build and test the whole app locally before paying the infrastructure setup cost"
+  - decision: "Google sign-in via coreos/go-oidc + x/oauth2"
+    rationale: "hand-rolled ID token / JWKS verification is a security risk (see specs/product/PRIOR_ART_LATEST.md)"
+  - decision: "CSRF via stdlib net/http.CrossOriginProtection"
+    rationale: "Go 1.25+ stdlib; no tokens to thread through forms and HTMX requests; no dependency"
+  - decision: "transcode OFX charset to UTF-8 before ofxgo parses it"
+    rationale: "ofxgo v0.1.3 passes input through unchanged; Brazilian banks often send CHARSET:1252"
+  - decision: "derive encryption and HMAC keys from the master key with crypto/hkdf"
+    rationale: "one secret to store and back up; separate keys per purpose"

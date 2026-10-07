@@ -1,0 +1,30 @@
+story_id: e01s01
+title: 'Walking skeleton: pt-BR home page and health check'
+status: todo
+bcps: 5
+outcome: make run serves a mobile-friendly pt-BR home page (templ + vendored HTMX) and /healthz answers from SQLite.
+tasks:
+- id: t1
+  description: Pin templ and sqlc as go tool directives; add Makefile targets gen, run, build, preflight
+  verify: go tool templ version && go tool sqlc version && make -n preflight
+  status: todo
+- id: t2
+  description: Config struct read from env at startup; fail fast on missing required values
+  verify: go test -race ./internal/config/... -run TestLoad
+  status: todo
+- id: t3
+  description: Open SQLite (modernc) with WAL, busy_timeout, foreign_keys=ON; /healthz runs SELECT 1
+  verify: go test -race ./web/... -run TestHealthz
+  status: todo
+- id: t4
+  description: Base layout (viewport meta, responsive CSS, vendored htmx under web/static) and home page
+  verify: go test -race ./web/... -run TestHomePage
+  status: todo
+- id: t5
+  description: slog JSON request logging (method, path, status, duration) and graceful shutdown on SIGTERM
+  verify: go test -race ./cmd/upareal/... -run TestGracefulShutdown
+  status: todo
+- id: t6
+  description: Full local gate is green
+  verify: make preflight
+  status: todo

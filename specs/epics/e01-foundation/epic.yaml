@@ -1,0 +1,16 @@
+epic_id: e01
+slug: foundation
+goal: Run the app locally with one command, same checks locally and in CI.
+scope_items:
+- S01
+- S22
+stories:
+- id: e01s01
+  title: 'Walking skeleton: pt-BR home page and health check'
+  bcps: 5
+  delta: ADDED
+- id: e01s02
+  title: Container and CI parity
+  bcps: 3
+  delta: ADDED
+bcps_total: 8

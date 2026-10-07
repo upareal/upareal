@@ -1,0 +1,15 @@
+epic_id: e08
+slug: admin
+goal: Admins manage user accounts without seeing financial data.
+scope_items:
+- S20
+stories:
+- id: e08s01
+  title: Admin lists users
+  bcps: 3
+  delta: ADDED
+- id: e08s02
+  title: Disable, enable and delete users
+  bcps: 5
+  delta: ADDED
+bcps_total: 8
