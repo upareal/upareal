@@ -1,4 +1,4 @@
--- story: e05s01
+-- story: e05s01 e05s02
 
 -- name: GetUserKey :one
 SELECT data_key FROM budget_user_key WHERE user_id = ?;
@@ -23,3 +23,23 @@ LEFT JOIN budget_category c
        ON c.group_id = g.id AND c.archived_at IS NULL AND c.user_id = g.user_id
 WHERE g.user_id = ? AND g.archived_at IS NULL
 ORDER BY g.position, c.position;
+
+-- name: GetGroup :one
+SELECT id, kind, position FROM budget_group WHERE id = ? AND user_id = ? AND archived_at IS NULL;
+
+-- name: NextGroupPosition :one
+SELECT CAST(COALESCE(MAX(position), -1) + 1 AS INTEGER) FROM budget_group WHERE user_id = ?;
+
+-- name: RenameGroup :exec
+UPDATE budget_group SET name = ? WHERE id = ? AND user_id = ?;
+
+-- name: PreviousGroup :one
+SELECT id, position FROM budget_group
+WHERE user_id = ? AND archived_at IS NULL AND position < ? ORDER BY position DESC LIMIT 1;
+
+-- name: NextGroup :one
+SELECT id, position FROM budget_group
+WHERE user_id = ? AND archived_at IS NULL AND position > ? ORDER BY position ASC LIMIT 1;
+
+-- name: SetGroupPosition :exec
+UPDATE budget_group SET position = ? WHERE id = ? AND user_id = ?;

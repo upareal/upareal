@@ -86,12 +86,34 @@ func (q *Queries) CreateUserKey(ctx context.Context, arg CreateUserKeyParams) er
 	return err
 }
 
+const getGroup = `-- name: GetGroup :one
+SELECT id, kind, position FROM budget_group WHERE id = ? AND user_id = ? AND archived_at IS NULL
+`
+
+type GetGroupParams struct {
+	ID     string
+	UserID string
+}
+
+type GetGroupRow struct {
+	ID       string
+	Kind     string
+	Position int64
+}
+
+func (q *Queries) GetGroup(ctx context.Context, arg GetGroupParams) (GetGroupRow, error) {
+	row := q.db.QueryRowContext(ctx, getGroup, arg.ID, arg.UserID)
+	var i GetGroupRow
+	err := row.Scan(&i.ID, &i.Kind, &i.Position)
+	return i, err
+}
+
 const getUserKey = `-- name: GetUserKey :one
 
 SELECT data_key FROM budget_user_key WHERE user_id = ?
 `
 
-// story: e05s01
+// story: e05s01 e05s02
 func (q *Queries) GetUserKey(ctx context.Context, userID string) ([]byte, error) {
 	row := q.db.QueryRowContext(ctx, getUserKey, userID)
 	var data_key []byte
@@ -144,4 +166,89 @@ func (q *Queries) ListActiveCategories(ctx context.Context, userID string) ([]Li
 		return nil, err
 	}
 	return items, nil
+}
+
+const nextGroup = `-- name: NextGroup :one
+SELECT id, position FROM budget_group
+WHERE user_id = ? AND archived_at IS NULL AND position > ? ORDER BY position ASC LIMIT 1
+`
+
+type NextGroupParams struct {
+	UserID   string
+	Position int64
+}
+
+type NextGroupRow struct {
+	ID       string
+	Position int64
+}
+
+func (q *Queries) NextGroup(ctx context.Context, arg NextGroupParams) (NextGroupRow, error) {
+	row := q.db.QueryRowContext(ctx, nextGroup, arg.UserID, arg.Position)
+	var i NextGroupRow
+	err := row.Scan(&i.ID, &i.Position)
+	return i, err
+}
+
+const nextGroupPosition = `-- name: NextGroupPosition :one
+SELECT CAST(COALESCE(MAX(position), -1) + 1 AS INTEGER) FROM budget_group WHERE user_id = ?
+`
+
+func (q *Queries) NextGroupPosition(ctx context.Context, userID string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, nextGroupPosition, userID)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const previousGroup = `-- name: PreviousGroup :one
+SELECT id, position FROM budget_group
+WHERE user_id = ? AND archived_at IS NULL AND position < ? ORDER BY position DESC LIMIT 1
+`
+
+type PreviousGroupParams struct {
+	UserID   string
+	Position int64
+}
+
+type PreviousGroupRow struct {
+	ID       string
+	Position int64
+}
+
+func (q *Queries) PreviousGroup(ctx context.Context, arg PreviousGroupParams) (PreviousGroupRow, error) {
+	row := q.db.QueryRowContext(ctx, previousGroup, arg.UserID, arg.Position)
+	var i PreviousGroupRow
+	err := row.Scan(&i.ID, &i.Position)
+	return i, err
+}
+
+const renameGroup = `-- name: RenameGroup :exec
+UPDATE budget_group SET name = ? WHERE id = ? AND user_id = ?
+`
+
+type RenameGroupParams struct {
+	Name   []byte
+	ID     string
+	UserID string
+}
+
+func (q *Queries) RenameGroup(ctx context.Context, arg RenameGroupParams) error {
+	_, err := q.db.ExecContext(ctx, renameGroup, arg.Name, arg.ID, arg.UserID)
+	return err
+}
+
+const setGroupPosition = `-- name: SetGroupPosition :exec
+UPDATE budget_group SET position = ? WHERE id = ? AND user_id = ?
+`
+
+type SetGroupPositionParams struct {
+	Position int64
+	ID       string
+	UserID   string
+}
+
+func (q *Queries) SetGroupPosition(ctx context.Context, arg SetGroupPositionParams) error {
+	_, err := q.db.ExecContext(ctx, setGroupPosition, arg.Position, arg.ID, arg.UserID)
+	return err
 }

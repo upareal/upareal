@@ -10,7 +10,7 @@ tasks:
     description: "Groups: CreateGroup, RenameGroup, MoveGroup"
     verify: "go test -race ./budget/... -run TestGroups"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Budget"]}
   - id: t2
     description: "Categories: CreateCategory, RenameCategory, MoveCategory, SetCategoryGroup (same kind only, B2)"
