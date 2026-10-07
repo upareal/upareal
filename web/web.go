@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02 e05s03 e06s01 e06s02
+// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02 e05s03 e06s01 e06s02 e06s03
 
 // Package web renders all HTML pages and HTMX fragments and wires the HTTP routes.
 package web
@@ -67,6 +67,7 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("POST /contas/{id}/ajuste", accountsAdjust(d.Users, d.Ledger))
 	mux.HandleFunc("GET /contas/{id}/lancamentos", registerGet(d.Users, d.Ledger))
 	mux.HandleFunc("POST /contas/{id}/lancamentos", registerPost(d.Users, d.Ledger))
+	mux.HandleFunc("POST /contas/{id}/transferencia", transferPost(d.Users, d.Ledger))
 	mux.HandleFunc("GET /contas/{id}/dividido", splitGet(d.Users, d.Ledger))
 	mux.HandleFunc("POST /contas/{id}/dividido", splitPost(d.Users, d.Ledger))
 	mux.HandleFunc("GET /contas/{id}/dividido/linha", splitLine(d.Users, d.Ledger))

@@ -16,7 +16,7 @@ tasks:
     description: "Web: transfer form on the register; both registers show the transfer"
     verify: "go test -race ./web/... -run TestTransferForm"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["UI", "integration"]}
   - id: t3
     description: "Full local gate green"

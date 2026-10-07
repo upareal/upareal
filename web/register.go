@@ -1,4 +1,4 @@
-// story: e06s01
+// story: e06s01 e06s03
 package web
 
 import (
@@ -20,6 +20,7 @@ type registerView struct {
 	CanRecord                                        bool // asset/liability accounts take simple entries
 	Lines                                            []registerLineView
 	Expenses, Incomes                                []ledger.Account
+	Destinations                                     []ledger.Account // other asset/liability accounts for transfers
 	Today, Now                                       string
 }
 
@@ -99,6 +100,10 @@ func renderRegister(w http.ResponseWriter, r *http.Request, ledg *ledger.Service
 			v.Expenses = append(v.Expenses, a)
 		case "income":
 			v.Incomes = append(v.Incomes, a)
+		case "asset", "liability":
+			if a.ID != acc.ID {
+				v.Destinations = append(v.Destinations, a)
+			}
 		}
 	}
 	renderHTML(w, r, status, registerPage(v, errMsg))

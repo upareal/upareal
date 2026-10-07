@@ -1,4 +1,4 @@
-// story: e06s01 e06s02
+// story: e06s01 e06s02 e06s03
 package web
 
 templ registerPage(v registerView, errMsg string) {
@@ -65,6 +65,26 @@ templ registerPage(v registerView, errMsg string) {
 					</form>
 				}
 			</section>
+			if len(v.Destinations) > 0 {
+				<section>
+					<h2>Transferência</h2>
+					<form method="post" action={ templ.SafeURL("/contas/" + v.AccountID + "/transferencia") }>
+						<label>
+							Para
+							<select name="destino" required>
+								for _, a := range v.Destinations {
+									<option value={ a.ID }>{ a.Name }</option>
+								}
+							</select>
+						</label>
+						<label>Valor <input name="valor" inputmode="decimal" placeholder="0,00" required/></label>
+						<label>Data <input type="date" name="data" value={ v.Today } required/></label>
+						<label>Hora <input type="time" name="hora" value={ v.Now } required/></label>
+						<label>Descrição <input name="descricao" maxlength="200"/></label>
+						<button type="submit">Transferir</button>
+					</form>
+				</section>
+			}
 		}
 	}
 }
