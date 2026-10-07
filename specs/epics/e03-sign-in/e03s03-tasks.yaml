@@ -10,7 +10,7 @@ tasks:
     description: "/privacidade and /termos (provisional pt-BR text) public; footer links on every page"
     verify: "go test -race ./web/... -run TestPublicPages"
     risk: P2
-    status: failing
+    status: passing
     allure: {severity: normal, categories: ["UI", "Legal"]}
   - id: t2
     description: "Migration 00002 (terms_version, terms_accepted_at); users.AcceptTerms; User.TermsVersion loaded"

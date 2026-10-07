@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e03s02
+// story: e01s01 e03s01 e03s02 e03s03
 package web
 
 // layout is the base page: pt-BR, mobile viewport, app CSS and vendored HTMX.
@@ -16,6 +16,10 @@ templ layout(title string) {
 			<main>
 				{ children... }
 			</main>
+			<footer>
+				<a href="/privacidade">Privacidade</a>
+				<a href="/termos">Termos de Uso</a>
+			</footer>
 		</body>
 	</html>
 }

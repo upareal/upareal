@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e03s02
+// story: e01s01 e03s01 e03s02 e03s03
 
 // Package web renders all HTML pages and HTMX fragments and wires the HTTP routes.
 package web
@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/a-h/templ"
 
 	"github.com/upareal/upareal/users"
 )
@@ -35,6 +37,8 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("GET /healthz", healthz(d.DB))
 	mux.Handle("GET /static/", staticHandler())
 	mux.HandleFunc("GET /{$}", home(d.Users))
+	mux.Handle("GET /privacidade", templ.Handler(privacyPage()))
+	mux.Handle("GET /termos", templ.Handler(termsPage()))
 	authLimit := newIPLimiter()
 	mux.Handle("GET /auth/login", authLimit.limit(login(d.Google)))
 	mux.Handle("GET /auth/callback", authLimit.limit(callback(d.Users, d.Google)))

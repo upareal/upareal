@@ -1,0 +1,29 @@
+// story: e03s03
+package web
+
+// provisionalBanner flags legal text that must be replaced before launch.
+templ provisionalBanner() {
+	<p class="provisional"><strong>Texto provisório.</strong> Este documento será substituído pela versão final antes do lançamento.</p>
+}
+
+templ privacyPage() {
+	@layout("Política de Privacidade — upareal") {
+		<h1>Política de Privacidade</h1>
+		@provisionalBanner()
+		<h2>Dados que coletamos</h2>
+		<p>Do Google recebemos apenas seu nome, e-mail e um identificador da conta. Você informa contas, categorias, transações e planos.</p>
+		<h2>Como protegemos</h2>
+		<p>Nomes, e-mails, descrições e nomes de contas e categorias são criptografados com uma chave exclusiva por usuário. Valores e datas não são criptografados para permitir os cálculos do orçamento.</p>
+		<h2>Seus direitos (LGPD)</h2>
+		<p>Você pode exportar seus dados e excluir sua conta a qualquer momento.</p>
+	}
+}
+
+templ termsPage() {
+	@layout("Termos de Uso — upareal") {
+		<h1>Termos de Uso</h1>
+		@provisionalBanner()
+		<p>O upareal é uma ferramenta de orçamento pessoal. Você é responsável pelas informações que registra.</p>
+		<p>Ao usar o upareal você concorda com a Política de Privacidade.</p>
+	}
+}
