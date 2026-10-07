@@ -64,6 +64,17 @@ func (q *Queries) AccountBalances(ctx context.Context, userID string) ([]Account
 	return items, nil
 }
 
+const countAccountLegs = `-- name: CountAccountLegs :one
+SELECT count(*) FROM ledger_leg WHERE account_id = ?
+`
+
+func (q *Queries) CountAccountLegs(ctx context.Context, accountID string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countAccountLegs, accountID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countPostableAccounts = `-- name: CountPostableAccounts :one
 SELECT count(*) FROM ledger_account
 WHERE user_id = ?1 AND archived_at IS NULL AND id IN (/*SLICE:ids*/?)
@@ -233,7 +244,7 @@ const getUserKey = `-- name: GetUserKey :one
 SELECT data_key FROM ledger_user_key WHERE user_id = ?
 `
 
-// story: e04s01 e04s02
+// story: e04s01 e04s02 e04s03
 func (q *Queries) GetUserKey(ctx context.Context, userID string) ([]byte, error) {
 	row := q.db.QueryRowContext(ctx, getUserKey, userID)
 	var data_key []byte
@@ -329,4 +340,29 @@ func (q *Queries) NextAccountPosition(ctx context.Context, arg NextAccountPositi
 	var column_1 int64
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const updateAccount = `-- name: UpdateAccount :exec
+UPDATE ledger_account SET name = ?, type = ?, on_budget = ?, is_card = ? WHERE id = ? AND user_id = ?
+`
+
+type UpdateAccountParams struct {
+	Name     []byte
+	Type     string
+	OnBudget int64
+	IsCard   int64
+	ID       string
+	UserID   string
+}
+
+func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) error {
+	_, err := q.db.ExecContext(ctx, updateAccount,
+		arg.Name,
+		arg.Type,
+		arg.OnBudget,
+		arg.IsCard,
+		arg.ID,
+		arg.UserID,
+	)
+	return err
 }

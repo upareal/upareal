@@ -1,4 +1,4 @@
--- story: e04s01 e04s02
+-- story: e04s01 e04s02 e04s03
 
 -- name: GetUserKey :one
 SELECT data_key FROM ledger_user_key WHERE user_id = ?;
@@ -50,3 +50,9 @@ SELECT l.account_id, CAST(SUM(l.amount) AS INTEGER) AS balance FROM ledger_leg l
 JOIN ledger_account a ON a.id = l.account_id
 WHERE a.user_id = ?
 GROUP BY l.account_id;
+
+-- name: UpdateAccount :exec
+UPDATE ledger_account SET name = ?, type = ?, on_budget = ?, is_card = ? WHERE id = ? AND user_id = ?;
+
+-- name: CountAccountLegs :one
+SELECT count(*) FROM ledger_leg WHERE account_id = ?;

@@ -10,7 +10,7 @@ tasks:
     description: "UpdateAccount: name, flags, type only without legs (L5); system accounts protected (L7)"
     verify: "go test -race ./ledger/... -run TestUpdateAccount"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger"]}
   - id: t2
     description: "MoveAccount up/down within type"
