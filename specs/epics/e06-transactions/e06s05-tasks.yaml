@@ -1,14 +1,32 @@
 story_id: e06s05
-title: Find transactions
-status: todo
+title: "Find transactions"
+spec: e06s05-find-transactions.md
+status: failing
 bcps: 5
-outcome: A user filters by date range (default 12 months), account, income/expense account, amount, and searches description text.
+risk: P1
+outcome: A user finds transactions by date range (always bounded), account, amount and accent/case-insensitive text.
 tasks:
-- id: t1
-  description: SQL filters on plaintext columns, always date-bounded
-  verify: go test -race ./ledger/... -run TestSearchFilters
-  status: todo
-- id: t2
-  description: Decrypt the filtered page and match text in Go (case/accent-insensitive)
-  verify: go test -race ./ledger/... -run TestSearchText
-  status: todo
+  - id: t1
+    description: "ledger.Search SQL filters: range, account, min/max amount, no deleted, isolation"
+    verify: "go test -race ./ledger/... -run TestSearchFilters"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Ledger", "Security Review"]}
+  - id: t2
+    description: "Text match on decrypted description and account names, accent/case-insensitive; 500 cap"
+    verify: "go test -race ./ledger/... -run TestSearchText"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Ledger"]}
+  - id: t3
+    description: "/buscar page: defaults (last 12 months), validation, results with edit links, summary"
+    verify: "go test -race ./web/... -run TestSearchPage"
+    risk: P2
+    status: failing
+    allure: {severity: normal, categories: ["UI", "integration"]}
+  - id: t4
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
