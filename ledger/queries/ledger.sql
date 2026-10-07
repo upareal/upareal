@@ -1,4 +1,4 @@
--- story: e04s01 e04s02 e04s03 e06s01 e06s04
+-- story: e04s01 e04s02 e04s03 e06s01 e06s04 e06s05
 
 -- name: GetUserKey :one
 SELECT data_key FROM ledger_user_key WHERE user_id = ?;
@@ -134,3 +134,28 @@ VALUES (?, ?, ?, ?, ?, ?);
 SELECT action, changed_at, snapshot FROM ledger_transaction_history
 WHERE transaction_id = ? AND user_id = ?
 ORDER BY changed_at DESC, id DESC;
+
+-- name: SearchTransactions :many
+-- Plaintext filters only; text matching happens in Go after decryption.
+SELECT t.id, t.occurred_at, t.description,
+       CAST(SUM(CASE WHEN l.amount > 0 THEN l.amount ELSE 0 END) AS INTEGER) AS amount
+FROM ledger_transaction t
+JOIN ledger_leg l ON l.transaction_id = t.id
+WHERE t.user_id = sqlc.arg(user_id) AND t.deleted_at IS NULL
+  AND t.occurred_at >= sqlc.arg(from_at) AND t.occurred_at < sqlc.arg(to_at)
+  AND (CAST(sqlc.arg(account_id) AS TEXT) = ''
+       OR EXISTS (SELECT 1 FROM ledger_leg x WHERE x.transaction_id = t.id AND x.account_id = CAST(sqlc.arg(account_id) AS TEXT)))
+GROUP BY t.id
+-- Use the expression, not the alias: in HAVING, "amount" would resolve to ledger_leg.amount.
+HAVING (CAST(sqlc.arg(min_amount) AS INTEGER) = 0
+        OR SUM(CASE WHEN l.amount > 0 THEN l.amount ELSE 0 END) >= CAST(sqlc.arg(min_amount) AS INTEGER))
+   AND (CAST(sqlc.arg(max_amount) AS INTEGER) = 0
+        OR SUM(CASE WHEN l.amount > 0 THEN l.amount ELSE 0 END) <= CAST(sqlc.arg(max_amount) AS INTEGER))
+ORDER BY t.occurred_at DESC, t.id DESC
+LIMIT 2000;
+
+-- name: LegsOfTransactions :many
+SELECT l.transaction_id, a.id AS account_id, a.type, a.name, a.system_role FROM ledger_leg l
+JOIN ledger_account a ON a.id = l.account_id
+WHERE a.user_id = sqlc.arg(user_id) AND l.transaction_id IN (sqlc.slice('transaction_ids'))
+ORDER BY l.transaction_id, a.type, a.position;

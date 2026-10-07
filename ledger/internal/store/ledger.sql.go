@@ -367,7 +367,7 @@ const getUserKey = `-- name: GetUserKey :one
 SELECT data_key FROM ledger_user_key WHERE user_id = ?
 `
 
-// story: e04s01 e04s02 e04s03 e06s01 e06s04
+// story: e04s01 e04s02 e04s03 e06s01 e06s04 e06s05
 func (q *Queries) GetUserKey(ctx context.Context, userID string) ([]byte, error) {
 	row := q.db.QueryRowContext(ctx, getUserKey, userID)
 	var data_key []byte
@@ -399,6 +399,66 @@ func (q *Queries) InsertHistory(ctx context.Context, arg InsertHistoryParams) er
 		arg.Snapshot,
 	)
 	return err
+}
+
+const legsOfTransactions = `-- name: LegsOfTransactions :many
+SELECT l.transaction_id, a.id AS account_id, a.type, a.name, a.system_role FROM ledger_leg l
+JOIN ledger_account a ON a.id = l.account_id
+WHERE a.user_id = ?1 AND l.transaction_id IN (/*SLICE:transaction_ids*/?)
+ORDER BY l.transaction_id, a.type, a.position
+`
+
+type LegsOfTransactionsParams struct {
+	UserID         string
+	TransactionIds []string
+}
+
+type LegsOfTransactionsRow struct {
+	TransactionID string
+	AccountID     string
+	Type          string
+	Name          []byte
+	SystemRole    sql.NullString
+}
+
+func (q *Queries) LegsOfTransactions(ctx context.Context, arg LegsOfTransactionsParams) ([]LegsOfTransactionsRow, error) {
+	query := legsOfTransactions
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.UserID)
+	if len(arg.TransactionIds) > 0 {
+		for _, v := range arg.TransactionIds {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:transaction_ids*/?", strings.Repeat(",?", len(arg.TransactionIds))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:transaction_ids*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []LegsOfTransactionsRow
+	for rows.Next() {
+		var i LegsOfTransactionsRow
+		if err := rows.Scan(
+			&i.TransactionID,
+			&i.AccountID,
+			&i.Type,
+			&i.Name,
+			&i.SystemRole,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listActiveAccounts = `-- name: ListActiveAccounts :many
@@ -665,6 +725,77 @@ func (q *Queries) RegisterEntries(ctx context.Context, arg RegisterEntriesParams
 	var items []RegisterEntriesRow
 	for rows.Next() {
 		var i RegisterEntriesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OccurredAt,
+			&i.Description,
+			&i.Amount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const searchTransactions = `-- name: SearchTransactions :many
+SELECT t.id, t.occurred_at, t.description,
+       CAST(SUM(CASE WHEN l.amount > 0 THEN l.amount ELSE 0 END) AS INTEGER) AS amount
+FROM ledger_transaction t
+JOIN ledger_leg l ON l.transaction_id = t.id
+WHERE t.user_id = ?1 AND t.deleted_at IS NULL
+  AND t.occurred_at >= ?2 AND t.occurred_at < ?3
+  AND (CAST(?4 AS TEXT) = ''
+       OR EXISTS (SELECT 1 FROM ledger_leg x WHERE x.transaction_id = t.id AND x.account_id = CAST(?4 AS TEXT)))
+GROUP BY t.id
+HAVING (CAST(?5 AS INTEGER) = 0
+        OR SUM(CASE WHEN l.amount > 0 THEN l.amount ELSE 0 END) >= CAST(?5 AS INTEGER))
+   AND (CAST(?6 AS INTEGER) = 0
+        OR SUM(CASE WHEN l.amount > 0 THEN l.amount ELSE 0 END) <= CAST(?6 AS INTEGER))
+ORDER BY t.occurred_at DESC, t.id DESC
+LIMIT 2000
+`
+
+type SearchTransactionsParams struct {
+	UserID    string
+	FromAt    string
+	ToAt      string
+	AccountID string
+	MinAmount int64
+	MaxAmount int64
+}
+
+type SearchTransactionsRow struct {
+	ID          string
+	OccurredAt  string
+	Description []byte
+	Amount      int64
+}
+
+// Plaintext filters only; text matching happens in Go after decryption.
+// Use the expression, not the alias: in HAVING, "amount" would resolve to ledger_leg.amount.
+func (q *Queries) SearchTransactions(ctx context.Context, arg SearchTransactionsParams) ([]SearchTransactionsRow, error) {
+	rows, err := q.db.QueryContext(ctx, searchTransactions,
+		arg.UserID,
+		arg.FromAt,
+		arg.ToAt,
+		arg.AccountID,
+		arg.MinAmount,
+		arg.MaxAmount,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SearchTransactionsRow
+	for rows.Next() {
+		var i SearchTransactionsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.OccurredAt,

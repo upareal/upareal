@@ -10,7 +10,7 @@ tasks:
     description: "ledger.Search SQL filters: range, account, min/max amount, no deleted, isolation"
     verify: "go test -race ./ledger/... -run TestSearchFilters"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Ledger", "Security Review"]}
   - id: t2
     description: "Text match on decrypted description and account names, accent/case-insensitive; 500 cap"
