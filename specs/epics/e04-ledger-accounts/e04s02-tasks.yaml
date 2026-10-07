@@ -10,7 +10,7 @@ tasks:
     description: "internal/money ParseBRL/FormatBRL (pt-BR, centavos, overflow-safe)"
     verify: "go test -race ./internal/money/... -run TestBRL"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Money", "unit"]}
   - id: t2
     description: "Migration 00002: on_budget, is_card, ledger_transaction, ledger_leg; queries"
