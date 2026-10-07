@@ -1,4 +1,4 @@
-// story: e04s01
+// story: e04s01 e04s02
 package ledger_test
 
 import (
@@ -6,16 +6,26 @@ import (
 	"context"
 	"os"
 	"testing"
+
+	"github.com/upareal/upareal/ledger"
 )
 
-// TestLedgerHasNoPlaintext proves a copy of the database reveals no account names.
+// TestLedgerHasNoPlaintext proves a copy of the database reveals no account
+// names or transaction descriptions.
 func TestLedgerHasNoPlaintext(t *testing.T) {
 	f := newFixture(t)
 	ctx := context.Background()
 	if err := f.svc.EnsureDefaults(ctx, userA); err != nil {
 		t.Fatal(err)
 	}
-	if accounts, err := f.svc.Accounts(ctx, userA); err != nil || len(accounts) != wantSystem || accounts[2].Name != "Saldo inicial" {
+	acc, err := f.svc.CreateAccount(ctx, userA, ledger.NewAccount{Name: "Conta Itaú Personnalité", Type: "asset", Opening: 250000, OpeningAt: jan10})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := f.svc.AdjustBalance(ctx, userA, acc.ID, 248000, jan10); err != nil {
+		t.Fatal(err)
+	}
+	if accounts, err := f.svc.Accounts(ctx, userA); err != nil || len(accounts) != wantSystem+1 || accounts[0].Name != "Conta Itaú Personnalité" {
 		t.Fatalf("round trip = %+v, %v; the scan below would prove nothing", accounts, err)
 	}
 	if err := f.conn.Close(); err != nil {
@@ -31,7 +41,7 @@ func TestLedgerHasNoPlaintext(t *testing.T) {
 	if !bytes.Contains(raw, []byte("ledger_account")) {
 		t.Fatal("control: schema text not found; the scan is not reading the database")
 	}
-	for _, name := range []string{"Saldo inicial", "A categorizar"} {
+	for _, name := range []string{"Saldo inicial", "A categorizar", "Conta Itaú Personnalité", "Ajuste de saldo"} {
 		if bytes.Contains(raw, []byte(name)) {
 			t.Errorf("database files contain %q in plaintext", name)
 		}
