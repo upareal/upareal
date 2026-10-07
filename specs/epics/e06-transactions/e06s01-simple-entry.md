@@ -22,7 +22,7 @@ The user opens `/contas/{id}/lancamentos` and submits the new entry form.
 ## 5. Main flow
 
 1. The register page for an asset or liability account shows one month at a time: the current month in São Paulo by default, or another month with `?mes=YYYY-MM`, with links to the previous and next months.
-2. **New entry form:** kind (**Despesa** or **Receita**), the counter account (the user's active expense or income accounts, depending on the kind), amount (more than zero), date and time (default now in São Paulo) and description.
+2. **New entry form:** the counter account (one picker with the user's active expense and income accounts, grouped under Despesas and Receitas), amount (more than zero), date and time (default now in São Paulo) and description. There is no separate kind field: the counter account's type sets the direction, so the two can't disagree (refined during implementation).
 3. `ledger.RecordSimple` posts two legs through `postTransaction`:
    - **expense** of A: counter `+A`, account `−A`
    - **income** of A: counter `−A`, account `+A`

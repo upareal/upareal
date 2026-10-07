@@ -22,7 +22,7 @@ tasks:
     description: "Web: /contas/{id}/lancamentos register by month + new entry form; São Paulo month boundary"
     verify: "go test -race ./web/... -run 'TestRecordTransaction|TestAccountRegister|TestMonthInSaoPaulo'"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["UI", "integration"]}
   - id: t4
     description: "Proof: descriptions not stored in plaintext"

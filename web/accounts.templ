@@ -1,4 +1,4 @@
-// story: e04s02 e04s03
+// story: e04s02 e04s03 e06s01
 package web
 
 templ accountsPage(sections []accountSection, archived []accountView, errMsg, today string) {
@@ -18,6 +18,7 @@ templ accountsPage(sections []accountSection, archived []accountView, errMsg, to
 					for _, a := range sec.Rows {
 						<li>
 							<strong><a href={ templ.SafeURL("/contas/" + a.ID) }>{ a.Name }</a></strong>
+							<a href={ templ.SafeURL("/contas/" + a.ID + "/lancamentos") } class="tag">Lançamentos</a>
 							<form method="post" action={ templ.SafeURL("/contas/" + a.ID + "/mover?dir=up") } class="move"><button type="submit" aria-label="Mover para cima">↑</button></form>
 							<form method="post" action={ templ.SafeURL("/contas/" + a.ID + "/mover?dir=down") } class="move"><button type="submit" aria-label="Mover para baixo">↓</button></form>
 							if a.IsCard {

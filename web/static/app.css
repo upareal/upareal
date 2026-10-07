@@ -49,3 +49,9 @@ section.accounts li { padding: 0.5rem 0; border-bottom: 1px solid #eee; }
 /* story: e04s03 */
 form.move { display: inline; margin-left: 0.25rem; }
 form.move button { padding: 0 0.5rem; }
+
+/* story: e06s01 */
+table.register { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+table.register th, table.register td { padding: 0.35rem 0.25rem; border-bottom: 1px solid #eee; text-align: left; }
+table.register td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+nav.months { display: flex; justify-content: space-between; gap: 0.5rem; margin: 0.5rem 0 1rem; }

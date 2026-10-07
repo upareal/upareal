@@ -1,0 +1,62 @@
+// story: e06s01
+package web
+
+templ registerPage(v registerView, errMsg string) {
+	@layout(v.AccountName + " — upareal") {
+		<p><a href="/contas">← Contas</a></p>
+		<h1>{ v.AccountName }</h1>
+		<nav class="months">
+			<a href={ templ.SafeURL("/contas/" + v.AccountID + "/lancamentos?mes=" + v.Prev) }>← Mês anterior</a>
+			<strong>{ v.Label }</strong>
+			<a href={ templ.SafeURL("/contas/" + v.AccountID + "/lancamentos?mes=" + v.Next) }>Próximo mês →</a>
+		</nav>
+		if errMsg != "" {
+			<p class="error" role="alert">{ errMsg }</p>
+		}
+		if len(v.Lines) == 0 {
+			<p class="muted">Nenhum lançamento neste mês.</p>
+		} else {
+			<table class="register">
+				<thead><tr><th>Quando</th><th>Descrição</th><th>Contrapartida</th><th>Valor</th><th>Saldo</th></tr></thead>
+				<tbody>
+					for _, l := range v.Lines {
+						<tr>
+							<td>{ l.When }</td>
+							<td>{ l.Description }</td>
+							<td>{ l.Counterparts }</td>
+							<td class="num">{ l.Amount }</td>
+							<td class="num">{ l.Balance }</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		}
+		if v.CanRecord {
+			<section>
+				<h2>Novo lançamento</h2>
+				<form method="post" action={ templ.SafeURL("/contas/" + v.AccountID + "/lancamentos") }>
+					<label>
+						Despesa ou receita
+						<select name="contra" required>
+							<optgroup label="Despesas">
+								for _, a := range v.Expenses {
+									<option value={ a.ID }>{ a.Name }</option>
+								}
+							</optgroup>
+							<optgroup label="Receitas">
+								for _, a := range v.Incomes {
+									<option value={ a.ID }>{ a.Name }</option>
+								}
+							</optgroup>
+						</select>
+					</label>
+					<label>Valor <input name="valor" inputmode="decimal" placeholder="0,00" required/></label>
+					<label>Data <input type="date" name="data" value={ v.Today } required/></label>
+					<label>Hora <input type="time" name="hora" value={ v.Now } required/></label>
+					<label>Descrição <input name="descricao" maxlength="200"/></label>
+					<button type="submit">Lançar</button>
+				</form>
+			</section>
+		}
+	}
+}
