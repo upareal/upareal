@@ -16,7 +16,7 @@ tasks:
     description: "internal/config.Load(getenv) with required DB_PATH; fail fast naming the missing var"
     verify: "go test -race ./internal/config/... -run TestLoad"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Config", "unit"]}
   - id: t3
     description: "internal/db.Open with WAL, busy_timeout(5000), foreign_keys(1); GET /healthz 200/503"
