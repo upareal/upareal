@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e06s02 all tasks passing; awaiting user UAT (spec §19)
+  next_skill: plan-work
+  note: e06s02 done; plan e06s03 (transfers between own accounts)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -24,7 +24,7 @@ git:
   branch: feat/e06-transactions
   worktree: null
   base: main@593e7b8
-active_story: e06s02
+active_story: e06s03
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'
