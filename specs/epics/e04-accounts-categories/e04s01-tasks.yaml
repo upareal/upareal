@@ -1,22 +1,44 @@
 story_id: e04s01
-title: Default grouped categories on sign-up
-status: todo
+title: "Default grouped categories on sign-up"
+spec: e04s01-default-categories.md
+status: failing
 bcps: 5
-outcome: A new user sees default pt-BR category groups and categories; system accounts exist.
+risk: P0
+outcome: A new user gets default pt-BR groups, categories and hidden system accounts, and sees them on /categorias.
 tasks:
-- id: t1
-  description: 'ledger migrations (goose_ledger, ledger_ prefix): groups, accounts (5 types), position, archived_at'
-  verify: make gen && git diff --exit-code
-  status: todo
-- id: t2
-  description: Seed default groups/categories plus Opening Balances (equity) and Uncategorized income/expense on first sign-in
-  verify: go test -race ./ledger/... -run TestSeedDefaults
-  status: todo
-- id: t3
-  description: Categories page lists groups and categories by position (names decrypted)
-  verify: go test -race ./web/... -run TestCategoriesPage
-  status: todo
-- id: t4
-  description: 'Isolation: user A cannot read user B''s groups or accounts'
-  verify: go test -race ./ledger/... -run TestIsolation
-  status: todo
+  - id: t1
+    description: "db.Open _txlock=immediate; ledger schema (user_key, group, account) + sqlc; run() migrates ledger after users"
+    verify: "make gen && go build ./... && go test -race ./internal/db/... ./cmd/upareal/..."
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Database"]}
+  - id: t2
+    description: "ledger.EnsureDefaults: per-module data key, default groups/categories from defaults.go, system accounts; idempotent; concurrent-safe"
+    verify: "go test -race ./ledger/... -run TestEnsureDefaults"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger", "integration"]}
+  - id: t3
+    description: "ledger.Categories: ordered, decrypted, active only, system accounts hidden; user isolation"
+    verify: "go test -race ./ledger/... -run 'TestCategories|TestIsolation'"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger", "Security Review"]}
+  - id: t4
+    description: "Web: callback runs EnsureDefaults before the session; /categorias page; home link"
+    verify: "go test -race ./web/... -run TestCategoriesPage"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t5
+    description: "Proof: database copy holds no plaintext default names"
+    verify: "go test -race ./ledger/... -run TestLedgerHasNoPlaintext"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Security Review"]}
+  - id: t6
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
