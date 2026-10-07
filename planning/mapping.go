@@ -91,3 +91,52 @@ func (s *Service) categoryKind(ctx context.Context, userID, categoryID string) (
 	}
 	return "", ErrNotFound
 }
+
+// Mapping is one mappable account and its category ("" = Sem categoria).
+type Mapping struct {
+	Account      ledger.Account
+	CategoryID   string
+	CategoryName string
+	GroupName    string
+}
+
+// Mappings lists every active, non-system income/expense account of userID
+// with its category. A mapping to a category or account that is no longer
+// active is ignored, so the account shows as Sem categoria (P3, X1).
+func (s *Service) Mappings(ctx context.Context, userID string) ([]Mapping, error) {
+	accounts, err := s.ledg.Accounts(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("planning: accounts: %w", err)
+	}
+	groups, err := s.bud.Categories(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("planning: categories: %w", err)
+	}
+	type cat struct{ name, group, kind string }
+	cats := map[string]cat{}
+	for _, g := range groups {
+		for _, c := range g.Categories {
+			cats[c.ID] = cat{name: c.Name, group: g.Name, kind: g.Kind}
+		}
+	}
+	rows, err := s.q.ListMappings(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("planning: mappings: %w", err)
+	}
+	mapped := make(map[string]string, len(rows))
+	for _, r := range rows {
+		mapped[r.AccountID] = r.CategoryID
+	}
+	var out []Mapping
+	for _, a := range accounts {
+		if a.SystemRole != "" || (a.Type != "income" && a.Type != "expense") {
+			continue
+		}
+		m := Mapping{Account: a}
+		if c, ok := cats[mapped[a.ID]]; ok && c.kind == a.Type {
+			m.CategoryID, m.CategoryName, m.GroupName = mapped[a.ID], c.name, c.group
+		}
+		out = append(out, m)
+	}
+	return out, nil
+}

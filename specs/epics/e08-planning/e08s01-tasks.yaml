@@ -16,7 +16,7 @@ tasks:
     description: "Mappings: one row per user income/expense account; Sem categoria for unmapped or stale mappings (X1, P3)"
     verify: "go test -race ./planning/... -run TestUnmapped"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Planning"]}
   - id: t3
     description: "Web: /planejamento/mapa with same-kind pickers and Sem categoria counter"
