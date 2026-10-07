@@ -1,4 +1,4 @@
-// story: e03s01 e03s02 e04s01
+// story: e03s01 e03s02 e04s01 e05s01
 package web
 
 import (
@@ -11,6 +11,7 @@ import (
 
 	"golang.org/x/oauth2"
 
+	"github.com/upareal/upareal/budget"
 	"github.com/upareal/upareal/ledger"
 	"github.com/upareal/upareal/users"
 )
@@ -37,7 +38,7 @@ func login(google *users.Google) http.HandlerFunc {
 
 // callback finishes a sign-in: check state, exchange the code, sign in,
 // start a session.
-func callback(svc *users.Service, ledg *ledger.Service, google *users.Google) http.HandlerFunc {
+func callback(svc *users.Service, ledg *ledger.Service, bud *budget.Service, google *users.Google) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		clearCookie(w, oauthCookie, "/auth")
 		q := r.URL.Query()
@@ -66,7 +67,7 @@ func callback(svc *users.Service, ledg *ledger.Service, google *users.Google) ht
 			renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Algo deu errado. Tente novamente em instantes.")
 			return
 		}
-		if err := ledg.EnsureDefaults(r.Context(), user.ID); err != nil {
+		if err := errors.Join(ledg.EnsureDefaults(r.Context(), user.ID), bud.EnsureDefaults(r.Context(), user.ID)); err != nil {
 			renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Algo deu errado. Tente novamente em instantes.")
 			return
 		}

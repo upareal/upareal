@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03
+// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01
 
 // Package web renders all HTML pages and HTMX fragments and wires the HTTP routes.
 package web
@@ -14,6 +14,7 @@ import (
 
 	"github.com/a-h/templ"
 
+	"github.com/upareal/upareal/budget"
 	"github.com/upareal/upareal/ledger"
 	"github.com/upareal/upareal/users"
 )
@@ -28,6 +29,7 @@ type Deps struct {
 	DB     *sql.DB
 	Users  *users.Service
 	Ledger *ledger.Service
+	Budget *budget.Service
 	Google *users.Google
 }
 
@@ -39,6 +41,7 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("GET /healthz", healthz(d.DB))
 	mux.Handle("GET /static/", staticHandler())
 	mux.HandleFunc("GET /{$}", home(d.Users))
+	mux.HandleFunc("GET /categorias", categories(d.Users, d.Budget))
 	mux.HandleFunc("GET /contas", accountsGet(d.Users, d.Ledger))
 	mux.HandleFunc("POST /contas", accountsCreate(d.Users, d.Ledger))
 	mux.HandleFunc("POST /contas/{id}/ajuste", accountsAdjust(d.Users, d.Ledger))
@@ -62,7 +65,7 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("POST /termos/aceitar", acceptTermsSubmit(d.Users))
 	authLimit := newIPLimiter()
 	mux.Handle("GET /auth/login", authLimit.limit(login(d.Google)))
-	mux.Handle("GET /auth/callback", authLimit.limit(callback(d.Users, d.Ledger, d.Google)))
+	mux.Handle("GET /auth/callback", authLimit.limit(callback(d.Users, d.Ledger, d.Budget, d.Google)))
 	mux.HandleFunc("POST /auth/logout", logout(d.Users, false))
 	mux.HandleFunc("POST /auth/logout-all", logout(d.Users, true))
 	// CSRF: reject cross-origin unsafe methods (Sec-Fetch-Site / Origin checks).
