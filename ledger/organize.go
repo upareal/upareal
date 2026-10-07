@@ -103,6 +103,41 @@ func (s *Service) MoveAccount(ctx context.Context, userID, id string, up bool) e
 	})
 }
 
+// ArchiveAccount hides an account and blocks new legs (L6), keeping its
+// history. Asset and liability accounts must be at zero balance so no money
+// vanishes from the totals; income and expense accounts hold cumulative flow
+// and can be archived anytime.
+func (s *Service) ArchiveAccount(ctx context.Context, userID, id string) error {
+	return s.inTx(ctx, func(q *store.Queries) error {
+		acc, err := s.loadUserAccount(ctx, q, userID, id)
+		if err != nil {
+			return err
+		}
+		if acc.Type == "asset" || acc.Type == "liability" {
+			b, err := q.AccountBalance(ctx, store.AccountBalanceParams{UserID: userID, AccountID: id})
+			if err != nil {
+				return fmt.Errorf("ledger: balance: %w", err)
+			}
+			if b != 0 {
+				return ErrNonZeroBalance
+			}
+		}
+		return q.SetAccountArchived(ctx, store.SetAccountArchivedParams{
+			ArchivedAt: sql.NullString{String: stamp(s.now()), Valid: true}, ID: id, UserID: userID,
+		})
+	})
+}
+
+// RestoreAccount brings an archived account back to the active list.
+func (s *Service) RestoreAccount(ctx context.Context, userID, id string) error {
+	return s.inTx(ctx, func(q *store.Queries) error {
+		if _, err := s.loadUserAccount(ctx, q, userID, id); err != nil {
+			return err
+		}
+		return q.SetAccountArchived(ctx, store.SetAccountArchivedParams{ArchivedAt: sql.NullString{}, ID: id, UserID: userID})
+	})
+}
+
 // loadUserAccount guards every account mutation: other users' accounts are
 // not found (X2) and system accounts cannot change (L7).
 func (s *Service) loadUserAccount(ctx context.Context, q *store.Queries, userID, id string) (store.GetAccountRow, error) {

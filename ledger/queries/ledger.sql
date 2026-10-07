@@ -69,3 +69,13 @@ ORDER BY position ASC LIMIT 1;
 
 -- name: SetAccountPosition :exec
 UPDATE ledger_account SET position = ? WHERE id = ? AND user_id = ?;
+
+-- name: SetAccountArchived :exec
+UPDATE ledger_account SET archived_at = ? WHERE id = ? AND user_id = ?;
+
+-- name: ListArchivedAccounts :many
+SELECT id, type, name, system_role, on_budget, is_card FROM ledger_account
+WHERE user_id = ? AND archived_at IS NOT NULL
+ORDER BY CASE type WHEN 'asset' THEN 1 WHEN 'liability' THEN 2 WHEN 'income' THEN 3
+                   WHEN 'expense' THEN 4 ELSE 5 END,
+         position, created_at;

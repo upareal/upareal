@@ -301,6 +301,53 @@ func (q *Queries) ListActiveAccounts(ctx context.Context, userID string) ([]List
 	return items, nil
 }
 
+const listArchivedAccounts = `-- name: ListArchivedAccounts :many
+SELECT id, type, name, system_role, on_budget, is_card FROM ledger_account
+WHERE user_id = ? AND archived_at IS NOT NULL
+ORDER BY CASE type WHEN 'asset' THEN 1 WHEN 'liability' THEN 2 WHEN 'income' THEN 3
+                   WHEN 'expense' THEN 4 ELSE 5 END,
+         position, created_at
+`
+
+type ListArchivedAccountsRow struct {
+	ID         string
+	Type       string
+	Name       []byte
+	SystemRole sql.NullString
+	OnBudget   int64
+	IsCard     int64
+}
+
+func (q *Queries) ListArchivedAccounts(ctx context.Context, userID string) ([]ListArchivedAccountsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listArchivedAccounts, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListArchivedAccountsRow
+	for rows.Next() {
+		var i ListArchivedAccountsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Type,
+			&i.Name,
+			&i.SystemRole,
+			&i.OnBudget,
+			&i.IsCard,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSystemRoles = `-- name: ListSystemRoles :many
 SELECT system_role FROM ledger_account WHERE user_id = ? AND system_role IS NOT NULL
 `
@@ -390,6 +437,21 @@ func (q *Queries) PreviousAccount(ctx context.Context, arg PreviousAccountParams
 	var i PreviousAccountRow
 	err := row.Scan(&i.ID, &i.Position)
 	return i, err
+}
+
+const setAccountArchived = `-- name: SetAccountArchived :exec
+UPDATE ledger_account SET archived_at = ? WHERE id = ? AND user_id = ?
+`
+
+type SetAccountArchivedParams struct {
+	ArchivedAt sql.NullString
+	ID         string
+	UserID     string
+}
+
+func (q *Queries) SetAccountArchived(ctx context.Context, arg SetAccountArchivedParams) error {
+	_, err := q.db.ExecContext(ctx, setAccountArchived, arg.ArchivedAt, arg.ID, arg.UserID)
+	return err
 }
 
 const setAccountPosition = `-- name: SetAccountPosition :exec

@@ -22,7 +22,7 @@ tasks:
     description: "Archive/restore only at zero balance; ArchivedAccounts; L6/L7"
     verify: "go test -race ./ledger/... -run TestArchiveAccount"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger"]}
   - id: t4
     description: "DeleteAccount only without legs; L7"
