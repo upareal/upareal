@@ -1,7 +1,7 @@
 story_id: e06s04
 title: "Edit and delete with history"
 spec: e06s04-edit-delete-history.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: A user edits or deletes a transaction; previous versions are kept encrypted; deleted transactions leave balances and registers.
@@ -40,5 +40,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
