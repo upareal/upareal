@@ -1,4 +1,4 @@
-// story: e05s03 e08s02
+// story: e05s03 e08s02 e08s03
 package web
 
 templ budgetMonthPage(v monthView, errMsg string) {
@@ -28,6 +28,9 @@ templ budgetMonthPage(v monthView, errMsg string) {
 							if row.Income {
 								<span class="muted">Recebido { row.Received }</span>
 							} else {
+								if row.CarryOver != "" {
+									<span class={ templ.KV("negative", row.CarriedOverspent) }>Do mês anterior { row.CarryOver }</span>
+								}
 								<span class="muted">Gasto { row.Spent }</span>
 								<span class={ templ.KV("negative", row.Overspent) }>Disponível { row.Available }</span>
 							}

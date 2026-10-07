@@ -1,4 +1,4 @@
-// story: e05s03 e08s02
+// story: e05s03 e08s02 e08s03
 package web
 
 import (
@@ -38,6 +38,8 @@ type monthRowView struct {
 	Income                  bool
 	Spent, Available        string // expense
 	Overspent               bool
+	CarryOver               string // expense; "" when zero
+	CarriedOverspent        bool
 	Received                string // income
 }
 
@@ -100,7 +102,10 @@ func renderBudgetMonth(w http.ResponseWriter, r *http.Request, bud *budget.Servi
 			total += cp.Amount
 			gv.Rows = append(gv.Rows, monthRowView{CategoryID: c.ID, Name: c.Name, Value: brlInput(cp.Amount),
 				Income: g.Kind == "income", Spent: money.FormatBRL(cp.Spent), Available: money.FormatBRL(cp.Available),
-				Overspent: cp.Available < 0, Received: money.FormatBRL(cp.Received)})
+				Overspent: cp.Available < 0, Received: money.FormatBRL(cp.Received), CarriedOverspent: cp.CarryOver < 0})
+			if cp.CarryOver != 0 {
+				gv.Rows[len(gv.Rows)-1].CarryOver = money.FormatBRL(cp.CarryOver)
+			}
 		}
 		gv.Total = money.FormatBRL(total)
 		if g.Kind == "income" {

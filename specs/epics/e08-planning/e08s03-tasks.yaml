@@ -22,7 +22,7 @@ tasks:
     description: "Orçamento shows Do mês anterior per expense row (red when negative)"
     verify: "go test -race ./web/... -run TestBudgetMonthPage"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["UI", "integration"]}
   - id: t4
     description: "Full local gate green"
