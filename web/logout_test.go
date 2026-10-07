@@ -1,4 +1,4 @@
-// story: e03s02
+// story: e03s02 e03s03
 package web_test
 
 import (
@@ -15,7 +15,8 @@ import (
 func signIn(t *testing.T, b browser) {
 	t.Helper()
 	b.app.fake.SetUser(oidctest.Claims{Subject: "g-123", Email: "maria@example.com", Name: "Maria Silva", EmailVerified: true})
-	if _, body := b.get(t, "/auth/login"); !strings.Contains(body, "Olá, Maria") {
+	b.get(t, "/auth/login")
+	if _, body := acceptTerms(t, b); !strings.Contains(body, "Olá, Maria") {
 		t.Fatalf("sign-in did not greet the user:\n%s", body)
 	}
 }

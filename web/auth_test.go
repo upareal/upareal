@@ -1,4 +1,4 @@
-// story: e03s01
+// story: e03s01 e03s03
 package web_test
 
 import (
@@ -73,11 +73,12 @@ func TestGoogleSignIn_FullFlowGreetsUserAndPersists(t *testing.T) {
 	b := newBrowser(t)
 	b.app.fake.SetUser(oidctest.Claims{Subject: "g-123", Email: "maria@example.com", Name: "Maria Silva", EmailVerified: true})
 
-	res, body := b.get(t, "/auth/login") // follows: app → fake Google → callback → home
-	if res.StatusCode != http.StatusOK || res.Request.URL.Path != "/" {
-		t.Fatalf("sign-in ended at %s with %d, want / with 200", res.Request.URL, res.StatusCode)
+	res, _ := b.get(t, "/auth/login") // follows: app → fake Google → callback → / → terms
+	if res.StatusCode != http.StatusOK || res.Request.URL.Path != "/termos/aceitar" {
+		t.Fatalf("first sign-in ended at %s with %d, want /termos/aceitar with 200", res.Request.URL, res.StatusCode)
 	}
-	if !strings.Contains(body, "Olá, Maria") {
+	res, body := acceptTerms(t, b)
+	if res.Request.URL.Path != "/" || !strings.Contains(body, "Olá, Maria") {
 		t.Errorf("home after sign-in lacks greeting:\n%s", body)
 	}
 	if c := b.cookie("upareal_session"); c == nil || c.Value == "" {
