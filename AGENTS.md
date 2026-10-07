@@ -16,11 +16,12 @@ Read CONVENTIONS.md before any GitHub or git operation.
 <!-- BEGIN bigpowers:learned-preferences -->
 ## Learned User Preferences
 
-- (none yet — updated via `session-state`)
+- NEVER commit to `main`. ALWAYS create a feature branch first, then commit there.
 
 ## Workspace Facts
 
-- (none yet — durable facts discovered across sessions)
+- A bigpowers pi hook blocks `git commit` on `main`. Run `git switch -c <branch>` and `git commit` as separate commands.
+- The user merges branches into `main` locally.
 <!-- END bigpowers:learned-preferences -->
 
 <!-- BEGIN bigpowers:project -->

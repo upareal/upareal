@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: kickoff-branch
-  note: e01 planned (e01s01, e01s02); branch feat/e01-foundation
+  next_skill: develop-tdd
+  note: 'baseline: no Go packages yet; first real Preflight is e01s01 t6'
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -20,3 +20,8 @@ environment:
   smoke: no Go packages yet; first lint/test smoke runs in e01
 pending: []
 active_epic: e01
+git:
+  branch: feat/e01-foundation
+  worktree: null
+  base: main@e9c7870
+active_story: e01s01
