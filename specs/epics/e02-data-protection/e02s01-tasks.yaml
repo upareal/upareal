@@ -10,7 +10,7 @@ tasks:
     description: "ParseMasterKey: base64, exactly 32 bytes; errors never include the input"
     verify: "go test -race ./internal/vault/... -run TestParseMasterKey"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Security Review", "unit"]}
   - id: t2
     description: "NewKeyring: HKDF-SHA256 wrap and index keys with distinct info labels"
