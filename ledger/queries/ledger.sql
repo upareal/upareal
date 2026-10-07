@@ -1,4 +1,4 @@
--- story: e04s01 e04s02 e04s03 e06s01 e06s04 e06s05
+-- story: e04s01 e04s02 e04s03 e06s01 e06s04 e06s05 e07s01
 
 -- name: GetUserKey :one
 SELECT data_key FROM ledger_user_key WHERE user_id = ?;
@@ -159,3 +159,22 @@ SELECT l.transaction_id, a.id AS account_id, a.type, a.name, a.system_role FROM 
 JOIN ledger_account a ON a.id = l.account_id
 WHERE a.user_id = sqlc.arg(user_id) AND l.transaction_id IN (sqlc.slice('transaction_ids'))
 ORDER BY l.transaction_id, a.type, a.position;
+
+-- name: ImportLineExists :one
+SELECT count(*) FROM ledger_import_line WHERE account_id = ? AND id_idx = ?;
+
+-- name: InsertImportLine :exec
+INSERT INTO ledger_import_line (id, user_id, account_id, transaction_id, id_idx, raw, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- name: ReviewQueue :many
+-- Transactions still on an "A categorizar" account, seen from the account that holds the money.
+SELECT t.id, t.occurred_at, t.description, a.id AS account_id, a.name AS account_name, l.amount, il.raw
+FROM ledger_transaction t
+JOIN ledger_leg l ON l.transaction_id = t.id
+JOIN ledger_account a ON a.id = l.account_id AND a.type IN ('asset', 'liability') AND a.system_role IS NULL
+LEFT JOIN ledger_import_line il ON il.transaction_id = t.id
+WHERE t.user_id = ? AND t.deleted_at IS NULL
+  AND EXISTS (SELECT 1 FROM ledger_leg u JOIN ledger_account ua ON ua.id = u.account_id
+              WHERE u.transaction_id = t.id AND ua.system_role IN ('uncategorized_income', 'uncategorized_expense'))
+ORDER BY t.occurred_at DESC, t.id DESC;

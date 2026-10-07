@@ -367,12 +367,28 @@ const getUserKey = `-- name: GetUserKey :one
 SELECT data_key FROM ledger_user_key WHERE user_id = ?
 `
 
-// story: e04s01 e04s02 e04s03 e06s01 e06s04 e06s05
+// story: e04s01 e04s02 e04s03 e06s01 e06s04 e06s05 e07s01
 func (q *Queries) GetUserKey(ctx context.Context, userID string) ([]byte, error) {
 	row := q.db.QueryRowContext(ctx, getUserKey, userID)
 	var data_key []byte
 	err := row.Scan(&data_key)
 	return data_key, err
+}
+
+const importLineExists = `-- name: ImportLineExists :one
+SELECT count(*) FROM ledger_import_line WHERE account_id = ? AND id_idx = ?
+`
+
+type ImportLineExistsParams struct {
+	AccountID string
+	IDIdx     []byte
+}
+
+func (q *Queries) ImportLineExists(ctx context.Context, arg ImportLineExistsParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, importLineExists, arg.AccountID, arg.IDIdx)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const insertHistory = `-- name: InsertHistory :exec
@@ -397,6 +413,34 @@ func (q *Queries) InsertHistory(ctx context.Context, arg InsertHistoryParams) er
 		arg.Action,
 		arg.ChangedAt,
 		arg.Snapshot,
+	)
+	return err
+}
+
+const insertImportLine = `-- name: InsertImportLine :exec
+INSERT INTO ledger_import_line (id, user_id, account_id, transaction_id, id_idx, raw, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+`
+
+type InsertImportLineParams struct {
+	ID            string
+	UserID        string
+	AccountID     string
+	TransactionID string
+	IDIdx         []byte
+	Raw           []byte
+	CreatedAt     string
+}
+
+func (q *Queries) InsertImportLine(ctx context.Context, arg InsertImportLineParams) error {
+	_, err := q.db.ExecContext(ctx, insertImportLine,
+		arg.ID,
+		arg.UserID,
+		arg.AccountID,
+		arg.TransactionID,
+		arg.IDIdx,
+		arg.Raw,
+		arg.CreatedAt,
 	)
 	return err
 }
@@ -730,6 +774,60 @@ func (q *Queries) RegisterEntries(ctx context.Context, arg RegisterEntriesParams
 			&i.OccurredAt,
 			&i.Description,
 			&i.Amount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const reviewQueue = `-- name: ReviewQueue :many
+SELECT t.id, t.occurred_at, t.description, a.id AS account_id, a.name AS account_name, l.amount, il.raw
+FROM ledger_transaction t
+JOIN ledger_leg l ON l.transaction_id = t.id
+JOIN ledger_account a ON a.id = l.account_id AND a.type IN ('asset', 'liability') AND a.system_role IS NULL
+LEFT JOIN ledger_import_line il ON il.transaction_id = t.id
+WHERE t.user_id = ? AND t.deleted_at IS NULL
+  AND EXISTS (SELECT 1 FROM ledger_leg u JOIN ledger_account ua ON ua.id = u.account_id
+              WHERE u.transaction_id = t.id AND ua.system_role IN ('uncategorized_income', 'uncategorized_expense'))
+ORDER BY t.occurred_at DESC, t.id DESC
+`
+
+type ReviewQueueRow struct {
+	ID          string
+	OccurredAt  string
+	Description []byte
+	AccountID   string
+	AccountName []byte
+	Amount      int64
+	Raw         []byte
+}
+
+// Transactions still on an "A categorizar" account, seen from the account that holds the money.
+func (q *Queries) ReviewQueue(ctx context.Context, userID string) ([]ReviewQueueRow, error) {
+	rows, err := q.db.QueryContext(ctx, reviewQueue, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReviewQueueRow
+	for rows.Next() {
+		var i ReviewQueueRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OccurredAt,
+			&i.Description,
+			&i.AccountID,
+			&i.AccountName,
+			&i.Amount,
+			&i.Raw,
 		); err != nil {
 			return nil, err
 		}

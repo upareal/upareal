@@ -16,7 +16,7 @@ tasks:
     description: "Migration 00004 + ledger.Import: blind-index dedupe per account, all-or-nothing, posts vs A categorizar, sealed conta"
     verify: "go test -race ./ledger/... -run TestImportDedupe"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Import", "Ledger"]}
   - id: t3
     description: "ledger.ReviewQueue derived from A categorizar legs; isolation"

@@ -21,6 +21,16 @@ type LedgerAccount struct {
 	IsCard     int64
 }
 
+type LedgerImportLine struct {
+	ID            string
+	UserID        string
+	AccountID     string
+	TransactionID string
+	IDIdx         []byte
+	Raw           []byte
+	CreatedAt     string
+}
+
 type LedgerLeg struct {
 	ID            string
 	TransactionID string
