@@ -210,3 +210,21 @@ func TestSoftDelete_GuardsForeignAndRepeated(t *testing.T) {
 		t.Errorf("deleting twice = %v, want ErrTransactionNotFound", err)
 	}
 }
+
+func TestEditKeepsHistory_IncomeEntry(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	b := newBook(t, f)
+	id, err := f.svc.RecordSimple(ctx, userA, ledger.SimpleEntry{AccountID: b.itau.ID, CounterID: b.salario.ID, Amount: 800000, At: jan10})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Money came in: the total "paid" by the account is negative.
+	if err := f.svc.EditEntry(ctx, userA, id, ledger.SplitEntry{AccountID: b.itau.ID, Total: -500000, At: jan10,
+		Parts: []ledger.Part{{CounterID: b.salario.ID, Amount: 500000}}}); err != nil {
+		t.Fatalf("editing an income: %v", err)
+	}
+	if balance(t, f, b.itau.ID) != 600000 || balance(t, f, b.salario.ID) != -500000 {
+		t.Errorf("after editing income: Itaú %d, Salário %d; want 600000, -500000", balance(t, f, b.itau.ID), balance(t, f, b.salario.ID))
+	}
+}
