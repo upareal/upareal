@@ -1,14 +1,32 @@
 story_id: e07s03
-title: Match transfers across two imports
-status: todo
+title: "Match transfers across two imports"
+spec: e07s03-transfer-matching.md
+status: failing
 bcps: 5
-outcome: When a line is marked as a transfer, the app proposes the opposite line (±3 days); confirming merges them.
+risk: P0
+outcome: A queued line becomes a transfer to another own account; its twin from the other statement is found (opposite amount, ±3 days) and merged after confirmation.
 tasks:
-- id: t1
-  description: 'Find candidates: opposite amount, other account, ±3 days, queued or posted'
-  verify: go test -race ./ledger/... -run TestTransferCandidates
-  status: todo
-- id: t2
-  description: 'Confirm merge: one transaction, both import ids recorded, duplicate dropped'
-  verify: go test -race ./ledger/... -run TestTransferMerge
-  status: todo
+  - id: t1
+    description: "ledger.TransferCandidates: queued lines on the other account, opposite amount, ±3 days, closest first; isolation"
+    verify: "go test -race ./ledger/... -run TestTransferCandidates"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Import", "Ledger"]}
+  - id: t2
+    description: "ledger.MarkTransfer: convert with or without twin; twin soft-deleted with history; dedupe kept; invalid match rejected"
+    verify: "go test -race ./ledger/... -run TestTransferMerge"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Import", "Ledger"]}
+  - id: t3
+    description: "Web: 'É uma transferência' on Categorizar, confirmation page, both paths"
+    verify: "go test -race ./web/... -run TestReviewTransfer"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t4
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
