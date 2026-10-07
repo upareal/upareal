@@ -10,7 +10,7 @@ tasks:
     description: "upareal healthcheck subcommand: GET 127.0.0.1:8080/healthz within 3s, exit 0/1"
     verify: "go test -race ./cmd/upareal/... -run TestHealthcheckCommand"
     risk: P2
-    status: failing
+    status: passing
     allure: {severity: normal, categories: ["Operability", "unit"]}
   - id: t2
     description: "Multi-stage Dockerfile: golang:1.26 CGO_ENABLED=0 -> distroless static-debian13:nonroot; /data owned by 65532; .dockerignore"
