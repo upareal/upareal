@@ -1,4 +1,4 @@
-// story: e05s03 e08s02 e08s03
+// story: e05s03 e08s02 e08s03 e08s04
 package web
 
 templ budgetMonthPage(v monthView, errMsg string) {
@@ -37,6 +37,21 @@ templ budgetMonthPage(v monthView, errMsg string) {
 						</li>
 					}
 				</ul>
+			</section>
+		}
+		if len(v.Cards) > 0 {
+			<section class="group">
+				<h2>Cartões de crédito</h2>
+				<p class="muted">O valor gasto no cartão já saiu das categorias e fica separado para pagar a fatura.</p>
+				<ul>
+					for _, c := range v.Cards {
+						<li>{ c.Name } <span class="balance">Para pagar { c.Due }</span></li>
+					}
+				</ul>
+				if v.Uncovered != "" {
+					<p class="negative">Sem cobertura: { v.Uncovered }</p>
+					<p class="muted">Seu dinheiro não cobre toda a fatura. Cubra as categorias negativas ou distribua menos.</p>
+				}
 			</section>
 		}
 		if v.UnmappedSpent != "" {

@@ -16,7 +16,7 @@ tasks:
     description: "Orçamento: Cartões de crédito section with Para pagar and Sem cobertura"
     verify: "go test -race ./web/... -run TestBudgetMonthPage"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["UI", "integration"]}
   - id: t3
     description: "Full local gate green"

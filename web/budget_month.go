@@ -1,4 +1,4 @@
-// story: e05s03 e08s02 e08s03
+// story: e05s03 e08s02 e08s03 e08s04
 package web
 
 import (
@@ -26,7 +26,11 @@ type monthView struct {
 	ToBeAssigned              string
 	UnmappedSpent             string // "" when nothing is Sem categoria
 	UnmappedReceived          string
+	Cards                     []cardView
+	Uncovered                 string // "" when every card is covered
 }
+
+type cardView struct{ Name, Due string }
 
 type monthGroupView struct {
 	Name, Total string
@@ -117,6 +121,12 @@ func renderBudgetMonth(w http.ResponseWriter, r *http.Request, bud *budget.Servi
 	}
 	v.ExpenseTotal, v.IncomeTotal = money.FormatBRL(expense), money.FormatBRL(income)
 	v.ToBeAssigned = money.FormatBRL(p.ToBeAssigned)
+	for _, c := range p.Cards {
+		v.Cards = append(v.Cards, cardView{Name: c.Name, Due: money.FormatBRL(c.Due)})
+	}
+	if p.Uncovered > 0 {
+		v.Uncovered = money.FormatBRL(p.Uncovered)
+	}
 	if p.UnmappedSpent != 0 || p.UnmappedReceived != 0 {
 		v.UnmappedSpent, v.UnmappedReceived = money.FormatBRL(p.UnmappedSpent), money.FormatBRL(p.UnmappedReceived)
 	}
