@@ -22,7 +22,7 @@ tasks:
     description: "Web: 'É uma transferência' on Categorizar, confirmation page, both paths"
     verify: "go test -race ./web/... -run TestReviewTransfer"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["UI", "integration"]}
   - id: t4
     description: "Full local gate green"

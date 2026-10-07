@@ -243,6 +243,8 @@ func editError(err error) (int, string) {
 	switch {
 	case errors.Is(err, ledger.ErrTransactionNotFound):
 		return http.StatusNotFound, "Lançamento não encontrado."
+	case errors.Is(err, ledger.ErrInvalidMatch):
+		return http.StatusBadRequest, "Correspondente inválido."
 	case errors.Is(err, ledger.ErrNotQueued):
 		return http.StatusBadRequest, "Este lançamento não está mais na revisão."
 	case errors.Is(err, ledger.ErrNotEditable):

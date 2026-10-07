@@ -1,0 +1,22 @@
+// story: e07s03
+package web
+
+templ matchPage(v matchView) {
+	@layout("Transferência — upareal") {
+		<p><a href={ templ.SafeURL("/lancamentos/" + v.TxID + "?conta=" + v.Conta) }>← Voltar</a></p>
+		<h1>É uma transferência para { v.OutraName }?</h1>
+		<p>{ v.Desc } — { v.Amount }</p>
+		if v.Error != "" {
+			<p class="error" role="alert">{ v.Error }</p>
+		}
+		<p>Encontramos linhas com o valor oposto em { v.OutraName } (até 3 dias de diferença). Se uma delas é a mesma transferência vista do outro extrato, escolha-a para juntar as duas.</p>
+		<form method="post" action={ templ.SafeURL("/lancamentos/" + v.TxID + "/transferencia/confirmar?conta=" + v.Conta) }>
+			<input type="hidden" name="outra" value={ v.Outra }/>
+			for i, c := range v.Candidates {
+				<label><input type="radio" name="par" value={ c.ID } checked?={ i == 0 }/> { c.When } — { c.Description } — { c.Amount }</label>
+			}
+			<label><input type="radio" name="par" value=""/> Não juntar (só transformar esta linha em transferência)</label>
+			<button type="submit">Confirmar</button>
+		</form>
+	}
+}

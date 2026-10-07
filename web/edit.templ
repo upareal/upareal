@@ -1,4 +1,4 @@
-// story: e06s04 e07s02
+// story: e06s04 e07s02 e07s03
 package web
 
 templ editPage(v editView, errMsg string) {
@@ -25,6 +25,20 @@ templ editPage(v editView, errMsg string) {
 					</div>
 					<button type="submit">Salvar</button>
 				</form>
+				if len(v.Holders) > 1 {
+					<h2>É uma transferência?</h2>
+					<p class="muted">Se este dinheiro foi para (ou veio de) outra conta sua, transforme a linha em transferência.</p>
+					<form method="post" action={ templ.SafeURL("/lancamentos/" + v.TxID + "/transferencia?conta=" + v.Conta) } class="inline">
+						<select name="outra" required>
+							for _, a := range v.Holders {
+								if a.ID != v.Conta {
+									<option value={ a.ID }>{ a.Name }</option>
+								}
+							}
+						</select>
+						<button type="submit">É uma transferência</button>
+					</form>
+				}
 			case "system":
 				<p class="hint">Este lançamento usa uma conta do sistema (saldo inicial ou ajuste). Para corrigir o saldo, use Ajustar saldo em Contas.</p>
 			case "transfer":
