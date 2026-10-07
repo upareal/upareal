@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: plan-work
-  note: e06 done and merged; plan e07s01 (generic CSV import into review queue)
+  next_skill: develop-tdd
+  note: e07s01 planned (6 tasks)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
