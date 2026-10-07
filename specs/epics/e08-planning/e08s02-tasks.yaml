@@ -1,18 +1,32 @@
 story_id: e08s02
-title: Planning view for a month
-status: todo
+title: "Planning view for a month"
+spec: e08s02-month-view.md
+status: failing
 bcps: 8
-outcome: 'The planning view shows to be assigned and, per category, assigned, spent and available (P4: derived, never stored).'
+risk: P0
+outcome: The Orçamento page shows spent, available and received per category, Sem categoria totals and A distribuir for the month, all computed (P3, P4).
 tasks:
-- id: t1
-  description: Spent per category = sum of legs of mapped accounts in the month (Sao Paulo); Sem categoria row
-  verify: go test -race ./planning/... -run TestSpent
-  status: todo
-- id: t2
-  description: To be assigned = on-budget income received - assigned
-  verify: go test -race ./planning/... -run TestToBeAssigned
-  status: todo
-- id: t3
-  description: Planning page grouped by budget group; isolation
-  verify: go test -race ./web/... ./planning/... -run 'TestPlanningPage|TestIsolation'
-  status: todo
+  - id: t1
+    description: "ledger.Activity: debit-positive sum per account in [from, to), excluding deleted, isolated"
+    verify: "go test -race ./ledger/... -run TestActivity"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger"]}
+  - id: t2
+    description: "planning.Month: spent/available/received, Sem categoria, A distribuir, isolation"
+    verify: "go test -race ./planning/... -run TestMonth"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Planning"]}
+  - id: t3
+    description: "Orçamento page shows Gasto/Disponível/Recebido, A distribuir and Sem categoria"
+    verify: "go test -race ./web/... -run TestBudgetMonthPage"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t4
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}

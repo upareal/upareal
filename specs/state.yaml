@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: plan-work
-  note: e08s01 done; plan e08s02 (month view)
+  next_skill: develop-tdd
+  note: e08s02 planned (4 tasks); /orcamento becomes the month view
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
