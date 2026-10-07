@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e04s01 all tasks passing; awaiting user UAT (spec §19)
+  next_skill: model-domain
+  note: 'DOMAIN CHANGE in progress: do not continue e04 until resolved'
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -34,3 +34,15 @@ discovery_e03s01:
 workspace_notes:
 - bigpowers plan-consistency-check.sh exits 1 silently when a capsule has unplanned stories (grep without match under set -euo pipefail); check planned
   stories in a scratch copy
+domain_change:
+  raised: 2026-10-07, during e04s01 UAT
+  user_statement: 'ledger keeps only accounts and transactions (money movement). Categories and groups belong to a new module "budget": a category can be
+    fed by more than one account; categories have one level of grouping. Module "planning" reads ledger and budget; future goals will be referenced by planning.
+    User also said some invariants were not described yet.'
+  impact: e04s01 (unmerged, on feat/e04-accounts-categories) put groups/categories in ledger; must move to budget. planning-context and epics e04-e07 need
+    revision.
+  open_questions:
+  - what "a category is fed by more than one account" means
+  - which account types ledger keeps
+  - what belongs to budget vs planning
+  - the missing invariants
