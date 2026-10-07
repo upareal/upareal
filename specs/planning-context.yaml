@@ -28,6 +28,8 @@ architecture:
 domain:
   users:
     - "Google OIDC only via github.com/coreos/go-oidc/v3 + golang.org/x/oauth2; scopes openid email profile; first login creates the user"
+    - "returning users are recognized by Google sub (HMAC blind index of sub); email stored encrypted, no email index"
+    - "only Google accounts with email_verified=true may sign in"
     - "server-side sessions: 32 random bytes, only SHA-256 hash stored; HttpOnly+Secure+SameSite=Lax cookie"
     - "session expiry: 30 days idle, 90 days absolute; logout and log out of all devices"
     - "admin role only from ADMIN_EMAILS env var; ADMIN_EMAILS users cannot be disabled/deleted via UI"
@@ -76,7 +78,7 @@ privacy_security:
   - "LGPD applies"
   - "field-level AES-256-GCM encryption of sensitive text (email, names, account/category names, descriptions, history, import payloads)"
   - "per-user data keys wrapped by a master key, with key version for rotation; deleting the user key crypto-shreds data in backups"
-  - "HMAC blind indexes for email lookup and import dedupe ids"
+  - "HMAC blind indexes for Google sub lookup and import dedupe ids"
   - "encryption key and HMAC key are derived from the single master key with stdlib crypto/hkdf (distinct info labels)"
   - "amounts and dates stay plaintext"
   - "text search: filter in SQL on plaintext columns, decrypt and search/sort in Go; search always date-bounded (default last 12 months)"
@@ -187,3 +189,9 @@ key_decisions:
     rationale: "one secret to store and back up; separate keys per purpose"
   - decision: "encrypted fields are bound to user + field, not row (row binding deferred)"
     rationale: "swapping values between rows needs DB write access, which already allows worse attacks; low value for v1"
+  - decision: "identify users by Google sub, not email"
+    rationale: "sub is permanent; emails can change or be reassigned, which would split or hijack accounts"
+  - decision: "local dev secrets pass through from the shell environment (make run, compose)"
+    rationale: "nothing on disk; matches the no-secrets-in-files rule"
+  - decision: "require email_verified=true at sign-in"
+    rationale: "an unverified address may belong to someone else"

@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
   next_skill: plan-work
-  note: plan e03s01; blocked on open_questions below
+  note: e03s01 decisions recorded (sub, shell env, email_verified); write plan
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -24,17 +24,6 @@ git:
   worktree: null
   base: main@c3c2d84
 active_story: e03s01
-open_questions:
-- id: e03s01-q1
-  question: 'Recognize returning user by Google sub (recommended: HMAC index of sub; email stored encrypted, no email index) or by email?'
-  recommended: sub
-- id: e03s01-q2
-  question: 'Local dev secrets (MASTER_KEY, GOOGLE_CLIENT_SECRET): pass-through from shell env (recommended, nothing on disk) or generated gitignored dev
-    file?'
-  recommended: shell env
-- id: e03s01-q3
-  question: Only accept Google accounts with email_verified=true?
-  recommended: 'yes'
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'
