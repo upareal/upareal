@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
   next_skill: plan-work
-  note: e03 done; push + merge feat/e03-sign-in, then plan e04 on a new branch
+  note: plan e04s01; blocked on open_questions
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -21,9 +21,9 @@ pending:
 - Replace provisional legal text in /privacidade and /termos (web) and bump web.CurrentTermsVersion
 active_epic: e04
 git:
-  branch: feat/e03-sign-in
+  branch: feat/e04-accounts-categories
   worktree: null
-  base: main@c3c2d84
+  base: main@90b3993
 active_story: e04s01
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
@@ -34,3 +34,15 @@ discovery_e03s01:
 workspace_notes:
 - bigpowers plan-consistency-check.sh exits 1 silently when a capsule has unplanned stories (grep without match under set -euo pipefail); check planned
   stories in a scratch copy
+open_questions:
+- id: e04-q1
+  question: 'Encryption key for ledger data: (a) each module keeps its own per-user data key (ledger_user_key, recommended: modules stay splittable, DeleteUserData
+    per module shreds) or (b) ledger borrows the users data key passed in by web?'
+  recommended: a
+- id: e04-q2
+  question: 'When to create default categories: (a) idempotent ledger.EnsureDefaults(userID) on every sign-in callback, seeds only if the user has no groups
+    (recommended) or (b) only when users.SignIn reports a new user?'
+  recommended: a
+- id: e04-q3
+  question: Approve the default pt-BR group/category list (see chat) and names of system accounts (Saldo inicial, A categorizar).
+  recommended: approve or edit
