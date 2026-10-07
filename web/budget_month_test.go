@@ -94,7 +94,7 @@ func TestBudgetMonthPage_ShowsSpentAvailableAndToBeAssigned(t *testing.T) {
 
 	_, body := b.get(t, "/orcamento?mes=2026-01")
 	for _, want := range []string{
-		"A distribuir: R$ 7.700,00",
+		"A distribuir: R$ 7.650,00", // e08s03: Sem categoria spending (Padaria) is deducted
 		"Gasto R$ 120,00", "Disponível R$ 180,00",
 		"Recebido R$ 8.000,00",
 		"Sem categoria", "Gasto R$ 50,00", `href="/planejamento/mapa"`,
@@ -106,5 +106,30 @@ func TestBudgetMonthPage_ShowsSpentAvailableAndToBeAssigned(t *testing.T) {
 	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(shell, "200,00", "2026-01-20", "10:00", "Gasolina"))
 	if _, body = b.get(t, "/orcamento?mes=2026-01"); !strings.Contains(body, `class="negative">Disponível -R$ 20,00`) {
 		t.Error("overspent category is not shown as negative")
+	}
+}
+
+// story: e08s03
+func TestBudgetMonthPage_ShowsCarryOver(t *testing.T) {
+	b := newBrowser(t)
+	signIn(t, b)
+	createAccount(t, b, url.Values{"nome": {"Itaú"}, "tipo": {"asset"}, "saldo": {"1.000,00"}, "data": {"2026-01-01"}, "orcamento": {"on"}})
+	_, accounts := createAccount(t, b, url.Values{"nome": {"Posto Shell"}, "tipo": {"expense"}})
+	itau, shell := accountID(t, accounts, "Itaú"), accountID(t, accounts, "Posto Shell")
+	_, cats := b.get(t, "/categorias")
+	fuel := linkID(t, cats, "/categorias/", "Combustível")
+	b.postForm(t, "/planejamento/mapa/"+shell, url.Values{"categoria": {fuel}})
+	b.postForm(t, "/orcamento/2026-01/"+fuel, url.Values{"valor": {"300,00"}})
+	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(shell, "250,00", "2026-01-15", "10:00", "Gasolina"))
+
+	_, body := b.get(t, "/orcamento?mes=2026-02")
+	for _, want := range []string{"Do mês anterior R$ 50,00", "Disponível R$ 350,00", "A distribuir: R$ 400,00"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("February page missing %q", want)
+		}
+	}
+	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(shell, "100,00", "2026-01-20", "10:00", "Gasolina"))
+	if _, body = b.get(t, "/orcamento?mes=2026-02"); !strings.Contains(body, `class="negative">Do mês anterior -R$ 50,00`) {
+		t.Error("overspent carry-over is not shown as negative")
 	}
 }
