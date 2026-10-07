@@ -5,12 +5,10 @@ import (
 	"net/http"
 	"strings"
 	"testing"
-
-	"github.com/upareal/upareal/web"
 )
 
 func TestHomePage_RendersPtBRMobileLayout(t *testing.T) {
-	res, body := get(t, web.NewHandler(openTestDB(t)), "/")
+	res, body := get(t, newHandler(t), "/")
 	if res.StatusCode != http.StatusOK {
 		t.Fatalf("GET / = %d, want 200", res.StatusCode)
 	}
@@ -30,14 +28,14 @@ func TestHomePage_RendersPtBRMobileLayout(t *testing.T) {
 }
 
 func TestHomePage_UnknownPathIs404(t *testing.T) {
-	res, _ := get(t, web.NewHandler(openTestDB(t)), "/does-not-exist")
+	res, _ := get(t, newHandler(t), "/does-not-exist")
 	if res.StatusCode != http.StatusNotFound {
 		t.Errorf("GET /does-not-exist = %d, want 404", res.StatusCode)
 	}
 }
 
 func TestStatic_ServesVendoredHTMX(t *testing.T) {
-	res, body := get(t, web.NewHandler(openTestDB(t)), "/static/htmx.min.js")
+	res, body := get(t, newHandler(t), "/static/htmx.min.js")
 	if res.StatusCode != http.StatusOK {
 		t.Fatalf("GET /static/htmx.min.js = %d, want 200", res.StatusCode)
 	}
@@ -47,7 +45,7 @@ func TestStatic_ServesVendoredHTMX(t *testing.T) {
 }
 
 func TestStatic_CannotEscapeEmbeddedTree(t *testing.T) {
-	res, _ := get(t, web.NewHandler(openTestDB(t)), "/static/../web.go")
+	res, _ := get(t, newHandler(t), "/static/../web.go")
 	if res.StatusCode == http.StatusOK {
 		t.Errorf("GET /static/../web.go = 200, want non-200")
 	}

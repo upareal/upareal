@@ -14,7 +14,7 @@ import (
 func TestRequestLog_WritesOneJSONLinePerRequest(t *testing.T) {
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewJSONHandler(&buf, nil))
-	h := web.LogRequests(logger, web.NewHandler(openTestDB(t)))
+	h := web.LogRequests(logger, newHandler(t))
 
 	res, _ := get(t, h, "/healthz?secret=should-not-be-logged")
 	if res.StatusCode != http.StatusOK {
@@ -42,7 +42,7 @@ func TestRequestLog_WritesOneJSONLinePerRequest(t *testing.T) {
 
 func TestRequestLog_RecordsErrorStatus(t *testing.T) {
 	var buf bytes.Buffer
-	h := web.LogRequests(slog.New(slog.NewJSONHandler(&buf, nil)), web.NewHandler(openTestDB(t)))
+	h := web.LogRequests(slog.New(slog.NewJSONHandler(&buf, nil)), newHandler(t))
 	get(t, h, "/missing")
 
 	var entry map[string]any

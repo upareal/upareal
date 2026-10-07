@@ -1,4 +1,4 @@
-// story: e01s01
+// story: e01s01 e03s01
 package main
 
 import (
@@ -12,6 +12,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/upareal/upareal/internal/oidctest"
 )
 
 func listen(t *testing.T) net.Listener {
@@ -73,6 +75,7 @@ func testEnv(t *testing.T) map[string]string {
 		"GOOGLE_CLIENT_ID":     "test-client",
 		"GOOGLE_CLIENT_SECRET": "test-secret",
 		"BASE_URL":             "http://localhost:8080",
+		"OIDC_ISSUER_URL":      oidctest.New(t, "test-client").URL,
 	}
 }
 
