@@ -16,7 +16,7 @@ tasks:
     description: "Categories in order, decrypted, active only; user isolation; no plaintext names at rest"
     verify: "go test -race ./budget/... -run 'TestCategories|TestIsolation|TestBudgetHasNoPlaintext'"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Budget", "Security Review"]}
   - id: t3
     description: "Sign-in callback ensures budget defaults; /categorias page; home link"
