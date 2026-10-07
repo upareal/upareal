@@ -1,7 +1,7 @@
 story_id: e02s01
 title: "Encrypted field round trip with a database-copy proof"
 spec: e02s01-encrypted-fields.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: A value written through the vault helper reads back intact, and the SQLite file contains no plaintext.
@@ -46,5 +46,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
