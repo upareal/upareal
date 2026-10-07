@@ -35,3 +35,5 @@ footer a { margin-right: 1rem; color: #555; }
   background: #fff4cc;
   border: 1px solid #e6c200;
 }
+.error { color: #b00020; font-weight: 600; }
+label { display: block; margin: 1rem 0; }

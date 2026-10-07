@@ -39,6 +39,8 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("GET /{$}", home(d.Users))
 	mux.Handle("GET /privacidade", templ.Handler(privacyPage()))
 	mux.Handle("GET /termos", templ.Handler(termsPage()))
+	mux.HandleFunc("GET /termos/aceitar", acceptTermsForm(d.Users))
+	mux.HandleFunc("POST /termos/aceitar", acceptTermsSubmit(d.Users))
 	authLimit := newIPLimiter()
 	mux.Handle("GET /auth/login", authLimit.limit(login(d.Google)))
 	mux.Handle("GET /auth/callback", authLimit.limit(callback(d.Users, d.Google)))
@@ -50,15 +52,16 @@ func NewHandler(d Deps) http.Handler {
 
 // home greets the signed-in user by first name, or offers Google sign-in.
 func home(svc *users.Service) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		u, signedIn, err := currentUser(r, svc)
-		if err != nil {
-			renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Algo deu errado. Tente novamente em instantes.")
-			return
-		}
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_ = homePage(signedIn, firstName(u.Name)).Render(r.Context(), w)
-	}
+	return appPage(svc, func(w http.ResponseWriter, r *http.Request, u users.User, signedIn bool) {
+		renderHTML(w, r, http.StatusOK, homePage(signedIn, firstName(u.Name)))
+	})
+}
+
+// renderHTML writes a templ component with status.
+func renderHTML(w http.ResponseWriter, r *http.Request, status int, c templ.Component) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(status)
+	_ = c.Render(r.Context(), w)
 }
 
 func firstName(name string) string {

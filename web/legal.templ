@@ -27,3 +27,21 @@ templ termsPage() {
 		<p>Ao usar o upareal você concorda com a Política de Privacidade.</p>
 	}
 }
+
+// acceptTermsPage asks a signed-in user to accept the current terms.
+templ acceptTermsPage(errMsg string) {
+	@layout("Aceite os termos — upareal") {
+		<h1>Aceite os termos</h1>
+		<p>Antes de continuar, leia os <a href="/termos">Termos de Uso</a> e a <a href="/privacidade">Política de Privacidade</a>.</p>
+		if errMsg != "" {
+			<p class="error" role="alert">{ errMsg }</p>
+		}
+		<form method="post" action="/termos/aceitar">
+			<label>
+				<input type="checkbox" name="aceito" required/>
+				Li e aceito os Termos de Uso e a Política de Privacidade
+			</label>
+			<button type="submit">Aceitar e continuar</button>
+		</form>
+	}
+}

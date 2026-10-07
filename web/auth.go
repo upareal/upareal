@@ -111,9 +111,7 @@ func clearCookie(w http.ResponseWriter, name, path string) {
 }
 
 func renderError(w http.ResponseWriter, r *http.Request, status int, title, message string) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(status)
-	_ = errorPage(title, message).Render(r.Context(), w)
+	renderHTML(w, r, status, errorPage(title, message))
 }
 
 // logout ends this session, or all of the user's sessions when everywhere is
