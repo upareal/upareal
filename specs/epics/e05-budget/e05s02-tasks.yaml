@@ -1,7 +1,7 @@
 story_id: e05s02
 title: "Organize groups and categories"
 spec: e05s02-organize-categories.md
-status: failing
+status: passing
 bcps: 5
 risk: P1
 outcome: Users create, rename and reorder groups and categories, and move categories between groups of the same kind (B1, B2).
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
