@@ -142,3 +142,70 @@ func TestEditKeepsHistory_SystemAndForeignNotEditable(t *testing.T) {
 		t.Errorf("user B editing user A's transaction = %v, want ErrTransactionNotFound", err)
 	}
 }
+
+func TestSoftDelete_LeavesEverySumAndList(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	b := newBook(t, f) // Itaú opened 100000 on jan10
+	id := expense(t, f, b, 15000, "Gasolina")
+
+	if err := f.svc.DeleteTransaction(ctx, userA, id); err != nil {
+		t.Fatalf("DeleteTransaction: %v", err)
+	}
+	if balance(t, f, b.itau.ID) != 100000 || balance(t, f, b.shell.ID) != 0 {
+		t.Errorf("Balance after delete: Itaú %d, Shell %d; want 100000, 0", balance(t, f, b.itau.ID), balance(t, f, b.shell.ID))
+	}
+	all, _ := f.svc.Balances(ctx, userA)
+	if all[b.shell.ID] != 0 {
+		t.Errorf("Balances still include the deleted transaction: Shell %d", all[b.shell.ID])
+	}
+	lines, _ := f.svc.Register(ctx, userA, b.itau.ID, jan10.AddDate(0, 0, -1), jan10.AddDate(0, 0, 1))
+	for _, l := range lines {
+		if l.TransactionID == id {
+			t.Error("the deleted transaction is still in the register")
+		}
+	}
+	later, _ := f.svc.Register(ctx, userA, b.itau.ID, jan10.AddDate(0, 0, 1), jan10.AddDate(0, 1, 0))
+	_ = later // no lines; the opening balance of a later range must ignore the deleted leg:
+	next := expense(t, f, b, 1000, "Depois")
+	_ = next
+	l2, _ := f.svc.Register(ctx, userA, b.itau.ID, jan10.Add(1), jan10.AddDate(0, 1, 0))
+	if len(l2) == 0 || l2[len(l2)-1].Balance != 99000 {
+		t.Errorf("running balance after the delete = %+v, want ending at 99000", l2)
+	}
+	if _, err := f.svc.Transaction(ctx, userA, id); !errors.Is(err, ledger.ErrTransactionNotFound) {
+		t.Errorf("reading a deleted transaction = %v, want ErrTransactionNotFound", err)
+	}
+	h, _ := f.svc.History(ctx, userA, id)
+	if len(h) != 1 || h[0].Action != "delete" || h[0].Previous.Description != "Gasolina" {
+		t.Errorf("history = %+v, want one delete with the previous version", h)
+	}
+}
+
+func TestSoftDelete_AccountStillCountsAsUsed(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	b := newBook(t, f)
+	id := expense(t, f, b, 15000, "")
+	_ = f.svc.DeleteTransaction(ctx, userA, id)
+	if err := f.svc.DeleteAccount(ctx, userA, b.shell.ID); !errors.Is(err, ledger.ErrHasLegs) {
+		t.Errorf("deleting an account whose only transaction was deleted = %v, want ErrHasLegs (archive instead)", err)
+	}
+}
+
+func TestSoftDelete_GuardsForeignAndRepeated(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	b := newBook(t, f)
+	id := expense(t, f, b, 100, "")
+	_ = f.svc.EnsureDefaults(ctx, userB)
+	if err := f.svc.DeleteTransaction(ctx, userB, id); !errors.Is(err, ledger.ErrTransactionNotFound) {
+		t.Errorf("user B deleting user A's transaction = %v, want ErrTransactionNotFound", err)
+	}
+	if err := f.svc.DeleteTransaction(ctx, userA, id); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.svc.DeleteTransaction(ctx, userA, id); !errors.Is(err, ledger.ErrTransactionNotFound) {
+		t.Errorf("deleting twice = %v, want ErrTransactionNotFound", err)
+	}
+}
