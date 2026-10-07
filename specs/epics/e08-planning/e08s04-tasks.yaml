@@ -10,7 +10,7 @@ tasks:
     description: "planning.Month: Cards (Para pagar), Cash, Uncovered; identity extended with cards"
     verify: "go test -race ./planning/... -run 'TestCards|TestCarry'"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Planning"]}
   - id: t2
     description: "Orçamento: Cartões de crédito section with Para pagar and Sem cobertura"

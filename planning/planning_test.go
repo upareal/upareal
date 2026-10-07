@@ -65,7 +65,7 @@ func newFixture(t *testing.T) fixture {
 
 func (f fixture) account(t *testing.T, userID, name, typ string) ledger.Account {
 	t.Helper()
-	a, err := f.ledg.CreateAccount(context.Background(), userID, ledger.NewAccount{Name: name, Type: typ})
+	a, err := f.ledg.CreateAccount(context.Background(), userID, ledger.NewAccount{Name: name, Type: typ, OnBudget: typ == "asset"})
 	if err != nil {
 		t.Fatal(err)
 	}

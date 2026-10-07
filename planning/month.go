@@ -1,4 +1,4 @@
-// story: e08s02 e08s03
+// story: e08s02 e08s03 e08s04
 package planning
 
 import (
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/upareal/upareal/budget"
+	"github.com/upareal/upareal/ledger"
 )
 
 // CategoryPlan is one category in a month. Expense categories use Spent,
@@ -28,6 +29,16 @@ type MonthPlan struct {
 	Received         int64                   // money in: income + Saldo inicial inflows
 	Assigned         int64                   // amounts assigned to expense categories
 	ToBeAssigned     int64                   // Received - Assigned - Sem categoria spending
+	Cards            []CardPlan              // cards with debt at the end of the month (e08s04)
+	Cash             int64                   // on-budget non-card balances at the end of the month
+	Uncovered        int64                   // card debt that Cash cannot back (Sem cobertura)
+}
+
+// CardPlan is a credit card's payment envelope: its debt, already set aside
+// because card spending reduced its categories and A distribuir excludes it.
+type CardPlan struct {
+	AccountID, Name string
+	Due             int64 // Para pagar
 }
 
 // tally is ledger activity grouped by envelope.
@@ -35,6 +46,7 @@ type tally struct {
 	byCategory                      map[string]int64 // expense: spent; income: received
 	unmappedSpent, unmappedReceived int64
 	moneyIn                         int64 // income + equity (Saldo inicial) inflows
+	activity                        map[string]int64
 }
 
 // Month computes userID's plan for m from budget amounts, mappings and
@@ -54,9 +66,13 @@ func (s *Service) Month(ctx context.Context, userID string, m budget.Month) (Mon
 	if err != nil {
 		return MonthPlan{}, fmt.Errorf("planning: categories: %w", err)
 	}
-	types, err := s.accountTypes(ctx, userID)
+	accounts, err := s.allAccounts(ctx, userID)
 	if err != nil {
 		return MonthPlan{}, err
+	}
+	types := make(map[string]string, len(accounts))
+	for _, a := range accounts {
+		types[a.ID] = a.Type
 	}
 	kinds := map[string]string{}
 	for _, g := range groups {
@@ -92,7 +108,30 @@ func (s *Service) Month(ctx context.Context, userID string, m budget.Month) (Mon
 	}
 	p.Received = past.moneyIn + now.moneyIn
 	p.ToBeAssigned = p.Received - p.Assigned - past.unmappedSpent - now.unmappedSpent
+	p.addCards(accounts, past.activity, now.activity)
 	return p, nil
+}
+
+// addCards fills Cards, Cash and Uncovered from end-of-month balances.
+func (p *MonthPlan) addCards(accounts []ledger.Account, past, now map[string]int64) {
+	var due int64
+	for _, a := range accounts {
+		if (a.Type != "asset" && a.Type != "liability") || !a.OnBudget {
+			continue
+		}
+		balance := past[a.ID] + now[a.ID]
+		if a.IsCard && balance < 0 {
+			p.Cards = append(p.Cards, CardPlan{AccountID: a.ID, Name: a.Name, Due: -balance})
+			due -= balance
+			continue
+		}
+		p.Cash += balance // includes an overpaid card's credit
+	}
+	reserved := p.Cash - max(p.ToBeAssigned, 0)
+	for _, c := range p.Categories {
+		reserved -= max(c.Available, 0)
+	}
+	p.Uncovered = min(max(due-reserved, 0), due)
 }
 
 // validMappings returns account → category for mappings whose category is
@@ -118,7 +157,7 @@ func (s *Service) tally(ctx context.Context, userID string, types, mapped map[st
 	if err != nil {
 		return tally{}, fmt.Errorf("planning: activity: %w", err)
 	}
-	t := tally{byCategory: map[string]int64{}}
+	t := tally{byCategory: map[string]int64{}, activity: activity}
 	for accountID, amount := range activity {
 		catID, ok := mapped[accountID]
 		switch types[accountID] {
@@ -142,8 +181,8 @@ func (s *Service) tally(ctx context.Context, userID string, types, mapped map[st
 	return t, nil
 }
 
-// accountTypes maps every account of userID, active or archived, to its type.
-func (s *Service) accountTypes(ctx context.Context, userID string) (map[string]string, error) {
+// allAccounts returns every account of userID, active first, then archived.
+func (s *Service) allAccounts(ctx context.Context, userID string) ([]ledger.Account, error) {
 	active, err := s.ledg.Accounts(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("planning: accounts: %w", err)
@@ -152,9 +191,5 @@ func (s *Service) accountTypes(ctx context.Context, userID string) (map[string]s
 	if err != nil {
 		return nil, fmt.Errorf("planning: archived accounts: %w", err)
 	}
-	types := make(map[string]string, len(active)+len(archived))
-	for _, a := range append(active, archived...) {
-		types[a.ID] = a.Type
-	}
-	return types, nil
+	return append(active, archived...), nil
 }
