@@ -55,3 +55,4 @@ table.register { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 table.register th, table.register td { padding: 0.35rem 0.25rem; border-bottom: 1px solid #eee; text-align: left; }
 table.register td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 nav.months { display: flex; justify-content: space-between; gap: 0.5rem; margin: 0.5rem 0 1rem; }
+.hint { padding: 0.5rem 0.75rem; background: #eef5ff; border: 1px solid #9cc0f0; }

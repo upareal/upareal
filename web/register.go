@@ -91,6 +91,9 @@ func renderRegister(w http.ResponseWriter, r *http.Request, ledg *ledger.Service
 		})
 	}
 	for _, a := range all {
+		if a.SystemRole != "" {
+			continue // "A categorizar" is reserved for imports
+		}
 		switch a.Type {
 		case "expense":
 			v.Expenses = append(v.Expenses, a)

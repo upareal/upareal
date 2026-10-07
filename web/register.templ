@@ -34,28 +34,35 @@ templ registerPage(v registerView, errMsg string) {
 		if v.CanRecord {
 			<section>
 				<h2>Novo lançamento</h2>
-				<form method="post" action={ templ.SafeURL("/contas/" + v.AccountID + "/lancamentos") }>
-					<label>
-						Despesa ou receita
-						<select name="contra" required>
-							<optgroup label="Despesas">
-								for _, a := range v.Expenses {
-									<option value={ a.ID }>{ a.Name }</option>
-								}
-							</optgroup>
-							<optgroup label="Receitas">
-								for _, a := range v.Incomes {
-									<option value={ a.ID }>{ a.Name }</option>
-								}
-							</optgroup>
-						</select>
-					</label>
-					<label>Valor <input name="valor" inputmode="decimal" placeholder="0,00" required/></label>
-					<label>Data <input type="date" name="data" value={ v.Today } required/></label>
-					<label>Hora <input type="time" name="hora" value={ v.Now } required/></label>
-					<label>Descrição <input name="descricao" maxlength="200"/></label>
-					<button type="submit">Lançar</button>
-				</form>
+				if len(v.Expenses) + len(v.Incomes) == 0 {
+					<p class="hint">
+						Para lançar, você precisa de pelo menos uma conta de despesa ou receita (ex.: "Mercado", "Salário").
+						<a href="/contas#nova-conta">Crie uma conta de Despesa ou Receita</a> e volte aqui.
+					</p>
+				} else {
+					<form method="post" action={ templ.SafeURL("/contas/" + v.AccountID + "/lancamentos") }>
+						<label>
+							Despesa ou receita
+							<select name="contra" required>
+								<optgroup label="Despesas">
+									for _, a := range v.Expenses {
+										<option value={ a.ID }>{ a.Name }</option>
+									}
+								</optgroup>
+								<optgroup label="Receitas">
+									for _, a := range v.Incomes {
+										<option value={ a.ID }>{ a.Name }</option>
+									}
+								</optgroup>
+							</select>
+						</label>
+						<label>Valor <input name="valor" inputmode="decimal" placeholder="0,00" required/></label>
+						<label>Data <input type="date" name="data" value={ v.Today } required/></label>
+						<label>Hora <input type="time" name="hora" value={ v.Now } required/></label>
+						<label>Descrição <input name="descricao" maxlength="200"/></label>
+						<button type="submit">Lançar</button>
+					</form>
+				}
 			</section>
 		}
 	}

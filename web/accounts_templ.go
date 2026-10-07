@@ -264,7 +264,7 @@ func accountsPage(sections []accountSection, archived []accountView, errMsg, tod
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " <section><h2>Nova conta</h2><form method=\"post\" action=\"/contas\"><label>Nome <input name=\"nome\" maxlength=\"100\" required></label> <label>Tipo <select name=\"tipo\"><option value=\"asset\">Conta ou dinheiro</option> <option value=\"liability\">Cartão ou dívida</option> <option value=\"income\">Receita</option> <option value=\"expense\">Despesa</option></select></label> <label>Saldo atual (ou valor devido) <input name=\"saldo\" inputmode=\"decimal\" placeholder=\"0,00\"></label> <label>Data <input type=\"date\" name=\"data\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " <section id=\"nova-conta\"><h2>Nova conta</h2><form method=\"post\" action=\"/contas\"><label>Nome <input name=\"nome\" maxlength=\"100\" required></label> <label>Tipo <select name=\"tipo\"><option value=\"asset\">Conta ou dinheiro</option> <option value=\"liability\">Cartão ou dívida</option> <option value=\"income\">Receita</option> <option value=\"expense\">Despesa</option></select></label> <label>Saldo atual (ou valor devido) <input name=\"saldo\" inputmode=\"decimal\" placeholder=\"0,00\"></label> <label>Data <input type=\"date\" name=\"data\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
