@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e07s04 all tasks passing; awaiting user UAT (spec §19); e07s05 blocked on bank list
+  next_skill: plan-work
+  note: e07 done except e07s05 (blocked on bank list); push + merge feat/e07-imports, then plan e08 (planning) on a new branch
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -20,12 +20,12 @@ environment:
 pending:
 - Replace provisional legal text in /privacidade and /termos (web) and bump web.CurrentTermsVersion
 - 'UX candidate: after import/match, link to the register month where the lines landed (e07s03 UAT feedback)'
-active_epic: e07
+active_epic: e08
 git:
   branch: feat/e07-imports
   worktree: null
   base: main@d770bd1
-active_story: e07s04
+active_story: e08s01
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'
