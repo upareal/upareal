@@ -1,4 +1,4 @@
-// story: e01s01
+// story: e01s01 e04s01
 
 // Package db opens the SQLite database with the settings every module relies on.
 package db
@@ -21,6 +21,9 @@ func Open(path string) (*sql.DB, error) {
 	q.Add("_pragma", "busy_timeout(5000)")
 	q.Add("_pragma", "journal_mode(WAL)")
 	q.Add("_pragma", "foreign_keys(1)")
+	// Write transactions take the lock at BEGIN, so concurrent read-then-write
+	// transactions wait instead of racing (e.g. two first sign-ins seeding defaults).
+	q.Add("_txlock", "immediate")
 	dsn := "file:" + path + "?" + q.Encode()
 
 	conn, err := sql.Open("sqlite", dsn)

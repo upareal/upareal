@@ -10,7 +10,7 @@ tasks:
     description: "db.Open _txlock=immediate; ledger schema (user_key, group, account) + sqlc; run() migrates ledger after users"
     verify: "make gen && go build ./... && go test -race ./internal/db/... ./cmd/upareal/..."
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Database"]}
   - id: t2
     description: "ledger.EnsureDefaults: per-module data key, default groups/categories from defaults.go, system accounts; idempotent; concurrent-safe"

@@ -1,4 +1,4 @@
-// story: e01s01 e03s01
+// story: e01s01 e03s01 e04s01
 
 // Command upareal runs the upareal web app.
 package main
@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log/slog"
 	"net"
 	"net/http"
@@ -21,6 +22,7 @@ import (
 	"github.com/upareal/upareal/internal/config"
 	"github.com/upareal/upareal/internal/db"
 	"github.com/upareal/upareal/internal/vault"
+	"github.com/upareal/upareal/ledger"
 	"github.com/upareal/upareal/users"
 	"github.com/upareal/upareal/web"
 )
@@ -106,8 +108,13 @@ func run(ctx context.Context, getenv func(string) string, ln net.Listener, logOu
 
 // wireModules migrates every module (in dependency order) and builds the web dependencies.
 func wireModules(ctx context.Context, cfg config.Config, conn *sql.DB) (web.Deps, error) {
-	if err := db.Migrate(ctx, conn, "users", users.Migrations); err != nil {
-		return web.Deps{}, err
+	for _, m := range []struct {
+		name string
+		fsys fs.FS
+	}{{"users", users.Migrations}, {"ledger", ledger.Migrations}} {
+		if err := db.Migrate(ctx, conn, m.name, m.fsys); err != nil {
+			return web.Deps{}, err
+		}
 	}
 	kr, err := vault.NewKeyring(cfg.MasterKey)
 	if err != nil {
