@@ -1,10 +1,26 @@
 story_id: e06s03
-title: Transfers between own accounts
-status: todo
+title: "Transfers between own accounts"
+spec: e06s03-transfers.md
+status: failing
 bcps: 3
-outcome: A user moves money between two accounts, including paying a credit card bill.
+risk: P0
+outcome: A user moves money between own asset/liability accounts, including paying a card bill.
 tasks:
-- id: t1
-  description: Transfer form and two-leg transaction between asset/liability accounts
-  verify: go test -race ./ledger/... ./web/... -run TestTransfer
-  status: todo
+  - id: t1
+    description: "ledger.Transfer: both asset/liability, different accounts, amount > 0; destination +A, source -A"
+    verify: "go test -race ./ledger/... -run TestTransfer"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger"]}
+  - id: t2
+    description: "Web: transfer form on the register; both registers show the transfer"
+    verify: "go test -race ./web/... -run TestTransferForm"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t3
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
