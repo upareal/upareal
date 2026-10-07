@@ -1,7 +1,7 @@
 story_id: e08s02
 title: "Planning view for a month"
 spec: e08s02-month-view.md
-status: failing
+status: passing
 bcps: 8
 risk: P0
 outcome: The Orçamento page shows spent, available and received per category, Sem categoria totals and A distribuir for the month, all computed (P3, P4).
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
