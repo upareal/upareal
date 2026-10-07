@@ -10,7 +10,7 @@ tasks:
     description: "ledger.RecordSplit: total > 0, >= 2 lines > 0, direction per counter type, mismatch returns remaining"
     verify: "go test -race ./ledger/... -run TestRecordSplit"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger"]}
   - id: t2
     description: "Web: split form, HTMX add-line and remaining fragments, submit with pt-BR errors"
