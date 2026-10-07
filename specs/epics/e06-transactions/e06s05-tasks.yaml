@@ -1,7 +1,7 @@
 story_id: e06s05
 title: "Find transactions"
 spec: e06s05-find-transactions.md
-status: failing
+status: passing
 bcps: 5
 risk: P1
 outcome: A user finds transactions by date range (always bounded), account, amount and accent/case-insensitive text.
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
