@@ -178,3 +178,11 @@ WHERE t.user_id = ? AND t.deleted_at IS NULL
   AND EXISTS (SELECT 1 FROM ledger_leg u JOIN ledger_account ua ON ua.id = u.account_id
               WHERE u.transaction_id = t.id AND ua.system_role IN ('uncategorized_income', 'uncategorized_expense'))
 ORDER BY t.occurred_at DESC, t.id DESC;
+
+-- story: e08s02
+-- name: ActivityBetween :many
+SELECT l.account_id, CAST(SUM(l.amount) AS INTEGER) AS amount FROM ledger_leg l
+JOIN ledger_transaction t ON t.id = l.transaction_id
+WHERE t.user_id = sqlc.arg(user_id) AND t.occurred_at >= sqlc.arg(from_at) AND t.occurred_at < sqlc.arg(to_at)
+  AND t.deleted_at IS NULL
+GROUP BY l.account_id;

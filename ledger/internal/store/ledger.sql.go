@@ -66,6 +66,49 @@ func (q *Queries) AccountBalances(ctx context.Context, userID string) ([]Account
 	return items, nil
 }
 
+const activityBetween = `-- name: ActivityBetween :many
+SELECT l.account_id, CAST(SUM(l.amount) AS INTEGER) AS amount FROM ledger_leg l
+JOIN ledger_transaction t ON t.id = l.transaction_id
+WHERE t.user_id = ?1 AND t.occurred_at >= ?2 AND t.occurred_at < ?3
+  AND t.deleted_at IS NULL
+GROUP BY l.account_id
+`
+
+type ActivityBetweenParams struct {
+	UserID string
+	FromAt string
+	ToAt   string
+}
+
+type ActivityBetweenRow struct {
+	AccountID string
+	Amount    int64
+}
+
+// story: e08s02
+func (q *Queries) ActivityBetween(ctx context.Context, arg ActivityBetweenParams) ([]ActivityBetweenRow, error) {
+	rows, err := q.db.QueryContext(ctx, activityBetween, arg.UserID, arg.FromAt, arg.ToAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ActivityBetweenRow
+	for rows.Next() {
+		var i ActivityBetweenRow
+		if err := rows.Scan(&i.AccountID, &i.Amount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const balanceBefore = `-- name: BalanceBefore :one
 SELECT CAST(COALESCE(SUM(l.amount), 0) AS INTEGER) FROM ledger_leg l
 JOIN ledger_transaction t ON t.id = l.transaction_id

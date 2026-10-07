@@ -10,7 +10,7 @@ tasks:
     description: "ledger.Activity: debit-positive sum per account in [from, to), excluding deleted, isolated"
     verify: "go test -race ./ledger/... -run TestActivity"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger"]}
   - id: t2
     description: "planning.Month: spent/available/received, Sem categoria, A distribuir, isolation"
