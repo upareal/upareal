@@ -1,7 +1,7 @@
 story_id: e06s01
 title: "Record a simple expense or income"
 spec: e06s01-simple-entry.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: A user records an expense or income against an income/expense account; the account register shows it by São Paulo month with a running balance.
@@ -34,5 +34,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
