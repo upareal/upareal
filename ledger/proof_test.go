@@ -1,4 +1,4 @@
-// story: e04s01 e04s02 e06s01 e06s04
+// story: e04s01 e04s02 e06s01 e06s04 e07s01
 package ledger_test
 
 import (
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/upareal/upareal/ledger"
+	"github.com/upareal/upareal/ledger/importer"
 )
 
 // TestLedgerHasNoPlaintext proves a copy of the database reveals no account
@@ -30,6 +31,12 @@ func TestLedgerHasNoPlaintext(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := f.svc.RecordSimple(ctx, userA, ledger.SimpleEntry{AccountID: acc.ID, CounterID: shell.ID, Amount: 15000, At: jan10, Description: "Gasolina aditivada viagem"}); err != nil {
+		t.Fatal(err)
+	}
+	// Imported lines: the bank's row id is only a blind index; conta and description are sealed.
+	if _, err := f.svc.Import(ctx, userA, acc.ID, []importer.Line{
+		{ImportID: "BANKROW-778899", At: jan10, Description: "PADARIA SAO JORGE", Amount: -1250, Account: "Cartão final 4321"},
+	}); err != nil {
 		t.Fatal(err)
 	}
 	// The original description survives only inside the encrypted history snapshot.
@@ -57,7 +64,7 @@ func TestLedgerHasNoPlaintext(t *testing.T) {
 	if !bytes.Contains(raw, []byte("ledger_account")) {
 		t.Fatal("control: schema text not found; the scan is not reading the database")
 	}
-	for _, name := range []string{"Saldo inicial", "A categorizar", "Conta Itaú Personnalité", "Ajuste de saldo", "Posto Shell Ipiranga", "Gasolina aditivada viagem", "Presente secreto aniversário"} {
+	for _, name := range []string{"Saldo inicial", "A categorizar", "Conta Itaú Personnalité", "Ajuste de saldo", "Posto Shell Ipiranga", "Gasolina aditivada viagem", "Presente secreto aniversário", "BANKROW-778899", "PADARIA SAO JORGE", "Cartão final 4321"} {
 		if bytes.Contains(raw, []byte(name)) {
 			t.Errorf("database files contain %q in plaintext", name)
 		}
