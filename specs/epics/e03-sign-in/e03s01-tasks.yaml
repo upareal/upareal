@@ -1,7 +1,7 @@
 story_id: e03s01
 title: "First Google sign-in creates the account"
 spec: e03s01-google-sign-in.md
-status: failing
+status: passing
 bcps: 8
 risk: P0
 outcome: A visitor signs in with Google; a user with encrypted email/name is created (recognized by sub) and the home page greets them.
@@ -70,5 +70,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
