@@ -35,8 +35,9 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("GET /healthz", healthz(d.DB))
 	mux.Handle("GET /static/", staticHandler())
 	mux.HandleFunc("GET /{$}", home(d.Users))
-	mux.HandleFunc("GET /auth/login", login(d.Google))
-	mux.HandleFunc("GET /auth/callback", callback(d.Users, d.Google))
+	authLimit := newIPLimiter()
+	mux.Handle("GET /auth/login", authLimit.limit(login(d.Google)))
+	mux.Handle("GET /auth/callback", authLimit.limit(callback(d.Users, d.Google)))
 	mux.HandleFunc("POST /auth/logout", logout(d.Users, false))
 	mux.HandleFunc("POST /auth/logout-all", logout(d.Users, true))
 	// CSRF: reject cross-origin unsafe methods (Sec-Fetch-Site / Origin checks).
