@@ -24,7 +24,7 @@ epics:
   slug: ledger-accounts
   path: specs/epics/e04-ledger-accounts
   wsjf_rank: 4
-  bcps: 18
+  bcps: 16
 - id: e05
   slug: budget
   path: specs/epics/e05-budget

@@ -1,44 +1,44 @@
 story_id: e04s01
-title: "Default grouped categories on sign-up"
-spec: e04s01-default-categories.md
-status: passing
-bcps: 5
+title: "Ledger system accounts on sign-up"
+spec: e04s01-system-accounts.md
+status: failing
+bcps: 3
 risk: P0
-outcome: A new user gets default pt-BR groups, categories and hidden system accounts, and sees them on /categorias.
+outcome: First sign-in creates the ledger data key and three hidden system accounts; repeated sign-ins change nothing.
 tasks:
   - id: t1
-    description: "db.Open _txlock=immediate; ledger schema (user_key, group, account) + sqlc; run() migrates ledger after users"
+    description: "Rewrite unmerged ledger migration and queries without groups (user_key, account)"
     verify: "make gen && go build ./... && go test -race ./internal/db/... ./cmd/upareal/..."
     risk: P1
-    status: passing
+    status: failing
     allure: {severity: high, categories: ["Database"]}
   - id: t2
-    description: "ledger.EnsureDefaults: per-module data key, default groups/categories from defaults.go, system accounts; idempotent; concurrent-safe"
+    description: "EnsureDefaults: data key + system accounts only; idempotent; concurrent-safe"
     verify: "go test -race ./ledger/... -run TestEnsureDefaults"
     risk: P0
-    status: passing
+    status: failing
     allure: {severity: critical, categories: ["Ledger", "integration"]}
   - id: t3
-    description: "ledger.Categories: ordered, decrypted, active only, system accounts hidden; user isolation"
-    verify: "go test -race ./ledger/... -run 'TestCategories|TestIsolation'"
+    description: "Accounts: decrypted, ordered by type then position, active only; user isolation"
+    verify: "go test -race ./ledger/... -run 'TestAccounts|TestIsolation'"
     risk: P0
-    status: passing
+    status: failing
     allure: {severity: critical, categories: ["Ledger", "Security Review"]}
   - id: t4
-    description: "Web: callback runs EnsureDefaults before the session; /categorias page; home link"
-    verify: "go test -race ./web/... -run TestCategoriesPage"
+    description: "Web: callback keeps EnsureDefaults; /categorias and home link removed until e05s01"
+    verify: "go test -race ./web/... -run 'TestGoogleSignIn|TestSystemAccountsOnSignIn'"
     risk: P1
-    status: passing
-    allure: {severity: high, categories: ["UI", "integration"]}
+    status: failing
+    allure: {severity: high, categories: ["integration"]}
   - id: t5
-    description: "Proof: database copy holds no plaintext default names"
+    description: "Proof: database copy holds no plaintext system account names"
     verify: "go test -race ./ledger/... -run TestLedgerHasNoPlaintext"
     risk: P0
-    status: passing
+    status: failing
     allure: {severity: critical, categories: ["Security Review"]}
   - id: t6
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: passing
+    status: failing
     allure: {severity: high, categories: ["Preflight"]}

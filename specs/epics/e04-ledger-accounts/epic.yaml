@@ -7,9 +7,9 @@ scope_items:
 - S22
 stories:
 - id: e04s01
-  title: Default grouped categories on sign-up
-  bcps: 5
-  delta: ADDED
+  title: Ledger system accounts on sign-up
+  bcps: 3
+  delta: MODIFIED
 - id: e04s02
   title: Create accounts with opening balance and manual adjustment
   bcps: 8
@@ -18,4 +18,4 @@ stories:
   title: Organize, archive and delete accounts
   bcps: 5
   delta: ADDED
-bcps_total: 18
+bcps_total: 16

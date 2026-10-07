@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: model-domain
-  note: 'DOMAIN CHANGE in progress: do not continue e04 until resolved'
+  next_skill: develop-tdd
+  note: domain split done; e04s01 re-planned (ledger system accounts only); rework code
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -79,3 +79,4 @@ domain_change:
       cross_module:
       - X1 references by ID only, no FKs; deleted category or account drops its mappings
       - X2 every row has one owner; every query filters by user_id
+  status: 'resolved 2026-10-07: specs updated and epics re-sliced (commit 66bfbe2)'
