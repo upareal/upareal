@@ -16,7 +16,7 @@ tasks:
     description: "First open copies the latest earlier opened month; never again; zero-opened months stay zero"
     verify: "go test -race ./budget/... -run TestCopyPreviousMonth"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Budget"]}
   - id: t3
     description: "/orcamento page: month navigation, inline amount forms, totals"

@@ -3,6 +3,7 @@ package budget
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -45,7 +46,8 @@ func (s *Service) SetAmount(ctx context.Context, userID, categoryID string, m Mo
 	})
 }
 
-// ensureMonth marks month as opened for userID (once).
+// ensureMonth opens month for userID exactly once: it copies the amounts of
+// the latest earlier opened month (if any) and marks the month opened.
 func (s *Service) ensureMonth(ctx context.Context, q *store.Queries, userID string, m Month) error {
 	n, err := q.MonthOpened(ctx, store.MonthOpenedParams{UserID: userID, Month: m.String()})
 	if err != nil {
@@ -53,6 +55,16 @@ func (s *Service) ensureMonth(ctx context.Context, q *store.Queries, userID stri
 	}
 	if n > 0 {
 		return nil
+	}
+	from, err := q.LatestOpenedMonthBefore(ctx, store.LatestOpenedMonthBeforeParams{UserID: userID, Month: m.String()})
+	switch {
+	case errors.Is(err, sql.ErrNoRows): // first month ever: start empty
+	case err != nil:
+		return fmt.Errorf("budget: latest opened month: %w", err)
+	default:
+		if err := q.CopyMonthAmounts(ctx, store.CopyMonthAmountsParams{ToMonth: m.String(), UserID: userID, FromMonth: from}); err != nil {
+			return fmt.Errorf("budget: copy %s to %s: %w", from, m, err)
+		}
 	}
 	return q.MarkMonthOpened(ctx, store.MarkMonthOpenedParams{UserID: userID, Month: m.String(), OpenedAt: stamp(s.now())})
 }
