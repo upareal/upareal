@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: plan-work
-  note: e06s03 done; plan e06s04 (edit and delete with history)
+  next_skill: develop-tdd
+  note: e06s04 planned (6 tasks)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)

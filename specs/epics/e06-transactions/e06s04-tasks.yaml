@@ -1,14 +1,44 @@
 story_id: e06s04
-title: Edit and delete with history
-status: todo
+title: "Edit and delete with history"
+spec: e06s04-edit-delete-history.md
+status: failing
 bcps: 5
-outcome: A user edits or deletes a transaction; previous versions are kept encrypted; deleted ones leave balances.
+risk: P0
+outcome: A user edits or deletes a transaction; previous versions are kept encrypted; deleted transactions leave balances and registers.
 tasks:
-- id: t1
-  description: Edit writes encrypted transaction_history row and re-checks zero sum
-  verify: go test -race ./ledger/... -run TestEditKeepsHistory
-  status: todo
-- id: t2
-  description: Soft delete removes the transaction from balances
-  verify: go test -race ./ledger/... -run TestSoftDelete
-  status: todo
+  - id: t1
+    description: "Migration 00003 (deleted_at, history); Transaction and History reads; every sum excludes deleted transactions"
+    verify: "go test -race ./ledger/... -run TestTransactionRead"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger", "Database"]}
+  - id: t2
+    description: "EditEntry/EditTransfer with encrypted history; system transactions not editable; isolation"
+    verify: "go test -race ./ledger/... -run TestEditKeepsHistory"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger", "Security Review"]}
+  - id: t3
+    description: "DeleteTransaction (soft, with history); excluded from Balance, Balances, Register; account still counts as used"
+    verify: "go test -race ./ledger/... -run TestSoftDelete"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger"]}
+  - id: t4
+    description: "Web: register lines link to edit page (entry or transfer form, delete, history)"
+    verify: "go test -race ./web/... -run TestEditTransactionPage"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t5
+    description: "Proof: history snapshots not stored in plaintext"
+    verify: "go test -race ./ledger/... -run TestLedgerHasNoPlaintext"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Security Review"]}
+  - id: t6
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
