@@ -1,0 +1,75 @@
+// story: e07s01
+package web
+
+templ importPage(v importView) {
+	@layout("Importar extrato — upareal") {
+		<p><a href={ templ.SafeURL("/contas/" + v.AccountID + "/lancamentos") }>← { v.AccountName }</a></p>
+		<h1>Importar extrato</h1>
+		if len(v.Errors) > 0 {
+			<div class="error" role="alert">
+				<p>Nada foi importado. Corrija o arquivo e envie de novo:</p>
+				<ul>
+					for _, e := range v.Errors {
+						<li>{ e }</li>
+					}
+				</ul>
+			</div>
+		}
+		<p>Envie um CSV no formato do upareal. <a href="/ajuda/csv">Veja o formato e um exemplo</a>.</p>
+		<form method="post" action={ templ.SafeURL("/contas/" + v.AccountID + "/importar") } enctype="multipart/form-data">
+			<label>Arquivo <input type="file" name="arquivo" accept=".csv,text/csv" required/></label>
+			<button type="submit">Importar</button>
+		</form>
+	}
+}
+
+templ reviewPage(v queueView) {
+	@layout("Revisão — upareal") {
+		<p><a href="/">← Início</a></p>
+		<h1>Revisão</h1>
+		if v.Summary != "" {
+			<p class="hint">{ v.Summary }</p>
+		}
+		if len(v.Lines) == 0 {
+			<p class="muted">Nada para revisar.</p>
+		} else {
+			<p>Lançamentos importados aguardando uma conta de despesa ou receita:</p>
+			<table class="register">
+				<thead><tr><th>Quando</th><th>Conta</th><th>Descrição</th><th>Valor</th><th>Texto do banco</th></tr></thead>
+				<tbody>
+					for _, l := range v.Lines {
+						<tr>
+							<td>{ l.When }</td>
+							<td>{ l.Account }</td>
+							<td><a href={ templ.SafeURL(l.Link) }>{ l.Description }</a></td>
+							<td class="num">{ l.Amount }</td>
+							<td>{ l.Conta }</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		}
+	}
+}
+
+templ csvHelpPage() {
+	@layout("Formato CSV — upareal") {
+		<p><a href="/">← Início</a></p>
+		<h1>Formato do CSV</h1>
+		<p>Arquivo de texto <strong>UTF-8</strong> (no Excel: "CSV UTF-8"), separado por <strong>;</strong>. A primeira linha é um cabeçalho: obrigatória, mas ignorada. As colunas são lidas <strong>pela posição</strong>, nesta ordem:</p>
+		<pre>id;data;hora;descricao;valor;conta</pre>
+		<ul>
+			<li><strong>id</strong>: identificador da linha no seu banco; linhas com o mesmo id não são importadas de novo nesta conta.</li>
+			<li><strong>data</strong>: dd/mm/aaaa.</li>
+			<li><strong>hora</strong>: hh:mm, ou vazio (00:00).</li>
+			<li><strong>descricao</strong>: até 200 caracteres.</li>
+			<li><strong>valor</strong>: 1.234,56; <strong>negativo</strong> = dinheiro que saiu da conta.</li>
+			<li><strong>conta</strong>: opcional; texto livre do banco, guardado para categorização automática futura.</li>
+		</ul>
+		<p>Exemplo:</p>
+		<pre>id;data;hora;descricao;valor;conta
+abc123;31/01/2026;22:30;SUPERMERCADO X;-150,00;Cartão final 1234
+def456;01/02/2026;;SALARIO ACME;8.000,00;</pre>
+		<p>Limites: 5 MB e 10.000 linhas. Se alguma linha tiver erro, nada é importado e as linhas com problema são listadas.</p>
+	}
+}

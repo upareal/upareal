@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02 e05s03 e06s01 e06s02 e06s03 e06s04 e06s05
+// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02 e05s03 e06s01 e06s02 e06s03 e06s04 e06s05 e07s01
 
 // Package web renders all HTML pages and HTMX fragments and wires the HTTP routes.
 package web
@@ -69,6 +69,10 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("POST /contas/{id}/lancamentos", registerPost(d.Users, d.Ledger))
 	mux.HandleFunc("POST /contas/{id}/transferencia", transferPost(d.Users, d.Ledger))
 	mux.HandleFunc("GET /buscar", searchGet(d.Users, d.Ledger))
+	mux.HandleFunc("GET /contas/{id}/importar", importGet(d.Users, d.Ledger))
+	mux.HandleFunc("POST /contas/{id}/importar", importPost(d.Users, d.Ledger, newIPLimiter()))
+	mux.HandleFunc("GET /revisao", reviewGet(d.Users, d.Ledger))
+	mux.Handle("GET /ajuda/csv", templ.Handler(csvHelpPage()))
 	mux.HandleFunc("GET /lancamentos/{id}", editGet(d.Users, d.Ledger))
 	mux.HandleFunc("POST /lancamentos/{id}", editPost(d.Users, d.Ledger))
 	mux.HandleFunc("POST /lancamentos/{id}/excluir", editDelete(d.Users, d.Ledger))

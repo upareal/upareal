@@ -28,7 +28,7 @@ tasks:
     description: "Web: import page, /ajuda/csv, upload (5 MB, per-user rate limit), /revisao queue"
     verify: "go test -race ./web/... -run TestImportFlow"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["UI", "integration"]}
   - id: t5
     description: "Proof: conta text and import ids not stored in plaintext"
