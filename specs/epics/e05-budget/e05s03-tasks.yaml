@@ -1,7 +1,7 @@
 story_id: e05s03
 title: "Monthly amounts"
 spec: e05s03-monthly-amounts.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: A user sets the amount per category per month (B3, B4); the first open of a month copies the latest earlier opened month.
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
