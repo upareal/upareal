@@ -16,7 +16,7 @@ tasks:
     description: "Text match on decrypted description and account names, accent/case-insensitive; 500 cap"
     verify: "go test -race ./ledger/... -run TestSearchText"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Ledger"]}
   - id: t3
     description: "/buscar page: defaults (last 12 months), validation, results with edit links, summary"

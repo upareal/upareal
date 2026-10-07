@@ -5,7 +5,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
+	"unicode"
+
+	"golang.org/x/text/runes"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 
 	"github.com/upareal/upareal/ledger/internal/store"
 )
@@ -110,5 +116,30 @@ func (q SearchQuery) validate() error {
 	return nil
 }
 
-// matchesText is replaced by accent-insensitive matching in the next step.
-func matchesText(text, description string, accounts []string) bool { return true }
+// matchesText reports whether text appears in the description or any account
+// name, ignoring case and accents. Empty text matches everything.
+func matchesText(text, description string, accounts []string) bool {
+	needle := fold(strings.TrimSpace(text))
+	if needle == "" {
+		return true
+	}
+	if strings.Contains(fold(description), needle) {
+		return true
+	}
+	for _, a := range accounts {
+		if strings.Contains(fold(a), needle) {
+			return true
+		}
+	}
+	return false
+}
+
+// fold lowercases s and strips accents ("Água" → "agua") for comparisons.
+func fold(s string) string {
+	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
+	out, _, err := transform.String(t, s)
+	if err != nil {
+		out = s
+	}
+	return strings.ToLower(out)
+}
