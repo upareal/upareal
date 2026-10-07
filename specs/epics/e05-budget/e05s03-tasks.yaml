@@ -1,18 +1,32 @@
 story_id: e05s03
-title: Monthly amounts
-status: todo
+title: "Monthly amounts"
+spec: e05s03-monthly-amounts.md
+status: failing
 bcps: 5
-outcome: A user sets the amount for each category in a month; opening a new month copies the previous month's amounts (B3, B4).
+risk: P0
+outcome: A user sets the amount per category per month (B3, B4); the first open of a month copies the latest earlier opened month.
 tasks:
-- id: t1
-  description: Amount per (category, month), >= 0, months in America/Sao_Paulo
-  verify: go test -race ./budget/... -run TestMonthlyAmounts
-  status: todo
-- id: t2
-  description: First open of a month copies the previous month's amounts
-  verify: go test -race ./budget/... -run TestCopyPreviousMonth
-  status: todo
-- id: t3
-  description: Month amounts page with inline HTMX edit
-  verify: go test -race ./web/... -run TestBudgetMonthPage
-  status: todo
+  - id: t1
+    description: "Month type; schema 00002; SetAmount (B3, B4) and OpenMonth reads; isolation"
+    verify: "go test -race ./budget/... -run 'TestMonth|TestMonthlyAmounts'"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Budget"]}
+  - id: t2
+    description: "First open copies the latest earlier opened month; never again; zero-opened months stay zero"
+    verify: "go test -race ./budget/... -run TestCopyPreviousMonth"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Budget"]}
+  - id: t3
+    description: "/orcamento page: month navigation, inline amount forms, totals"
+    verify: "go test -race ./web/... -run TestBudgetMonthPage"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t4
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
