@@ -1,7 +1,7 @@
 story_id: e04s03
 title: "Organize, archive and delete accounts"
 spec: e04s03-organize-archive-delete.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: Users edit, reorder, archive/restore and delete accounts while L5-L7 hold.
@@ -40,5 +40,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
