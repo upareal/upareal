@@ -168,3 +168,63 @@ func TestMapping_RejectsMismatchAndUnmappable(t *testing.T) {
 		t.Errorf("user B mapping user A's account = %v, want ErrNotFound", err)
 	}
 }
+
+func byName(ms []planning.Mapping) map[string]planning.Mapping {
+	out := map[string]planning.Mapping{}
+	for _, m := range ms {
+		out[m.Account.Name] = m
+	}
+	return out
+}
+
+func TestUnmapped_EveryAccountListedWithItsCategoryOrNone(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	shell := f.account(t, userA, "Posto Shell", "expense")
+	f.account(t, userA, "Padaria", "expense")
+	f.account(t, userA, "Itaú", "asset") // not mappable: not listed
+	if err := f.svc.SetMapping(ctx, userA, shell.ID, f.category(t, userA, "Combustível")); err != nil {
+		t.Fatal(err)
+	}
+	ms, err := f.svc.Mappings(ctx, userA)
+	if err != nil {
+		t.Fatalf("Mappings: %v", err)
+	}
+	got := byName(ms)
+	if len(ms) != 2 {
+		t.Fatalf("mappings = %+v, want Posto Shell and Padaria only (no system or asset accounts)", ms)
+	}
+	if m := got["Posto Shell"]; m.CategoryName != "Combustível" || m.GroupName != "Transporte" {
+		t.Errorf("Posto Shell = %+v, want Combustível (Transporte)", m)
+	}
+	if m := got["Padaria"]; m.CategoryID != "" {
+		t.Errorf("Padaria = %+v, want Sem categoria (empty)", m)
+	}
+}
+
+func TestUnmapped_StaleCategoryShowsSemCategoria(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	shell := f.account(t, userA, "Posto Shell", "expense")
+	fuel := f.category(t, userA, "Combustível")
+	if err := f.svc.SetMapping(ctx, userA, shell.ID, fuel); err != nil {
+		t.Fatal(err)
+	}
+	// Archiving categories arrives in e08s06; simulate it in the budget's table.
+	if _, err := f.conn.Exec(`UPDATE budget_category SET archived_at = '2026-01-01T00:00:00Z' WHERE id = ?`, fuel); err != nil {
+		t.Fatal(err)
+	}
+	ms, _ := f.svc.Mappings(ctx, userA)
+	if m := byName(ms)["Posto Shell"]; m.CategoryID != "" {
+		t.Errorf("Posto Shell with an archived category = %+v, want Sem categoria (X1)", m)
+	}
+}
+
+func TestUnmapped_IsolatedPerUser(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	f.account(t, userA, "Posto Shell", "expense")
+	if ms, err := f.svc.Mappings(ctx, userB); err != nil || len(ms) != 0 {
+		t.Errorf("user B mappings = %+v, %v; want none", ms, err)
+	}
+}
