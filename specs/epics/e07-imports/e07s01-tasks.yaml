@@ -10,7 +10,7 @@ tasks:
     description: "importer.ParseGenericCSV: header ignored, positional columns, BOM, optional hora/conta, every bad line reported, limits"
     verify: "go test -race ./ledger/importer/... -run TestGenericCSV"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Import", "unit"]}
   - id: t2
     description: "Migration 00004 + ledger.Import: blind-index dedupe per account, all-or-nothing, posts vs A categorizar, sealed conta"
