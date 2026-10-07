@@ -10,7 +10,7 @@ tasks:
     description: "Migration 00003 (deleted_at, history); Transaction and History reads; every sum excludes deleted transactions"
     verify: "go test -race ./ledger/... -run TestTransactionRead"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger", "Database"]}
   - id: t2
     description: "EditEntry/EditTransfer with encrypted history; system transactions not editable; isolation"

@@ -34,6 +34,16 @@ type LedgerTransaction struct {
 	OccurredAt  string
 	Description []byte
 	CreatedAt   string
+	DeletedAt   sql.NullString
+}
+
+type LedgerTransactionHistory struct {
+	ID            string
+	TransactionID string
+	UserID        string
+	Action        string
+	ChangedAt     string
+	Snapshot      []byte
 }
 
 type LedgerUserKey struct {

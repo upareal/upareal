@@ -1,4 +1,4 @@
--- story: e04s01 e04s02 e04s03 e06s01
+-- story: e04s01 e04s02 e04s03 e06s01 e06s04
 
 -- name: GetUserKey :one
 SELECT data_key FROM ledger_user_key WHERE user_id = ?;
@@ -43,12 +43,14 @@ INSERT INTO ledger_leg (id, transaction_id, account_id, amount) VALUES (?, ?, ?,
 -- name: AccountBalance :one
 SELECT CAST(COALESCE(SUM(l.amount), 0) AS INTEGER) FROM ledger_leg l
 JOIN ledger_account a ON a.id = l.account_id
-WHERE a.user_id = ? AND l.account_id = ?;
+JOIN ledger_transaction t ON t.id = l.transaction_id
+WHERE a.user_id = ? AND l.account_id = ? AND t.deleted_at IS NULL;
 
 -- name: AccountBalances :many
 SELECT l.account_id, CAST(SUM(l.amount) AS INTEGER) AS balance FROM ledger_leg l
 JOIN ledger_account a ON a.id = l.account_id
-WHERE a.user_id = ?
+JOIN ledger_transaction t ON t.id = l.transaction_id
+WHERE a.user_id = ? AND t.deleted_at IS NULL
 GROUP BY l.account_id;
 
 -- name: UpdateAccount :exec
@@ -86,7 +88,7 @@ DELETE FROM ledger_account WHERE id = ? AND user_id = ?;
 -- name: BalanceBefore :one
 SELECT CAST(COALESCE(SUM(l.amount), 0) AS INTEGER) FROM ledger_leg l
 JOIN ledger_transaction t ON t.id = l.transaction_id
-WHERE t.user_id = ? AND l.account_id = ? AND t.occurred_at < ?;
+WHERE t.user_id = ? AND l.account_id = ? AND t.occurred_at < ? AND t.deleted_at IS NULL;
 
 -- name: RegisterEntries :many
 SELECT t.id, t.occurred_at, t.description, CAST(SUM(l.amount) AS INTEGER) AS amount
@@ -94,6 +96,7 @@ FROM ledger_leg l
 JOIN ledger_transaction t ON t.id = l.transaction_id
 WHERE t.user_id = sqlc.arg(user_id) AND l.account_id = sqlc.arg(account_id)
   AND t.occurred_at >= sqlc.arg(from_at) AND t.occurred_at < sqlc.arg(to_at)
+  AND t.deleted_at IS NULL
 GROUP BY t.id
 ORDER BY t.occurred_at, t.created_at, t.id;
 
@@ -103,3 +106,31 @@ JOIN ledger_account a ON a.id = l.account_id
 WHERE a.user_id = sqlc.arg(user_id) AND l.account_id <> sqlc.arg(account_id)
   AND l.transaction_id IN (sqlc.slice('transaction_ids'))
 ORDER BY l.transaction_id, a.position, a.id;
+
+-- name: GetTransaction :one
+SELECT id, occurred_at, description FROM ledger_transaction
+WHERE id = ? AND user_id = ? AND deleted_at IS NULL;
+
+-- name: TransactionLegs :many
+SELECT l.account_id, l.amount, a.type, a.system_role FROM ledger_leg l
+JOIN ledger_account a ON a.id = l.account_id
+WHERE l.transaction_id = ? AND a.user_id = ?
+ORDER BY l.id;
+
+-- name: UpdateTransaction :exec
+UPDATE ledger_transaction SET occurred_at = ?, description = ? WHERE id = ? AND user_id = ?;
+
+-- name: DeleteLegs :exec
+DELETE FROM ledger_leg WHERE transaction_id = ?;
+
+-- name: SoftDeleteTransaction :exec
+UPDATE ledger_transaction SET deleted_at = ? WHERE id = ? AND user_id = ?;
+
+-- name: InsertHistory :exec
+INSERT INTO ledger_transaction_history (id, transaction_id, user_id, action, changed_at, snapshot)
+VALUES (?, ?, ?, ?, ?, ?);
+
+-- name: ListHistory :many
+SELECT action, changed_at, snapshot FROM ledger_transaction_history
+WHERE transaction_id = ? AND user_id = ?
+ORDER BY changed_at DESC, id DESC;

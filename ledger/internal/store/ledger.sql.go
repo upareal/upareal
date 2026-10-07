@@ -14,7 +14,8 @@ import (
 const accountBalance = `-- name: AccountBalance :one
 SELECT CAST(COALESCE(SUM(l.amount), 0) AS INTEGER) FROM ledger_leg l
 JOIN ledger_account a ON a.id = l.account_id
-WHERE a.user_id = ? AND l.account_id = ?
+JOIN ledger_transaction t ON t.id = l.transaction_id
+WHERE a.user_id = ? AND l.account_id = ? AND t.deleted_at IS NULL
 `
 
 type AccountBalanceParams struct {
@@ -32,7 +33,8 @@ func (q *Queries) AccountBalance(ctx context.Context, arg AccountBalanceParams) 
 const accountBalances = `-- name: AccountBalances :many
 SELECT l.account_id, CAST(SUM(l.amount) AS INTEGER) AS balance FROM ledger_leg l
 JOIN ledger_account a ON a.id = l.account_id
-WHERE a.user_id = ?
+JOIN ledger_transaction t ON t.id = l.transaction_id
+WHERE a.user_id = ? AND t.deleted_at IS NULL
 GROUP BY l.account_id
 `
 
@@ -67,7 +69,7 @@ func (q *Queries) AccountBalances(ctx context.Context, userID string) ([]Account
 const balanceBefore = `-- name: BalanceBefore :one
 SELECT CAST(COALESCE(SUM(l.amount), 0) AS INTEGER) FROM ledger_leg l
 JOIN ledger_transaction t ON t.id = l.transaction_id
-WHERE t.user_id = ? AND l.account_id = ? AND t.occurred_at < ?
+WHERE t.user_id = ? AND l.account_id = ? AND t.occurred_at < ? AND t.deleted_at IS NULL
 `
 
 type BalanceBeforeParams struct {
@@ -282,6 +284,15 @@ func (q *Queries) DeleteAccount(ctx context.Context, arg DeleteAccountParams) er
 	return err
 }
 
+const deleteLegs = `-- name: DeleteLegs :exec
+DELETE FROM ledger_leg WHERE transaction_id = ?
+`
+
+func (q *Queries) DeleteLegs(ctx context.Context, transactionID string) error {
+	_, err := q.db.ExecContext(ctx, deleteLegs, transactionID)
+	return err
+}
+
 const getAccount = `-- name: GetAccount :one
 SELECT id, type, system_role, archived_at, position FROM ledger_account WHERE id = ? AND user_id = ?
 `
@@ -328,17 +339,66 @@ func (q *Queries) GetSystemAccountID(ctx context.Context, arg GetSystemAccountID
 	return id, err
 }
 
+const getTransaction = `-- name: GetTransaction :one
+SELECT id, occurred_at, description FROM ledger_transaction
+WHERE id = ? AND user_id = ? AND deleted_at IS NULL
+`
+
+type GetTransactionParams struct {
+	ID     string
+	UserID string
+}
+
+type GetTransactionRow struct {
+	ID          string
+	OccurredAt  string
+	Description []byte
+}
+
+func (q *Queries) GetTransaction(ctx context.Context, arg GetTransactionParams) (GetTransactionRow, error) {
+	row := q.db.QueryRowContext(ctx, getTransaction, arg.ID, arg.UserID)
+	var i GetTransactionRow
+	err := row.Scan(&i.ID, &i.OccurredAt, &i.Description)
+	return i, err
+}
+
 const getUserKey = `-- name: GetUserKey :one
 
 SELECT data_key FROM ledger_user_key WHERE user_id = ?
 `
 
-// story: e04s01 e04s02 e04s03 e06s01
+// story: e04s01 e04s02 e04s03 e06s01 e06s04
 func (q *Queries) GetUserKey(ctx context.Context, userID string) ([]byte, error) {
 	row := q.db.QueryRowContext(ctx, getUserKey, userID)
 	var data_key []byte
 	err := row.Scan(&data_key)
 	return data_key, err
+}
+
+const insertHistory = `-- name: InsertHistory :exec
+INSERT INTO ledger_transaction_history (id, transaction_id, user_id, action, changed_at, snapshot)
+VALUES (?, ?, ?, ?, ?, ?)
+`
+
+type InsertHistoryParams struct {
+	ID            string
+	TransactionID string
+	UserID        string
+	Action        string
+	ChangedAt     string
+	Snapshot      []byte
+}
+
+func (q *Queries) InsertHistory(ctx context.Context, arg InsertHistoryParams) error {
+	_, err := q.db.ExecContext(ctx, insertHistory,
+		arg.ID,
+		arg.TransactionID,
+		arg.UserID,
+		arg.Action,
+		arg.ChangedAt,
+		arg.Snapshot,
+	)
+	return err
 }
 
 const listActiveAccounts = `-- name: ListActiveAccounts :many
@@ -422,6 +482,46 @@ func (q *Queries) ListArchivedAccounts(ctx context.Context, userID string) ([]Li
 			&i.OnBudget,
 			&i.IsCard,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listHistory = `-- name: ListHistory :many
+SELECT action, changed_at, snapshot FROM ledger_transaction_history
+WHERE transaction_id = ? AND user_id = ?
+ORDER BY changed_at DESC, id DESC
+`
+
+type ListHistoryParams struct {
+	TransactionID string
+	UserID        string
+}
+
+type ListHistoryRow struct {
+	Action    string
+	ChangedAt string
+	Snapshot  []byte
+}
+
+func (q *Queries) ListHistory(ctx context.Context, arg ListHistoryParams) ([]ListHistoryRow, error) {
+	rows, err := q.db.QueryContext(ctx, listHistory, arg.TransactionID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListHistoryRow
+	for rows.Next() {
+		var i ListHistoryRow
+		if err := rows.Scan(&i.Action, &i.ChangedAt, &i.Snapshot); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -532,6 +632,7 @@ FROM ledger_leg l
 JOIN ledger_transaction t ON t.id = l.transaction_id
 WHERE t.user_id = ?1 AND l.account_id = ?2
   AND t.occurred_at >= ?3 AND t.occurred_at < ?4
+  AND t.deleted_at IS NULL
 GROUP BY t.id
 ORDER BY t.occurred_at, t.created_at, t.id
 `
@@ -613,6 +714,68 @@ func (q *Queries) SetAccountPosition(ctx context.Context, arg SetAccountPosition
 	return err
 }
 
+const softDeleteTransaction = `-- name: SoftDeleteTransaction :exec
+UPDATE ledger_transaction SET deleted_at = ? WHERE id = ? AND user_id = ?
+`
+
+type SoftDeleteTransactionParams struct {
+	DeletedAt sql.NullString
+	ID        string
+	UserID    string
+}
+
+func (q *Queries) SoftDeleteTransaction(ctx context.Context, arg SoftDeleteTransactionParams) error {
+	_, err := q.db.ExecContext(ctx, softDeleteTransaction, arg.DeletedAt, arg.ID, arg.UserID)
+	return err
+}
+
+const transactionLegs = `-- name: TransactionLegs :many
+SELECT l.account_id, l.amount, a.type, a.system_role FROM ledger_leg l
+JOIN ledger_account a ON a.id = l.account_id
+WHERE l.transaction_id = ? AND a.user_id = ?
+ORDER BY l.id
+`
+
+type TransactionLegsParams struct {
+	TransactionID string
+	UserID        string
+}
+
+type TransactionLegsRow struct {
+	AccountID  string
+	Amount     int64
+	Type       string
+	SystemRole sql.NullString
+}
+
+func (q *Queries) TransactionLegs(ctx context.Context, arg TransactionLegsParams) ([]TransactionLegsRow, error) {
+	rows, err := q.db.QueryContext(ctx, transactionLegs, arg.TransactionID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TransactionLegsRow
+	for rows.Next() {
+		var i TransactionLegsRow
+		if err := rows.Scan(
+			&i.AccountID,
+			&i.Amount,
+			&i.Type,
+			&i.SystemRole,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateAccount = `-- name: UpdateAccount :exec
 UPDATE ledger_account SET name = ?, type = ?, on_budget = ?, is_card = ? WHERE id = ? AND user_id = ?
 `
@@ -632,6 +795,27 @@ func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) er
 		arg.Type,
 		arg.OnBudget,
 		arg.IsCard,
+		arg.ID,
+		arg.UserID,
+	)
+	return err
+}
+
+const updateTransaction = `-- name: UpdateTransaction :exec
+UPDATE ledger_transaction SET occurred_at = ?, description = ? WHERE id = ? AND user_id = ?
+`
+
+type UpdateTransactionParams struct {
+	OccurredAt  string
+	Description []byte
+	ID          string
+	UserID      string
+}
+
+func (q *Queries) UpdateTransaction(ctx context.Context, arg UpdateTransactionParams) error {
+	_, err := q.db.ExecContext(ctx, updateTransaction,
+		arg.OccurredAt,
+		arg.Description,
 		arg.ID,
 		arg.UserID,
 	)
