@@ -89,3 +89,8 @@ ON CONFLICT (category_id, month) DO UPDATE SET amount = excluded.amount;
 
 -- name: MonthAmounts :many
 SELECT category_id, amount FROM budget_amount WHERE user_id = ? AND month = ?;
+
+-- story: e08s03
+-- name: AmountsBefore :many
+SELECT category_id, CAST(SUM(amount) AS INTEGER) AS amount FROM budget_amount
+WHERE user_id = ? AND month < ? GROUP BY category_id;

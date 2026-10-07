@@ -10,6 +10,45 @@ import (
 	"database/sql"
 )
 
+const amountsBefore = `-- name: AmountsBefore :many
+SELECT category_id, CAST(SUM(amount) AS INTEGER) AS amount FROM budget_amount
+WHERE user_id = ? AND month < ? GROUP BY category_id
+`
+
+type AmountsBeforeParams struct {
+	UserID string
+	Month  string
+}
+
+type AmountsBeforeRow struct {
+	CategoryID string
+	Amount     int64
+}
+
+// story: e08s03
+func (q *Queries) AmountsBefore(ctx context.Context, arg AmountsBeforeParams) ([]AmountsBeforeRow, error) {
+	rows, err := q.db.QueryContext(ctx, amountsBefore, arg.UserID, arg.Month)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AmountsBeforeRow
+	for rows.Next() {
+		var i AmountsBeforeRow
+		if err := rows.Scan(&i.CategoryID, &i.Amount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const copyMonthAmounts = `-- name: CopyMonthAmounts :exec
 INSERT INTO budget_amount (user_id, category_id, month, amount)
 SELECT src.user_id, src.category_id, ?1, src.amount FROM budget_amount AS src

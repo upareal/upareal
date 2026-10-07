@@ -10,7 +10,7 @@ tasks:
     description: "budget.AmountsBefore: sum of amounts per category before a month, isolated"
     verify: "go test -race ./budget/... -run TestAmountsBefore"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Budget"]}
   - id: t2
     description: "planning.Month: carry-over, cumulative A distribuir with Saldo inicial and Sem categoria spending; identity test"

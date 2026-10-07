@@ -68,3 +68,18 @@ func (s *Service) ensureMonth(ctx context.Context, q *store.Queries, userID stri
 	}
 	return q.MarkMonthOpened(ctx, store.MarkMonthOpenedParams{UserID: userID, Month: m.String(), OpenedAt: stamp(s.now())})
 }
+
+// AmountsBefore returns, per category of userID, the sum of the amounts of
+// every month before m (used for carry-over).
+// story: e08s03
+func (s *Service) AmountsBefore(ctx context.Context, userID string, m Month) (map[string]int64, error) {
+	rows, err := s.q.AmountsBefore(ctx, store.AmountsBeforeParams{UserID: userID, Month: m.String()})
+	if err != nil {
+		return nil, fmt.Errorf("budget: amounts before: %w", err)
+	}
+	out := make(map[string]int64, len(rows))
+	for _, r := range rows {
+		out[r.CategoryID] = r.Amount
+	}
+	return out, nil
+}
