@@ -1,0 +1,33 @@
+// story: e05s03
+package web
+
+templ budgetMonthPage(v monthView, errMsg string) {
+	@layout("Orçamento — upareal") {
+		<p><a href="/">← Início</a></p>
+		<h1>Orçamento</h1>
+		<nav class="months">
+			<a href={ templ.SafeURL("/orcamento?mes=" + v.Prev) }>← Mês anterior</a>
+			<strong>{ v.Label }</strong>
+			<a href={ templ.SafeURL("/orcamento?mes=" + v.Next) }>Próximo mês →</a>
+		</nav>
+		if errMsg != "" {
+			<p class="error" role="alert">{ errMsg }</p>
+		}
+		<p class="totals">Despesas: { v.ExpenseTotal } · Receitas: { v.IncomeTotal }</p>
+		for _, g := range v.Groups {
+			<section class="group">
+				<h2>{ g.Name } <span class="balance">{ g.Total }</span></h2>
+				<ul>
+					for _, row := range g.Rows {
+						<li>
+							<form method="post" action={ templ.SafeURL("/orcamento/" + v.Month + "/" + row.CategoryID) } class="inline">
+								<label>{ row.Name } <input name="valor" value={ row.Value } inputmode="decimal" required/></label>
+								<button type="submit">Salvar</button>
+							</form>
+						</li>
+					}
+				</ul>
+			</section>
+		}
+	}
+}
