@@ -42,9 +42,8 @@ domain_change:
   impact: e04s01 (unmerged, on feat/e04-accounts-categories) put groups/categories in ledger; must move to budget. planning-context and epics e04-e07 need
     revision.
   open_questions:
-  - 'which ledger account types may be mapped (income/expense only? asset/liability too?) - user unsure; default v1: income/expense only, revisit with card
-    envelopes'
-  - where envelope rules live (carry-over, to be assigned, card envelopes, copy previous month)
+  - 'which ledger account types may be mapped (default v1: income/expense only)'
+  - credit card envelopes under the new split
   - default data per module
   - the missing invariants
   answers:
@@ -54,3 +53,6 @@ domain_change:
     ledger: accounts and transactions only (confirmed)
     q2_mapping: each ledger account maps to at most one budget category; a category can have many accounts; category spending = sum of its mapped accounts;
       unmapped accounts show as "Sem categoria" in planning
+    q3_envelopes: 'envelope rules still apply. budget: amount per category per month; new month copies previous amounts. planning: spent (sum of mapped
+      ledger accounts), available (amount + carry-over - spent), carry-over and overspending, to be assigned (income received - assigned). Nothing derived
+      is stored.'
