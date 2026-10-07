@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e04s01
+// story: e01s01 e03s01 e04s01 e05s01
 package web_test
 
 import (
@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/upareal/upareal/budget"
 	"github.com/upareal/upareal/internal/db"
 	"github.com/upareal/upareal/internal/oidctest"
 	"github.com/upareal/upareal/internal/vault"
@@ -37,7 +38,11 @@ func newTestApp(t *testing.T, baseURL string) testApp {
 		t.Fatalf("db.Open: %v", err)
 	}
 	t.Cleanup(func() { _ = conn.Close() })
-	for name, fsys := range map[string]fs.FS{"users": users.Migrations, "ledger": ledger.Migrations} {
+	for _, m := range []struct {
+		name string
+		fsys fs.FS
+	}{{"users", users.Migrations}, {"ledger", ledger.Migrations}, {"budget", budget.Migrations}} {
+		name, fsys := m.name, m.fsys
 		if err := db.Migrate(ctx, conn, name, fsys); err != nil {
 			t.Fatal(err)
 		}
@@ -54,7 +59,7 @@ func newTestApp(t *testing.T, baseURL string) testApp {
 		t.Fatal(err)
 	}
 	ledg := ledger.NewService(conn, kr)
-	h := web.NewHandler(web.Deps{DB: conn, Users: users.NewService(conn, kr), Ledger: ledg, Google: google})
+	h := web.NewHandler(web.Deps{DB: conn, Users: users.NewService(conn, kr), Ledger: ledg, Budget: budget.NewService(conn, kr), Google: google})
 	return testApp{handler: h, conn: conn, fake: fake, ledger: ledg}
 }
 

@@ -3,7 +3,6 @@ package web_test
 
 import (
 	"context"
-	"net/http"
 	"testing"
 )
 
@@ -27,13 +26,5 @@ func TestSystemAccountsOnSignIn(t *testing.T) {
 	}
 	if len(accounts) != 3 || !roles["opening_balance"] || !roles["uncategorized_income"] || !roles["uncategorized_expense"] {
 		t.Errorf("accounts after two sign-ins = %+v, want exactly the 3 system accounts", accounts)
-	}
-}
-
-func TestSystemAccountsOnSignIn_NoCategoriesPageYet(t *testing.T) {
-	b := newBrowser(t)
-	signIn(t, b)
-	if res, _ := b.get(t, "/categorias"); res.StatusCode != http.StatusNotFound {
-		t.Errorf("GET /categorias = %d, want 404 until the budget module (e05s01)", res.StatusCode)
 	}
 }
