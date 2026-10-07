@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: plan-work
-  note: e08s02 done; plan e08s03 (carry-over)
+  next_skill: develop-tdd
+  note: e08s03 planned (4 tasks); overspending carries in the category
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)

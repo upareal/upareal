@@ -1,14 +1,32 @@
 story_id: e08s03
-title: Carry-over and overspending
-status: todo
+title: "Carry-over and overspending"
+spec: e08s03-carry-over.md
+status: failing
 bcps: 5
-outcome: Leftovers carry over; overspending reduces next month; editing past months recomputes.
+risk: P0
+outcome: Category leftovers and overspending carry into the next month; A distribuir is cumulative and includes opening balances; A distribuir + Σ Disponível = on-budget balances.
 tasks:
-- id: t1
-  description: Available = amount + carry-over - spent across months
-  verify: go test -race ./planning/... -run TestCarryOver
-  status: todo
-- id: t2
-  description: Overspending reduces next month's to be assigned
-  verify: go test -race ./planning/... -run TestOverspending
-  status: todo
+  - id: t1
+    description: "budget.AmountsBefore: sum of amounts per category before a month, isolated"
+    verify: "go test -race ./budget/... -run TestAmountsBefore"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Budget"]}
+  - id: t2
+    description: "planning.Month: carry-over, cumulative A distribuir with Saldo inicial and Sem categoria spending; identity test"
+    verify: "go test -race ./planning/... -run 'TestMonth|TestCarry'"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Planning"]}
+  - id: t3
+    description: "Orçamento shows Do mês anterior per expense row (red when negative)"
+    verify: "go test -race ./web/... -run TestBudgetMonthPage"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t4
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
