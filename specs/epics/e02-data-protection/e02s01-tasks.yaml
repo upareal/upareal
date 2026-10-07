@@ -16,7 +16,7 @@ tasks:
     description: "NewKeyring: HKDF-SHA256 wrap and index keys with distinct info labels"
     verify: "go test -race ./internal/vault/... -run TestKeyring"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Security Review", "unit"]}
   - id: t3
     description: "NewDataKey/UnwrapDataKey: version byte, AES-GCM wrap bound to user ID; wrong user/tamper/unknown version fail"
