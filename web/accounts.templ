@@ -1,0 +1,60 @@
+// story: e04s02
+package web
+
+templ accountsPage(sections []accountSection, errMsg, today string) {
+	@layout("Contas — upareal") {
+		<p><a href="/">← Início</a></p>
+		<h1>Contas</h1>
+		if errMsg != "" {
+			<p class="error" role="alert">{ errMsg }</p>
+		}
+		for _, sec := range sections {
+			<section class="accounts">
+				<h2>{ sec.Title }</h2>
+				if len(sec.Rows) == 0 {
+					<p class="muted">Nenhuma conta.</p>
+				}
+				<ul>
+					for _, a := range sec.Rows {
+						<li>
+							<strong>{ a.Name }</strong>
+							if a.IsCard {
+								<span class="tag">Cartão</span>
+							}
+							if a.OffBudget {
+								<span class="tag">Fora do orçamento</span>
+							}
+							if sec.Adjustable {
+								<span class="balance">{ a.Balance }</span>
+								<form method="post" action={ templ.SafeURL("/contas/" + a.ID + "/ajuste") } class="inline">
+									<label>Saldo real <input name="saldo" inputmode="decimal" placeholder="1.234,56" required/></label>
+									<button type="submit">Ajustar</button>
+								</form>
+							}
+						</li>
+					}
+				</ul>
+			</section>
+		}
+		<section>
+			<h2>Nova conta</h2>
+			<form method="post" action="/contas">
+				<label>Nome <input name="nome" maxlength="100" required/></label>
+				<label>
+					Tipo
+					<select name="tipo">
+						<option value="asset">Conta ou dinheiro</option>
+						<option value="liability">Cartão ou dívida</option>
+						<option value="income">Receita</option>
+						<option value="expense">Despesa</option>
+					</select>
+				</label>
+				<label>Saldo atual (ou valor devido) <input name="saldo" inputmode="decimal" placeholder="0,00"/></label>
+				<label>Data <input type="date" name="data" value={ today }/></label>
+				<label><input type="checkbox" name="orcamento" checked/> No orçamento</label>
+				<label><input type="checkbox" name="cartao"/> É cartão de crédito</label>
+				<button type="submit">Criar conta</button>
+			</form>
+		</section>
+	}
+}

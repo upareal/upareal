@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e03s02 e03s03 e04s01
+// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02
 
 // Package web renders all HTML pages and HTMX fragments and wires the HTTP routes.
 package web
@@ -39,6 +39,9 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("GET /healthz", healthz(d.DB))
 	mux.Handle("GET /static/", staticHandler())
 	mux.HandleFunc("GET /{$}", home(d.Users))
+	mux.HandleFunc("GET /contas", accountsGet(d.Users, d.Ledger))
+	mux.HandleFunc("POST /contas", accountsCreate(d.Users, d.Ledger))
+	mux.HandleFunc("POST /contas/{id}/ajuste", accountsAdjust(d.Users, d.Ledger))
 	mux.Handle("GET /privacidade", templ.Handler(privacyPage()))
 	mux.Handle("GET /termos", templ.Handler(termsPage()))
 	mux.HandleFunc("GET /termos/aceitar", acceptTermsForm(d.Users))

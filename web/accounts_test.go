@@ -93,3 +93,17 @@ func TestAccountsPage_HomeLinksAndSignedOutGoesHome(t *testing.T) {
 		t.Error("home has no link to /contas")
 	}
 }
+
+func TestAccountsPage_AdjustCardTakesAmountOwed(t *testing.T) {
+	b := newBrowser(t)
+	signIn(t, b)
+	_, body := createAccount(t, b, url.Values{"nome": {"Nubank"}, "tipo": {"liability"}, "cartao": {"on"}, "saldo": {"800,00"}})
+	m := regexp.MustCompile(`action="(/contas/[^"]+/ajuste)"`).FindStringSubmatch(body)
+	if m == nil {
+		t.Fatal("no adjust form for the card")
+	}
+	_, body = b.postForm(t, m[1], url.Values{"saldo": {"750,00"}}) // the server knows it is a card
+	if !strings.Contains(body, "R$ 750,00 a pagar") {
+		t.Error("card not adjusted to R$ 750,00 owed")
+	}
+}

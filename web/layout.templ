@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e03s02 e03s03 e04s01
+// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02
 package web
 
 // layout is the base page: pt-BR, mobile viewport, app CSS and vendored HTMX.
@@ -34,6 +34,7 @@ templ homePage(signedIn bool, firstName string) {
 			} else {
 				<p>Olá!</p>
 			}
+			<nav><a href="/contas">Contas</a></nav>
 			<form method="post" action="/auth/logout">
 				<button type="submit">Sair</button>
 			</form>

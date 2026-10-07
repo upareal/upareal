@@ -40,7 +40,7 @@ tasks:
     description: "/contas page grouped by type with displayed balances; create and adjust forms"
     verify: "go test -race ./web/... -run TestAccountsPage"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["UI", "integration"]}
   - id: t7
     description: "Proof and isolation: no plaintext names/descriptions at rest; balances isolated per user"
