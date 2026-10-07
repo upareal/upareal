@@ -1,4 +1,4 @@
-// story: e01s01
+// story: e01s01 e03s01
 package web
 
 // layout is the base page: pt-BR, mobile viewport, app CSS and vendored HTMX.
@@ -20,9 +20,28 @@ templ layout(title string) {
 	</html>
 }
 
-templ homePage() {
+// homePage greets a signed-in user or offers Google sign-in.
+templ homePage(signedIn bool, firstName string) {
 	@layout("upareal") {
 		<h1>upareal</h1>
-		<p>Seu orçamento pessoal, com cada real no lugar certo.</p>
+		if signedIn {
+			if firstName != "" {
+				<p>Olá, { firstName }!</p>
+			} else {
+				<p>Olá!</p>
+			}
+		} else {
+			<p>Seu orçamento pessoal, com cada real no lugar certo.</p>
+			<p><a class="button" href="/auth/login">Entrar com Google</a></p>
+		}
+	}
+}
+
+// errorPage explains a failure in plain pt-BR and links back home.
+templ errorPage(title, message string) {
+	@layout(title + " — upareal") {
+		<h1>{ title }</h1>
+		<p>{ message }</p>
+		<p><a href="/">Voltar ao início</a></p>
 	}
 }

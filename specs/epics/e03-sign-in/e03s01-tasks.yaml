@@ -52,7 +52,7 @@ tasks:
     description: "Web: /auth/login, /auth/callback, greeting on /, error pages; run wires migrations, vault, users, Google"
     verify: "go test -race ./web/... ./cmd/upareal/... -run 'TestGoogleSignIn|TestGracefulShutdown'"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Auth", "integration"]}
   - id: t8
     description: "http.CrossOriginProtection wraps the handler"

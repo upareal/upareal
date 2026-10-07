@@ -1,4 +1,4 @@
-// story: e01s01
+// story: e01s01 e03s01
 
 // Package web renders all HTML pages and HTMX fragments and wires the HTTP routes.
 package web
@@ -9,9 +9,10 @@ import (
 	"embed"
 	"io/fs"
 	"net/http"
+	"strings"
 	"time"
 
-	"github.com/a-h/templ"
+	"github.com/upareal/upareal/users"
 )
 
 const healthzTimeout = 2 * time.Second
@@ -19,15 +20,44 @@ const healthzTimeout = 2 * time.Second
 //go:embed static
 var staticFiles embed.FS
 
-// NewHandler returns the app's HTTP handler. Modules are passed in; web owns no data.
+// Deps are the modules the web layer renders. web owns no data.
+type Deps struct {
+	DB     *sql.DB
+	Users  *users.Service
+	Google *users.Google
+}
+
+// NewHandler returns the app's HTTP handler.
 //
-//	srv := &http.Server{Handler: web.NewHandler(conn)}
-func NewHandler(conn *sql.DB) http.Handler {
+//	srv := &http.Server{Handler: web.NewHandler(web.Deps{DB: conn, Users: svc, Google: g})}
+func NewHandler(d Deps) http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", healthz(conn))
+	mux.HandleFunc("GET /healthz", healthz(d.DB))
 	mux.Handle("GET /static/", staticHandler())
-	mux.Handle("GET /{$}", templ.Handler(homePage()))
+	mux.HandleFunc("GET /{$}", home(d.Users))
+	mux.HandleFunc("GET /auth/login", login(d.Google))
+	mux.HandleFunc("GET /auth/callback", callback(d.Users, d.Google))
 	return mux
+}
+
+// home greets the signed-in user by first name, or offers Google sign-in.
+func home(svc *users.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u, signedIn, err := currentUser(r, svc)
+		if err != nil {
+			renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Algo deu errado. Tente novamente em instantes.")
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_ = homePage(signedIn, firstName(u.Name)).Render(r.Context(), w)
+	}
+}
+
+func firstName(name string) string {
+	if f := strings.Fields(name); len(f) > 0 {
+		return f[0]
+	}
+	return ""
 }
 
 // staticHandler serves only files embedded under web/static.

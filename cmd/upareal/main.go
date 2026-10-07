@@ -1,10 +1,11 @@
-// story: e01s01
+// story: e01s01 e03s01
 
 // Command upareal runs the upareal web app.
 package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -19,6 +20,8 @@ import (
 
 	"github.com/upareal/upareal/internal/config"
 	"github.com/upareal/upareal/internal/db"
+	"github.com/upareal/upareal/internal/vault"
+	"github.com/upareal/upareal/users"
 	"github.com/upareal/upareal/web"
 )
 
@@ -68,8 +71,12 @@ func run(ctx context.Context, getenv func(string) string, ln net.Listener, logOu
 		}
 	}()
 
+	deps, err := wireModules(ctx, cfg, conn)
+	if err != nil {
+		return err
+	}
 	srv := &http.Server{
-		Handler:           web.LogRequests(logger, web.NewHandler(conn)),
+		Handler:           web.LogRequests(logger, web.NewHandler(deps)),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      30 * time.Second,
@@ -95,4 +102,20 @@ func run(ctx context.Context, getenv func(string) string, ln net.Listener, logOu
 	}
 	logger.Info("shutdown complete")
 	return nil
+}
+
+// wireModules migrates every module (in dependency order) and builds the web dependencies.
+func wireModules(ctx context.Context, cfg config.Config, conn *sql.DB) (web.Deps, error) {
+	if err := db.Migrate(ctx, conn, "users", users.Migrations); err != nil {
+		return web.Deps{}, err
+	}
+	kr, err := vault.NewKeyring(cfg.MasterKey)
+	if err != nil {
+		return web.Deps{}, err
+	}
+	google, err := users.NewGoogle(ctx, cfg.OIDCIssuerURL, cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.BaseURL+"/auth/callback")
+	if err != nil {
+		return web.Deps{}, err
+	}
+	return web.Deps{DB: conn, Users: users.NewService(conn, kr), Google: google}, nil
 }
