@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 )
@@ -98,5 +99,25 @@ func TestImportFlow_HelpPageAndRateLimit(t *testing.T) {
 	}
 	if last != http.StatusTooManyRequests {
 		t.Errorf("11th import within a minute = %d, want 429", last)
+	}
+}
+
+func TestImportFlow_OFXUpload(t *testing.T) {
+	b := newBrowser(t)
+	signIn(t, b)
+	itau := importBook(t, b)
+	ofx, err := os.ReadFile("../ledger/importer/testdata/bank_sgml_1252.ofx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, body := uploadCSV(t, b, itau, string(ofx))
+	if res.Request.URL.Path != "/revisao" || !strings.Contains(body, "2 importadas") || !strings.Contains(body, "PADARIA SÃO JORGE") {
+		t.Errorf("OFX upload ended at %s; want /revisao with 2 lines and accents intact", res.Request.URL)
+	}
+	if _, body = uploadCSV(t, b, itau, string(ofx)); !strings.Contains(body, "0 importadas, 2 já existentes") {
+		t.Error("re-importing the OFX was not deduplicated by FITID")
+	}
+	if _, help := b.get(t, "/ajuda/csv"); !strings.Contains(help, "OFX") {
+		t.Error("help page does not mention OFX")
 	}
 }

@@ -71,3 +71,22 @@ func TestOFX_RejectsBadInput(t *testing.T) {
 		}
 	}
 }
+
+func TestDetect_ChoosesOFXOrCSVByContent(t *testing.T) {
+	ofx, _ := os.ReadFile("testdata/bank_sgml_1252.ofx")
+	xml, _ := os.ReadFile("testdata/card_xml.ofx")
+	csv := "\uFEFFid;data;hora;descricao;valor\nx;01/02/2026;;Pão;-1,00\n"
+	for name, tc := range map[string]struct {
+		in     string
+		wantID string
+	}{
+		"OFX SGML": {string(ofx), "2026013101"},
+		"OFX XML":  {"\n  " + string(xml), "CC001"},
+		"CSV":      {csv, "x"},
+	} {
+		lines, err := importer.Parse(strings.NewReader(tc.in))
+		if err != nil || len(lines) == 0 || lines[0].ImportID != tc.wantID {
+			t.Errorf("%s: Parse = %+v, %v; want first id %q", name, lines, err, tc.wantID)
+		}
+	}
+}
