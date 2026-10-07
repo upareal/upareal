@@ -10,7 +10,7 @@ tasks:
     description: "ledger.Categorize: queued only, bank amount fixed, >= 1 lines, history, isolation"
     verify: "go test -race ./ledger/... -run TestCategorize"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Import", "Ledger"]}
   - id: t2
     description: "Web: queued shape on the edit page (Categorizar form, fixed bank amount); misleading system hint fixed"

@@ -25,7 +25,7 @@ Either the user picks an account on `/revisao` and saves, or the user opens a qu
 2. **Detailed** on the edit page: a queued line opens a **"Categorizar"** form showing:
    - **Valor do extrato** (read-only),
    - one or more lines (account and amount), with **"Falta distribuir"** (HTMX),
-   - date, time and description (editable).
+   - date, time and description (read-only here: they can be edited afterwards with the normal edit form; refined during implementation).
 3. `ledger.Categorize` replaces the "A categorizar" leg with the chosen accounts, under these rules:
    - the money account's leg keeps the **imported amount** (lines must add up to it, or `SplitMismatch`);
    - the line direction comes from the account type, as in splits;

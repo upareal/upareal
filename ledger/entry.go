@@ -1,4 +1,4 @@
-// story: e06s01
+// story: e06s01 e07s02
 package ledger
 
 import (
@@ -49,6 +49,9 @@ func (s *Service) RecordSimple(ctx context.Context, userID string, e SimpleEntry
 		}
 		if acc.Type != "asset" && acc.Type != "liability" {
 			return fmt.Errorf("%w: the account must be an asset or liability", ErrInvalidEntry)
+		}
+		if counter.SystemRole.Valid {
+			return fmt.Errorf("%w: system accounts cannot be chosen", ErrInvalidEntry)
 		}
 		sign := int64(1) // expense: money flows into the expense account
 		switch counter.Type {

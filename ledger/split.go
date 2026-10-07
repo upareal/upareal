@@ -1,4 +1,4 @@
-// story: e06s02 e06s04
+// story: e06s02 e06s04 e07s02
 package ledger
 
 import (
@@ -104,6 +104,9 @@ func (s *Service) splitLegs(ctx context.Context, q *store.Queries, userID string
 		counter, err := s.account(ctx, q, userID, p.CounterID)
 		if err != nil {
 			return nil, 0, err
+		}
+		if counter.SystemRole.Valid {
+			return nil, 0, fmt.Errorf("%w: system accounts cannot be chosen", ErrInvalidEntry)
 		}
 		signed := p.Amount
 		switch counter.Type {
