@@ -1,4 +1,4 @@
-// story: e07s01 e07s02
+// story: e07s01 e07s02 e07s04
 package web
 
 import (
@@ -53,7 +53,7 @@ func importPost(svc *users.Service, ledg *ledger.Service, limit *ipLimiter) http
 			return
 		}
 		defer func() { _ = file.Close() }()
-		lines, err := importer.ParseGenericCSV(file)
+		lines, err := importer.Parse(file) // OFX or CSV, detected by content
 		if err != nil {
 			renderImport(w, r, ledg, u.ID, id, http.StatusBadRequest, parseErrors(err))
 			return
@@ -166,7 +166,9 @@ func parseErrors(err error) []string {
 	case errors.Is(err, importer.ErrTooLarge):
 		return []string{fmt.Sprintf("Arquivo grande demais (máximo %d MB e %d linhas).", importer.MaxBytes>>20, importer.MaxLines)}
 	case errors.Is(err, importer.ErrNoLines):
-		return []string{"O arquivo não tem linhas depois do cabeçalho."}
+		return []string{"O arquivo não tem lançamentos."}
+	case errors.Is(err, importer.ErrUnreadableOFX):
+		return []string{"Não foi possível ler o OFX. Baixe o extrato de novo no site do banco."}
 	}
 	return []string{"Não foi possível ler o arquivo."}
 }

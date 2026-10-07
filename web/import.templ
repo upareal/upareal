@@ -1,4 +1,4 @@
-// story: e07s01 e07s02
+// story: e07s01 e07s02 e07s04
 package web
 
 templ importPage(v importView) {
@@ -15,9 +15,9 @@ templ importPage(v importView) {
 				</ul>
 			</div>
 		}
-		<p>Envie um CSV no formato do upareal. <a href="/ajuda/csv">Veja o formato e um exemplo</a>.</p>
+		<p>Envie o <strong>OFX</strong> baixado do seu banco (conta ou cartão) ou um CSV no formato do upareal. <a href="/ajuda/csv">Veja os formatos</a>.</p>
 		<form method="post" action={ templ.SafeURL("/contas/" + v.AccountID + "/importar") } enctype="multipart/form-data">
-			<label>Arquivo <input type="file" name="arquivo" accept=".csv,text/csv" required/></label>
+			<label>Arquivo <input type="file" name="arquivo" accept=".ofx,.csv,text/csv,application/x-ofx" required/></label>
 			<button type="submit">Importar</button>
 		</form>
 	}
@@ -74,7 +74,10 @@ templ reviewPage(v queueView) {
 templ csvHelpPage() {
 	@layout("Formato CSV — upareal") {
 		<p><a href="/">← Início</a></p>
-		<h1>Formato do CSV</h1>
+		<h1>Formatos de importação</h1>
+		<h2>OFX</h2>
+		<p>Baixe o extrato em <strong>OFX</strong> no site ou aplicativo do seu banco (conta corrente ou cartão de crédito) e envie o arquivo como está. Lançamentos repetidos são reconhecidos pelo identificador do banco (FITID).</p>
+		<h2>CSV</h2>
 		<p>Arquivo de texto <strong>UTF-8</strong> (no Excel: "CSV UTF-8"), separado por <strong>;</strong>. A primeira linha é um cabeçalho: obrigatória, mas ignorada. As colunas são lidas <strong>pela posição</strong>, nesta ordem:</p>
 		<pre>id;data;hora;descricao;valor;conta</pre>
 		<ul>

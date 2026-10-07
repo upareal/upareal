@@ -16,7 +16,7 @@ tasks:
     description: "importer.Parse detects OFX/CSV; web upload uses it; help mentions OFX"
     verify: "go test -race ./ledger/importer/... ./web/... -run 'TestDetect|TestImportFlow_OFX'"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Import", "integration"]}
   - id: t3
     description: "Full local gate green"
