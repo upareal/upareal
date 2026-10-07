@@ -1,7 +1,7 @@
 story_id: e03s02
 title: "Session lifecycle and login protection"
 spec: e03s02-session-lifecycle.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: Sessions expire (30 days idle, 90 days absolute); users log out or log out of all devices; /auth/* is rate limited per IP.
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
