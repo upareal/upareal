@@ -1,7 +1,7 @@
 story_id: e06s02
 title: "Split transactions"
 spec: e06s02-split-transactions.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: A user splits one payment across several expense/income accounts; "Falta distribuir" updates live and saving requires it to be zero.
@@ -22,5 +22,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
