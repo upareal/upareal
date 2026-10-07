@@ -79,3 +79,6 @@ WHERE user_id = ? AND archived_at IS NOT NULL
 ORDER BY CASE type WHEN 'asset' THEN 1 WHEN 'liability' THEN 2 WHEN 'income' THEN 3
                    WHEN 'expense' THEN 4 ELSE 5 END,
          position, created_at;
+
+-- name: DeleteAccount :exec
+DELETE FROM ledger_account WHERE id = ? AND user_id = ?;

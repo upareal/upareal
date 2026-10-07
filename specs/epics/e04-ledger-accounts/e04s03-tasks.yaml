@@ -28,7 +28,7 @@ tasks:
     description: "DeleteAccount only without legs; L7"
     verify: "go test -race ./ledger/... -run TestDeleteAccount"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger"]}
   - id: t5
     description: "Web: edit page, move, archive/restore (Arquivadas), delete"

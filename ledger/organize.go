@@ -138,6 +138,24 @@ func (s *Service) RestoreAccount(ctx context.Context, userID, id string) error {
 	})
 }
 
+// DeleteAccount removes an account that never had a leg (e.g. created by
+// mistake). Used accounts must be archived instead, keeping history.
+func (s *Service) DeleteAccount(ctx context.Context, userID, id string) error {
+	return s.inTx(ctx, func(q *store.Queries) error {
+		if _, err := s.loadUserAccount(ctx, q, userID, id); err != nil {
+			return err
+		}
+		legs, err := q.CountAccountLegs(ctx, id)
+		if err != nil {
+			return fmt.Errorf("ledger: count legs: %w", err)
+		}
+		if legs > 0 {
+			return ErrHasLegs
+		}
+		return q.DeleteAccount(ctx, store.DeleteAccountParams{ID: id, UserID: userID})
+	})
+}
+
 // loadUserAccount guards every account mutation: other users' accounts are
 // not found (X2) and system accounts cannot change (L7).
 func (s *Service) loadUserAccount(ctx context.Context, q *store.Queries, userID, id string) (store.GetAccountRow, error) {

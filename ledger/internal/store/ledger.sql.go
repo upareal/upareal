@@ -195,6 +195,20 @@ func (q *Queries) CreateUserKey(ctx context.Context, arg CreateUserKeyParams) er
 	return err
 }
 
+const deleteAccount = `-- name: DeleteAccount :exec
+DELETE FROM ledger_account WHERE id = ? AND user_id = ?
+`
+
+type DeleteAccountParams struct {
+	ID     string
+	UserID string
+}
+
+func (q *Queries) DeleteAccount(ctx context.Context, arg DeleteAccountParams) error {
+	_, err := q.db.ExecContext(ctx, deleteAccount, arg.ID, arg.UserID)
+	return err
+}
+
 const getAccount = `-- name: GetAccount :one
 SELECT id, type, system_role, archived_at, position FROM ledger_account WHERE id = ? AND user_id = ?
 `
