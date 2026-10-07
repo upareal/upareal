@@ -10,7 +10,7 @@ tasks:
     description: "Month type; schema 00002; SetAmount (B3, B4) and OpenMonth reads; isolation"
     verify: "go test -race ./budget/... -run 'TestMonth|TestMonthlyAmounts'"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Budget"]}
   - id: t2
     description: "First open copies the latest earlier opened month; never again; zero-opened months stay zero"

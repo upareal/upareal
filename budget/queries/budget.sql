@@ -1,4 +1,4 @@
--- story: e05s01 e05s02
+-- story: e05s01 e05s02 e05s03
 
 -- name: GetUserKey :one
 SELECT data_key FROM budget_user_key WHERE user_id = ?;
@@ -68,3 +68,24 @@ WHERE user_id = ? AND group_id = ? AND archived_at IS NULL AND position > ? ORDE
 
 -- name: SetCategoryPosition :exec
 UPDATE budget_category SET position = ? WHERE id = ? AND user_id = ?;
+
+-- name: MonthOpened :one
+SELECT count(*) FROM budget_month WHERE user_id = ? AND month = ?;
+
+-- name: MarkMonthOpened :exec
+INSERT INTO budget_month (user_id, month, opened_at) VALUES (?, ?, ?);
+
+-- name: LatestOpenedMonthBefore :one
+SELECT month FROM budget_month WHERE user_id = ? AND month < ? ORDER BY month DESC LIMIT 1;
+
+-- name: CopyMonthAmounts :exec
+INSERT INTO budget_amount (user_id, category_id, month, amount)
+SELECT src.user_id, src.category_id, sqlc.arg(to_month), src.amount FROM budget_amount AS src
+WHERE src.user_id = sqlc.arg(user_id) AND src.month = sqlc.arg(from_month);
+
+-- name: UpsertAmount :exec
+INSERT INTO budget_amount (user_id, category_id, month, amount) VALUES (?, ?, ?, ?)
+ON CONFLICT (category_id, month) DO UPDATE SET amount = excluded.amount;
+
+-- name: MonthAmounts :many
+SELECT category_id, amount FROM budget_amount WHERE user_id = ? AND month = ?;

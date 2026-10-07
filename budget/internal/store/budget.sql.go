@@ -10,6 +10,23 @@ import (
 	"database/sql"
 )
 
+const copyMonthAmounts = `-- name: CopyMonthAmounts :exec
+INSERT INTO budget_amount (user_id, category_id, month, amount)
+SELECT src.user_id, src.category_id, ?1, src.amount FROM budget_amount AS src
+WHERE src.user_id = ?2 AND src.month = ?3
+`
+
+type CopyMonthAmountsParams struct {
+	ToMonth   string
+	UserID    string
+	FromMonth string
+}
+
+func (q *Queries) CopyMonthAmounts(ctx context.Context, arg CopyMonthAmountsParams) error {
+	_, err := q.db.ExecContext(ctx, copyMonthAmounts, arg.ToMonth, arg.UserID, arg.FromMonth)
+	return err
+}
+
 const countGroups = `-- name: CountGroups :one
 SELECT count(*) FROM budget_group WHERE user_id = ?
 `
@@ -143,12 +160,28 @@ const getUserKey = `-- name: GetUserKey :one
 SELECT data_key FROM budget_user_key WHERE user_id = ?
 `
 
-// story: e05s01 e05s02
+// story: e05s01 e05s02 e05s03
 func (q *Queries) GetUserKey(ctx context.Context, userID string) ([]byte, error) {
 	row := q.db.QueryRowContext(ctx, getUserKey, userID)
 	var data_key []byte
 	err := row.Scan(&data_key)
 	return data_key, err
+}
+
+const latestOpenedMonthBefore = `-- name: LatestOpenedMonthBefore :one
+SELECT month FROM budget_month WHERE user_id = ? AND month < ? ORDER BY month DESC LIMIT 1
+`
+
+type LatestOpenedMonthBeforeParams struct {
+	UserID string
+	Month  string
+}
+
+func (q *Queries) LatestOpenedMonthBefore(ctx context.Context, arg LatestOpenedMonthBeforeParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, latestOpenedMonthBefore, arg.UserID, arg.Month)
+	var month string
+	err := row.Scan(&month)
+	return month, err
 }
 
 const listActiveCategories = `-- name: ListActiveCategories :many
@@ -196,6 +229,74 @@ func (q *Queries) ListActiveCategories(ctx context.Context, userID string) ([]Li
 		return nil, err
 	}
 	return items, nil
+}
+
+const markMonthOpened = `-- name: MarkMonthOpened :exec
+INSERT INTO budget_month (user_id, month, opened_at) VALUES (?, ?, ?)
+`
+
+type MarkMonthOpenedParams struct {
+	UserID   string
+	Month    string
+	OpenedAt string
+}
+
+func (q *Queries) MarkMonthOpened(ctx context.Context, arg MarkMonthOpenedParams) error {
+	_, err := q.db.ExecContext(ctx, markMonthOpened, arg.UserID, arg.Month, arg.OpenedAt)
+	return err
+}
+
+const monthAmounts = `-- name: MonthAmounts :many
+SELECT category_id, amount FROM budget_amount WHERE user_id = ? AND month = ?
+`
+
+type MonthAmountsParams struct {
+	UserID string
+	Month  string
+}
+
+type MonthAmountsRow struct {
+	CategoryID string
+	Amount     int64
+}
+
+func (q *Queries) MonthAmounts(ctx context.Context, arg MonthAmountsParams) ([]MonthAmountsRow, error) {
+	rows, err := q.db.QueryContext(ctx, monthAmounts, arg.UserID, arg.Month)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MonthAmountsRow
+	for rows.Next() {
+		var i MonthAmountsRow
+		if err := rows.Scan(&i.CategoryID, &i.Amount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const monthOpened = `-- name: MonthOpened :one
+SELECT count(*) FROM budget_month WHERE user_id = ? AND month = ?
+`
+
+type MonthOpenedParams struct {
+	UserID string
+	Month  string
+}
+
+func (q *Queries) MonthOpened(ctx context.Context, arg MonthOpenedParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, monthOpened, arg.UserID, arg.Month)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const nextCategory = `-- name: NextCategory :one
@@ -393,5 +494,27 @@ type SetGroupPositionParams struct {
 
 func (q *Queries) SetGroupPosition(ctx context.Context, arg SetGroupPositionParams) error {
 	_, err := q.db.ExecContext(ctx, setGroupPosition, arg.Position, arg.ID, arg.UserID)
+	return err
+}
+
+const upsertAmount = `-- name: UpsertAmount :exec
+INSERT INTO budget_amount (user_id, category_id, month, amount) VALUES (?, ?, ?, ?)
+ON CONFLICT (category_id, month) DO UPDATE SET amount = excluded.amount
+`
+
+type UpsertAmountParams struct {
+	UserID     string
+	CategoryID string
+	Month      string
+	Amount     int64
+}
+
+func (q *Queries) UpsertAmount(ctx context.Context, arg UpsertAmountParams) error {
+	_, err := q.db.ExecContext(ctx, upsertAmount,
+		arg.UserID,
+		arg.CategoryID,
+		arg.Month,
+		arg.Amount,
+	)
 	return err
 }

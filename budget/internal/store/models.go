@@ -8,6 +8,13 @@ import (
 	"database/sql"
 )
 
+type BudgetAmount struct {
+	UserID     string
+	CategoryID string
+	Month      string
+	Amount     int64
+}
+
 type BudgetCategory struct {
 	ID         string
 	UserID     string
@@ -26,6 +33,12 @@ type BudgetGroup struct {
 	Position   int64
 	ArchivedAt sql.NullString
 	CreatedAt  string
+}
+
+type BudgetMonth struct {
+	UserID   string
+	Month    string
+	OpenedAt string
 }
 
 type BudgetUserKey struct {
