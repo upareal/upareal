@@ -42,7 +42,12 @@ domain_change:
   impact: e04s01 (unmerged, on feat/e04-accounts-categories) put groups/categories in ledger; must move to budget. planning-context and epics e04-e07 need
     revision.
   open_questions:
-  - what "a category is fed by more than one account" means
-  - which account types ledger keeps
-  - what belongs to budget vs planning
+  - mapping cardinality between ledger accounts and budget categories
+  - where envelope rules live (carry-over, to be assigned, card envelopes, copy previous month)
+  - default data per module
   - the missing invariants
+  answers:
+    q1_fed_by: budget categories store allowed/expected amounts per month (e.g. Combustivel, January, R$ 300,00); budget does not know where real money
+      comes from. planning maps budget categories to ledger accounts and joins budget with ledger.
+    users: unchanged (confirmed)
+    ledger: accounts and transactions only (confirmed)
