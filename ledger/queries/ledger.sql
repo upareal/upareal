@@ -1,4 +1,4 @@
--- story: e04s01 e04s02 e04s03
+-- story: e04s01 e04s02 e04s03 e06s01
 
 -- name: GetUserKey :one
 SELECT data_key FROM ledger_user_key WHERE user_id = ?;
@@ -82,3 +82,24 @@ ORDER BY CASE type WHEN 'asset' THEN 1 WHEN 'liability' THEN 2 WHEN 'income' THE
 
 -- name: DeleteAccount :exec
 DELETE FROM ledger_account WHERE id = ? AND user_id = ?;
+
+-- name: BalanceBefore :one
+SELECT CAST(COALESCE(SUM(l.amount), 0) AS INTEGER) FROM ledger_leg l
+JOIN ledger_transaction t ON t.id = l.transaction_id
+WHERE t.user_id = ? AND l.account_id = ? AND t.occurred_at < ?;
+
+-- name: RegisterEntries :many
+SELECT t.id, t.occurred_at, t.description, CAST(SUM(l.amount) AS INTEGER) AS amount
+FROM ledger_leg l
+JOIN ledger_transaction t ON t.id = l.transaction_id
+WHERE t.user_id = sqlc.arg(user_id) AND l.account_id = sqlc.arg(account_id)
+  AND t.occurred_at >= sqlc.arg(from_at) AND t.occurred_at < sqlc.arg(to_at)
+GROUP BY t.id
+ORDER BY t.occurred_at, t.created_at, t.id;
+
+-- name: Counterparts :many
+SELECT l.transaction_id, a.name FROM ledger_leg l
+JOIN ledger_account a ON a.id = l.account_id
+WHERE a.user_id = sqlc.arg(user_id) AND l.account_id <> sqlc.arg(account_id)
+  AND l.transaction_id IN (sqlc.slice('transaction_ids'))
+ORDER BY l.transaction_id, a.position, a.id;

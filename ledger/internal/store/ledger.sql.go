@@ -64,6 +64,25 @@ func (q *Queries) AccountBalances(ctx context.Context, userID string) ([]Account
 	return items, nil
 }
 
+const balanceBefore = `-- name: BalanceBefore :one
+SELECT CAST(COALESCE(SUM(l.amount), 0) AS INTEGER) FROM ledger_leg l
+JOIN ledger_transaction t ON t.id = l.transaction_id
+WHERE t.user_id = ? AND l.account_id = ? AND t.occurred_at < ?
+`
+
+type BalanceBeforeParams struct {
+	UserID     string
+	AccountID  string
+	OccurredAt string
+}
+
+func (q *Queries) BalanceBefore(ctx context.Context, arg BalanceBeforeParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, balanceBefore, arg.UserID, arg.AccountID, arg.OccurredAt)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const countAccountLegs = `-- name: CountAccountLegs :one
 SELECT count(*) FROM ledger_leg WHERE account_id = ?
 `
@@ -102,6 +121,60 @@ func (q *Queries) CountPostableAccounts(ctx context.Context, arg CountPostableAc
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const counterparts = `-- name: Counterparts :many
+SELECT l.transaction_id, a.name FROM ledger_leg l
+JOIN ledger_account a ON a.id = l.account_id
+WHERE a.user_id = ?1 AND l.account_id <> ?2
+  AND l.transaction_id IN (/*SLICE:transaction_ids*/?)
+ORDER BY l.transaction_id, a.position, a.id
+`
+
+type CounterpartsParams struct {
+	UserID         string
+	AccountID      string
+	TransactionIds []string
+}
+
+type CounterpartsRow struct {
+	TransactionID string
+	Name          []byte
+}
+
+func (q *Queries) Counterparts(ctx context.Context, arg CounterpartsParams) ([]CounterpartsRow, error) {
+	query := counterparts
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.UserID)
+	queryParams = append(queryParams, arg.AccountID)
+	if len(arg.TransactionIds) > 0 {
+		for _, v := range arg.TransactionIds {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:transaction_ids*/?", strings.Repeat(",?", len(arg.TransactionIds))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:transaction_ids*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CounterpartsRow
+	for rows.Next() {
+		var i CounterpartsRow
+		if err := rows.Scan(&i.TransactionID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const createAccount = `-- name: CreateAccount :exec
@@ -260,7 +333,7 @@ const getUserKey = `-- name: GetUserKey :one
 SELECT data_key FROM ledger_user_key WHERE user_id = ?
 `
 
-// story: e04s01 e04s02 e04s03
+// story: e04s01 e04s02 e04s03 e06s01
 func (q *Queries) GetUserKey(ctx context.Context, userID string) ([]byte, error) {
 	row := q.db.QueryRowContext(ctx, getUserKey, userID)
 	var data_key []byte
@@ -451,6 +524,63 @@ func (q *Queries) PreviousAccount(ctx context.Context, arg PreviousAccountParams
 	var i PreviousAccountRow
 	err := row.Scan(&i.ID, &i.Position)
 	return i, err
+}
+
+const registerEntries = `-- name: RegisterEntries :many
+SELECT t.id, t.occurred_at, t.description, CAST(SUM(l.amount) AS INTEGER) AS amount
+FROM ledger_leg l
+JOIN ledger_transaction t ON t.id = l.transaction_id
+WHERE t.user_id = ?1 AND l.account_id = ?2
+  AND t.occurred_at >= ?3 AND t.occurred_at < ?4
+GROUP BY t.id
+ORDER BY t.occurred_at, t.created_at, t.id
+`
+
+type RegisterEntriesParams struct {
+	UserID    string
+	AccountID string
+	FromAt    string
+	ToAt      string
+}
+
+type RegisterEntriesRow struct {
+	ID          string
+	OccurredAt  string
+	Description []byte
+	Amount      int64
+}
+
+func (q *Queries) RegisterEntries(ctx context.Context, arg RegisterEntriesParams) ([]RegisterEntriesRow, error) {
+	rows, err := q.db.QueryContext(ctx, registerEntries,
+		arg.UserID,
+		arg.AccountID,
+		arg.FromAt,
+		arg.ToAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RegisterEntriesRow
+	for rows.Next() {
+		var i RegisterEntriesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OccurredAt,
+			&i.Description,
+			&i.Amount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const setAccountArchived = `-- name: SetAccountArchived :exec

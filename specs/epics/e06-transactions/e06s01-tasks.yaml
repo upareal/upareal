@@ -16,7 +16,7 @@ tasks:
     description: "ledger.Register: [from,to) range, time order, running balance from prior balance, counterpart names, isolation"
     verify: "go test -race ./ledger/... -run TestRegister"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger", "Security Review"]}
   - id: t3
     description: "Web: /contas/{id}/lancamentos register by month + new entry form; São Paulo month boundary"
