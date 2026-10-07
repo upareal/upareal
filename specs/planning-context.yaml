@@ -238,3 +238,7 @@ key_decisions:
     rationale: "user wants money set aside for card bills, as in YNAB"
   - decision: "new users get budget categories and ledger system accounts only; no default ledger income/expense accounts and no default mapping"
     rationale: "user creates ledger accounts as they go; unmapped accounts show as Sem categoria"
+  - decision: "stored amounts are debit-positive: assets and expenses grow with positive legs, liabilities, income and equity with negative legs; the UI shows liabilities as amount owed and income as amount earned (positive)"
+    rationale: "matches every example agreed during elaboration (e.g. Mercado +15000 | Conta corrente -15000; Cartao -20000 on purchase); one sign rule for all sums"
+  - decision: "liability accounts carry is_card; cards are always on-budget, loans choose; asset accounts choose on_budget"
+    rationale: "planning (e08s04) needs to know which liabilities get card payment envelopes"
