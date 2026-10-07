@@ -97,8 +97,9 @@ func TestMonth_SemCategoriaCatchesUnmappedAndQueuedMoney(t *testing.T) {
 	if p.UnmappedSpent != 7000 || p.UnmappedReceived != 10000 {
 		t.Errorf("Sem categoria = spent %d, received %d; want 7000 and 10000 (P3)", p.UnmappedSpent, p.UnmappedReceived)
 	}
-	if p.Received != 10000 || p.ToBeAssigned != 10000-30000 {
-		t.Errorf("received %d, to be assigned %d; want 10000 and -20000 (unmapped income still counts)", p.Received, p.ToBeAssigned)
+	// e08s03: unmapped spending has no envelope, so it comes out of A distribuir.
+	if p.Received != 10000 || p.ToBeAssigned != 10000-30000-7000 {
+		t.Errorf("received %d, to be assigned %d; want 10000 and -27000 (unmapped income counts, unmapped spending is deducted)", p.Received, p.ToBeAssigned)
 	}
 }
 
