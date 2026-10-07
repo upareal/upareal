@@ -1,7 +1,7 @@
 story_id: e07s02
 title: "Assign accounts to queued lines (and split them)"
 spec: e07s02-categorize-queued-lines.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: Queued lines get real expense/income accounts (quick or split) with the bank amount fixed; they leave the queue.
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
