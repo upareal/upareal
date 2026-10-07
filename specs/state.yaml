@@ -43,7 +43,6 @@ domain_change:
     revision.
   open_questions:
   - 'which ledger account types may be mapped (default v1: income/expense only)'
-  - default data per module
   - the missing invariants
   answers:
     q1_fed_by: budget categories store allowed/expected amounts per month (e.g. Combustivel, January, R$ 300,00); budget does not know where real money
@@ -57,3 +56,5 @@ domain_change:
       is stored.'
     q4_cards: 'keep YNAB-style payment envelopes: planning computes a virtual envelope per card that sets aside money equal to the budgeted card spending
       (and warns on unfunded card debt)'
+    q5_defaults: budget gets the default groups/categories; ledger gets only system accounts (Saldo inicial, A categorizar income/expense); user creates
+      ledger accounts as they go; no default mapping (unmapped show as Sem categoria)
