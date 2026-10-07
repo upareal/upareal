@@ -10,7 +10,7 @@ tasks:
     description: "ledger.Transfer: both asset/liability, different accounts, amount > 0; destination +A, source -A"
     verify: "go test -race ./ledger/... -run TestTransfer"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger"]}
   - id: t2
     description: "Web: transfer form on the register; both registers show the transfer"
