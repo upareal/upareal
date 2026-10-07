@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e02s01 all tasks passing; awaiting user UAT (spec §19)
+  next_skill: plan-work
+  note: e02 done; push + merge feat/e02-data-protection, then plan e03 on a new branch
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -19,9 +19,9 @@ environment:
       "$V"
   smoke: no Go packages yet; first lint/test smoke runs in e01
 pending: []
-active_epic: e02
+active_epic: e03
 git:
   branch: feat/e02-data-protection
   worktree: null
   base: main@b7cc04d
-active_story: e02s01
+active_story: e03s01
