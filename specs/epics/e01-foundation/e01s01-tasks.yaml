@@ -1,7 +1,7 @@
 story_id: e01s01
 title: "Walking skeleton: pt-BR home page and health check"
 spec: e01s01-walking-skeleton.md
-status: failing
+status: passing
 bcps: 5
 risk: P1
 outcome: make run serves a mobile-friendly pt-BR home page (templ + vendored HTMX) and /healthz answers from SQLite.
@@ -40,5 +40,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}

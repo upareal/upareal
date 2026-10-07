@@ -22,8 +22,7 @@ func listen(t *testing.T) net.Listener {
 }
 
 func TestRun_FailsFastWithoutDBPath(t *testing.T) {
-	ln := listen(t)
-	defer ln.Close()
+	ln := listen(t) // run closes ln
 	err := run(context.Background(), func(string) string { return "" }, ln, &bytes.Buffer{})
 	if err == nil || !strings.Contains(err.Error(), "DB_PATH") {
 		t.Fatalf("run without DB_PATH = %v, want error naming DB_PATH", err)

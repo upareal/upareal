@@ -43,7 +43,7 @@ func main() {
 // run serves the app on ln until ctx is cancelled, then drains in-flight
 // requests (up to shutdownGrace) and closes the database.
 func run(ctx context.Context, getenv func(string) string, ln net.Listener, logOut io.Writer) error {
-	defer ln.Close()
+	defer func() { _ = ln.Close() }() // already closed by Shutdown on the normal path
 	logger := slog.New(slog.NewJSONHandler(logOut, nil))
 
 	cfg, err := config.Load(getenv)
@@ -54,7 +54,11 @@ func run(ctx context.Context, getenv func(string) string, ln net.Listener, logOu
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			logger.Error("close database", "err", err)
+		}
+	}()
 
 	srv := &http.Server{
 		Handler:           web.LogRequests(logger, web.NewHandler(conn)),
