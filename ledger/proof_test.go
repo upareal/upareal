@@ -1,4 +1,4 @@
-// story: e04s01 e04s02 e06s01
+// story: e04s01 e04s02 e06s01 e06s04
 package ledger_test
 
 import (
@@ -32,6 +32,15 @@ func TestLedgerHasNoPlaintext(t *testing.T) {
 	if _, err := f.svc.RecordSimple(ctx, userA, ledger.SimpleEntry{AccountID: acc.ID, CounterID: shell.ID, Amount: 15000, At: jan10, Description: "Gasolina aditivada viagem"}); err != nil {
 		t.Fatal(err)
 	}
+	// The original description survives only inside the encrypted history snapshot.
+	edited, err := f.svc.RecordSimple(ctx, userA, ledger.SimpleEntry{AccountID: acc.ID, CounterID: shell.ID, Amount: 100, At: jan10, Description: "Presente secreto aniversário"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := f.svc.EditEntry(ctx, userA, edited, ledger.SplitEntry{AccountID: acc.ID, Total: 100, At: jan10, Description: "x",
+		Parts: []ledger.Part{{CounterID: shell.ID, Amount: 100}}}); err != nil {
+		t.Fatal(err)
+	}
 	if accounts, err := f.svc.Accounts(ctx, userA); err != nil || len(accounts) != wantSystem+2 || accounts[0].Name != "Conta Itaú Personnalité" {
 		t.Fatalf("round trip = %+v, %v; the scan below would prove nothing", accounts, err)
 	}
@@ -48,7 +57,7 @@ func TestLedgerHasNoPlaintext(t *testing.T) {
 	if !bytes.Contains(raw, []byte("ledger_account")) {
 		t.Fatal("control: schema text not found; the scan is not reading the database")
 	}
-	for _, name := range []string{"Saldo inicial", "A categorizar", "Conta Itaú Personnalité", "Ajuste de saldo", "Posto Shell Ipiranga", "Gasolina aditivada viagem"} {
+	for _, name := range []string{"Saldo inicial", "A categorizar", "Conta Itaú Personnalité", "Ajuste de saldo", "Posto Shell Ipiranga", "Gasolina aditivada viagem", "Presente secreto aniversário"} {
 		if bytes.Contains(raw, []byte(name)) {
 			t.Errorf("database files contain %q in plaintext", name)
 		}
