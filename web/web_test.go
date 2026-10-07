@@ -1,10 +1,11 @@
-// story: e01s01 e03s01
+// story: e01s01 e03s01 e04s01
 package web_test
 
 import (
 	"context"
 	"database/sql"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 	"github.com/upareal/upareal/internal/db"
 	"github.com/upareal/upareal/internal/oidctest"
 	"github.com/upareal/upareal/internal/vault"
+	"github.com/upareal/upareal/ledger"
 	"github.com/upareal/upareal/users"
 	"github.com/upareal/upareal/web"
 )
@@ -34,8 +36,10 @@ func newTestApp(t *testing.T, baseURL string) testApp {
 		t.Fatalf("db.Open: %v", err)
 	}
 	t.Cleanup(func() { _ = conn.Close() })
-	if err := db.Migrate(ctx, conn, "users", users.Migrations); err != nil {
-		t.Fatal(err)
+	for name, fsys := range map[string]fs.FS{"users": users.Migrations, "ledger": ledger.Migrations} {
+		if err := db.Migrate(ctx, conn, name, fsys); err != nil {
+			t.Fatal(err)
+		}
 	}
 	master := make([]byte, 32)
 	master[0] = 9
@@ -48,7 +52,7 @@ func newTestApp(t *testing.T, baseURL string) testApp {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h := web.NewHandler(web.Deps{DB: conn, Users: users.NewService(conn, kr), Google: google})
+	h := web.NewHandler(web.Deps{DB: conn, Users: users.NewService(conn, kr), Ledger: ledger.NewService(conn, kr), Google: google})
 	return testApp{handler: h, conn: conn, fake: fake}
 }
 
