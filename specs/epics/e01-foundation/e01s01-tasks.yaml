@@ -34,7 +34,7 @@ tasks:
     description: "slog JSON request log middleware; http.Server timeouts; run(ctx) with graceful shutdown (10s drain)"
     verify: "go test -race ./cmd/upareal/... ./web/... -run 'TestGracefulShutdown|TestRequestLog'"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Operability", "integration"]}
   - id: t6
     description: "Full local gate green"
