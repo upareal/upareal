@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: plan-work
-  note: e03s02 done; plan e03s03 (public pages and terms acceptance)
+  next_skill: develop-tdd
+  note: e03s03 planned
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -17,7 +17,8 @@ environment:
     golangci-lint: V=v2.14.0; golangci-lint version 2>/dev/null | grep -q "${V#v}" || curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b "$(go
       env GOPATH)/bin" "$V"
   smoke: no Go packages yet; first lint/test smoke runs in e01
-pending: []
+pending:
+- Replace provisional legal text in /privacidade and /termos (web) and bump web.CurrentTermsVersion
 active_epic: e03
 git:
   branch: feat/e03-sign-in

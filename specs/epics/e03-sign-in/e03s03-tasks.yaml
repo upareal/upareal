@@ -1,14 +1,32 @@
 story_id: e03s03
-title: Public pages and terms acceptance
-status: todo
+title: "Public pages and terms acceptance"
+spec: e03s03-public-pages-terms.md
+status: failing
 bcps: 3
-outcome: Landing, /privacidade and /termos are public; signed-in users must accept the current terms_version before using the app.
+risk: P1
+outcome: Landing, /privacidade and /termos are public; signed-in users must accept the current terms version before using the app.
 tasks:
-- id: t1
-  description: Public pages with placeholder policy and terms text (pt-BR)
-  verify: go test -race ./web/... -run TestPublicPages
-  status: todo
-- id: t2
-  description: Store terms_version + accepted_at; redirect until the current version is accepted
-  verify: go test -race ./users/... ./web/... -run TestTermsAcceptance
-  status: todo
+  - id: t1
+    description: "/privacidade and /termos (provisional pt-BR text) public; footer links on every page"
+    verify: "go test -race ./web/... -run TestPublicPages"
+    risk: P2
+    status: failing
+    allure: {severity: normal, categories: ["UI", "Legal"]}
+  - id: t2
+    description: "Migration 00002 (terms_version, terms_accepted_at); users.AcceptTerms; User.TermsVersion loaded"
+    verify: "go test -race ./users/... -run TestAcceptTerms"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Legal", "Database"]}
+  - id: t3
+    description: "requireTerms gate on app pages; /termos/aceitar form and POST; version bump asks again"
+    verify: "go test -race ./web/... -run TestTermsAcceptance"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Legal", "integration"]}
+  - id: t4
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
