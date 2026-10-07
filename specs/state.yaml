@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e03s02 all tasks passing; awaiting user UAT (spec §19)
+  next_skill: plan-work
+  note: e03s02 done; plan e03s03 (public pages and terms acceptance)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -23,7 +23,7 @@ git:
   branch: feat/e03-sign-in
   worktree: null
   base: main@c3c2d84
-active_story: e03s02
+active_story: e03s03
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'
