@@ -1,4 +1,4 @@
-// story: e04s02
+// story: e04s02 e06s04
 package ledger
 
 import (
@@ -15,9 +15,9 @@ const fieldDescription = "description"
 
 // Errors for transactions that would break a ledger invariant.
 var (
-	ErrTooFewLegs         = errors.New("ledger: a transaction needs at least 2 legs")                       // L1
-	ErrUnbalanced         = errors.New("ledger: transaction legs do not sum to zero")                       // L1
-	ErrZeroLeg            = errors.New("ledger: a leg amount cannot be zero")                               // L2
+	ErrTooFewLegs         = errors.New("ledger: a transaction needs at least 2 legs")                     // L1
+	ErrUnbalanced         = errors.New("ledger: transaction legs do not sum to zero")                     // L1
+	ErrZeroLeg            = errors.New("ledger: a leg amount cannot be zero")                             // L2
 	ErrAccountNotPostable = errors.New("ledger: account is unknown, archived or belongs to another user") // L3, L6
 )
 
@@ -27,29 +27,13 @@ type Leg struct {
 	Amount    int64
 }
 
-// postTransaction is the ONLY way legs are written. It enforces L1–L3 and L6
-// inside the caller's database transaction, so an invalid transaction leaves
-// nothing behind.
+// postTransaction and replaceTransaction are the ONLY ways legs are written.
+// Both enforce L1–L3 and L6 (validateLegs) inside the caller's database
+// transaction, so an invalid transaction leaves nothing behind.
 func (s *Service) postTransaction(ctx context.Context, q *store.Queries, userID string, at time.Time, description string, legs []Leg) (string, error) {
-	if err := checkLegs(legs); err != nil {
+	if err := s.validateLegs(ctx, q, userID, legs); err != nil {
 		return "", err
 	}
-	ids := map[string]bool{}
-	for _, l := range legs {
-		ids[l.AccountID] = true
-	}
-	distinct := make([]string, 0, len(ids))
-	for id := range ids {
-		distinct = append(distinct, id)
-	}
-	n, err := q.CountPostableAccounts(ctx, store.CountPostableAccountsParams{UserID: userID, Ids: distinct})
-	if err != nil {
-		return "", fmt.Errorf("ledger: check accounts: %w", err)
-	}
-	if int(n) != len(distinct) {
-		return "", ErrAccountNotPostable
-	}
-
 	dk, err := s.userKey(ctx, q, userID)
 	if err != nil {
 		return "", err
@@ -64,16 +48,43 @@ func (s *Service) postTransaction(ctx context.Context, q *store.Queries, userID 
 	if err != nil {
 		return "", fmt.Errorf("ledger: create transaction: %w", err)
 	}
+	return txID, writeLegs(ctx, q, txID, legs)
+}
+
+// validateLegs enforces L1–L3 and L6 for legs about to be written.
+func (s *Service) validateLegs(ctx context.Context, q *store.Queries, userID string, legs []Leg) error {
+	if err := checkLegs(legs); err != nil {
+		return err
+	}
+	ids := map[string]bool{}
+	for _, l := range legs {
+		ids[l.AccountID] = true
+	}
+	distinct := make([]string, 0, len(ids))
+	for id := range ids {
+		distinct = append(distinct, id)
+	}
+	n, err := q.CountPostableAccounts(ctx, store.CountPostableAccountsParams{UserID: userID, Ids: distinct})
+	if err != nil {
+		return fmt.Errorf("ledger: check accounts: %w", err)
+	}
+	if int(n) != len(distinct) {
+		return ErrAccountNotPostable
+	}
+	return nil
+}
+
+func writeLegs(ctx context.Context, q *store.Queries, txID string, legs []Leg) error {
 	for _, l := range legs {
 		legID, err := newID()
 		if err != nil {
-			return "", err
+			return err
 		}
 		if err := q.CreateLeg(ctx, store.CreateLegParams{ID: legID, TransactionID: txID, AccountID: l.AccountID, Amount: l.Amount}); err != nil {
-			return "", fmt.Errorf("ledger: create leg: %w", err)
+			return fmt.Errorf("ledger: create leg: %w", err)
 		}
 	}
-	return txID, nil
+	return nil
 }
 
 // checkLegs enforces L1 and L2 without touching the database.

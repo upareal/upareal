@@ -1,4 +1,4 @@
-// story: e06s02
+// story: e06s02 e06s04
 package ledger
 
 import (
@@ -52,28 +52,37 @@ func (s *Service) RecordSplit(ctx context.Context, userID string, e SplitEntry) 
 	}
 	var id string
 	err := s.inTx(ctx, func(q *store.Queries) error {
-		acc, err := s.account(ctx, q, userID, e.AccountID)
+		legs, err := s.entryLegs(ctx, q, userID, e, 2)
 		if err != nil {
 			return err
 		}
-		if acc.Type != "asset" && acc.Type != "liability" {
-			return fmt.Errorf("%w: the paying account must be an asset or liability", ErrInvalidEntry)
-		}
-		if len(e.Parts) < 2 {
-			return fmt.Errorf("%w: a split needs at least two lines", ErrInvalidEntry)
-		}
-		legs, remaining, err := s.splitLegs(ctx, q, userID, e.Total, e.Parts)
-		if err != nil {
-			return err
-		}
-		if remaining != 0 {
-			return SplitMismatch{Remaining: remaining}
-		}
-		legs = append(legs, Leg{AccountID: e.AccountID, Amount: -e.Total})
 		id, err = s.postTransaction(ctx, q, userID, e.At, e.Description, legs)
 		return err
 	})
 	return id, err
+}
+
+// entryLegs builds the legs of an entry with at least minLines lines: the
+// paying account −Total and one leg per line; the lines must add up to Total.
+func (s *Service) entryLegs(ctx context.Context, q *store.Queries, userID string, e SplitEntry, minLines int) ([]Leg, error) {
+	acc, err := s.account(ctx, q, userID, e.AccountID)
+	if err != nil {
+		return nil, err
+	}
+	if acc.Type != "asset" && acc.Type != "liability" {
+		return nil, fmt.Errorf("%w: the paying account must be an asset or liability", ErrInvalidEntry)
+	}
+	if len(e.Parts) < minLines {
+		return nil, fmt.Errorf("%w: a split needs at least %d lines", ErrInvalidEntry, minLines)
+	}
+	legs, remaining, err := s.splitLegs(ctx, q, userID, e.Total, e.Parts)
+	if err != nil {
+		return nil, err
+	}
+	if remaining != 0 {
+		return nil, SplitMismatch{Remaining: remaining}
+	}
+	return append(legs, Leg{AccountID: e.AccountID, Amount: -e.Total}), nil
 }
 
 // SplitRemaining says how much of total is still to distribute over parts

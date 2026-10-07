@@ -141,3 +141,83 @@ func (s *Service) recordHistory(ctx context.Context, q *store.Queries, dk *vault
 		ID: id, TransactionID: tx.ID, UserID: userID, Action: action, ChangedAt: stamp(s.now()), Snapshot: sealed,
 	})
 }
+
+// EditEntry replaces an expense/income transaction (one or more lines).
+func (s *Service) EditEntry(ctx context.Context, userID, id string, e SplitEntry) error {
+	if e.Total <= 0 {
+		return fmt.Errorf("%w: total must be greater than zero", ErrInvalidEntry)
+	}
+	if err := validEntryText(e.At, e.Description); err != nil {
+		return err
+	}
+	return s.inTx(ctx, func(q *store.Queries) error {
+		cur, err := s.editableTransaction(ctx, q, userID, id)
+		if err != nil {
+			return err
+		}
+		legs, err := s.entryLegs(ctx, q, userID, e, 1)
+		if err != nil {
+			return err
+		}
+		return s.replaceTransaction(ctx, q, userID, cur, e.At, e.Description, legs)
+	})
+}
+
+// EditTransfer replaces a transfer between own asset/liability accounts.
+func (s *Service) EditTransfer(ctx context.Context, userID, id string, e TransferEntry) error {
+	return s.inTx(ctx, func(q *store.Queries) error {
+		cur, err := s.editableTransaction(ctx, q, userID, id)
+		if err != nil {
+			return err
+		}
+		legs, err := s.transferLegs(ctx, q, userID, e)
+		if err != nil {
+			return err
+		}
+		return s.replaceTransaction(ctx, q, userID, cur, e.At, e.Description, legs)
+	})
+}
+
+// editableTransaction loads one of userID's active transactions first (so a
+// foreign ID never reveals anything about accounts) and refuses those that
+// touch system accounts.
+func (s *Service) editableTransaction(ctx context.Context, q *store.Queries, userID, id string) (Transaction, error) {
+	cur, err := s.loadTransaction(ctx, q, userID, id)
+	if err != nil {
+		return Transaction{}, err
+	}
+	for _, l := range cur.Legs {
+		if l.SystemRole != "" {
+			return Transaction{}, ErrNotEditable
+		}
+	}
+	return cur, nil
+}
+
+// replaceTransaction is the edit path: it seals the previous version into
+// history, then replaces time, description and legs under the same checks as
+// postTransaction.
+func (s *Service) replaceTransaction(ctx context.Context, q *store.Queries, userID string, cur Transaction, at time.Time, description string, legs []Leg) error {
+	id := cur.ID
+	if err := s.validateLegs(ctx, q, userID, legs); err != nil {
+		return err
+	}
+	dk, err := s.userKey(ctx, q, userID)
+	if err != nil {
+		return err
+	}
+	if err := s.recordHistory(ctx, q, dk, userID, cur, "edit"); err != nil {
+		return err
+	}
+	sealed, err := dk.Seal(fieldDescription, description)
+	if err != nil {
+		return err
+	}
+	if err := q.UpdateTransaction(ctx, store.UpdateTransactionParams{OccurredAt: stamp(at), Description: sealed, ID: id, UserID: userID}); err != nil {
+		return fmt.Errorf("ledger: update transaction: %w", err)
+	}
+	if err := q.DeleteLegs(ctx, id); err != nil {
+		return fmt.Errorf("ledger: replace legs: %w", err)
+	}
+	return writeLegs(ctx, q, id, legs)
+}
