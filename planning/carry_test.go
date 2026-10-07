@@ -1,4 +1,4 @@
-// story: e08s03
+// story: e08s03 e08s04
 package planning_test
 
 import (
@@ -89,9 +89,12 @@ func TestCarry_IdentityHoldsEveryMonth(t *testing.T) {
 		for _, c := range p.Categories {
 			envelopes += c.Available // 0 for income categories
 		}
-		cash := balanceAt(t, f, m, mb.itau.ID, nubank.ID)
-		if envelopes != cash {
-			t.Errorf("%s: A distribuir + Σ Disponível = %d, on-budget money = %d", m, envelopes, cash)
+		for _, c := range p.Cards { // e08s04: card debt is set aside too
+			envelopes += c.Due
+		}
+		cash := balanceAt(t, f, m, mb.itau.ID)
+		if envelopes != cash || p.Cash != cash {
+			t.Errorf("%s: A distribuir + Σ Disponível + Σ Para pagar = %d, Cash = %d, on-budget non-card money = %d", m, envelopes, p.Cash, cash)
 		}
 	}
 }
