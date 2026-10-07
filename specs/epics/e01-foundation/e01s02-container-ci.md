@@ -59,7 +59,7 @@ Named volume `upareal-data` mounted at `/data`. It holds the SQLite file and its
 
 - Non-root user. Distroless base. No secrets in the image or in `compose.yaml`.
 - CI uses no repository secrets in this story.
-- Actions are pinned to major versions: `actions/checkout@v7`, `actions/setup-go@v7`, `golangci/golangci-lint-action@v9`.
+- Actions are pinned to major versions: `actions/checkout@v7`, `actions/setup-go@v7`. golangci-lint v2.14.0 installs with the same pinned script as local setup.
 
 ## 12. Dependencies (slopcheck)
 
@@ -69,7 +69,7 @@ Named volume `upareal-data` mounted at `/data`. It holds the SQLite file and its
 | `gcr.io/distroless/static-debian13` | `nonroot` | [OK] | Tag exists (gcr.io tags list) |
 | `actions/checkout` | v7 (v7.0.1) | [OK] | GitHub latest release |
 | `actions/setup-go` | v7 (v7.0.0) | [OK] | GitHub latest release |
-| `golangci/golangci-lint-action` | v9 (v9.3.0), lint v2.14.0 | [OK] | GitHub latest release |
+| golangci-lint install script | v2.14.0 | [OK] | Same command as `specs/state.yaml` → `environment.install` (replaces golangci-lint-action: the action does not keep the binary on PATH for `make preflight`) |
 | `github.com/rhysd/actionlint` | v1.7.12 (verify only, via `go run`) | [OK] | proxy.golang.org `@latest` |
 
 ## 13. Requirements
@@ -96,7 +96,7 @@ No other new units.
 1. Add `healthcheck` handling in `cmd/upareal` (when `os.Args[1] == "healthcheck"`). → verify: `go test -race ./cmd/upareal/... -run TestHealthcheckCommand`
 2. Add a multi-stage `Dockerfile` (`golang:1.26` builder with `CGO_ENABLED=0`, `/data` owned by 65532, distroless `static-debian13:nonroot`) and a `.dockerignore`. → verify: `docker build -t upareal:dev .`
 3. Add `compose.yaml` with the `app` service, port 8080, the `upareal-data` volume, `DB_PATH` and the healthcheck. → verify: `docker compose up -d --build --wait && curl -fsS http://localhost:8080/healthz; rc=$?; docker compose down; exit $rc`
-4. Add `.github/workflows/ci.yml`: checkout, setup-go (`go-version-file: go.mod`), golangci-lint v2.14.0, `make preflight`, `docker build`. → verify: `go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 .github/workflows/ci.yml`
+4. Add `.github/workflows/ci.yml`: checkout, setup-go (`go-version-file: go.mod`), golangci-lint v2.14.0 (install script), `make preflight`, `docker build`. → verify: `go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 .github/workflows/ci.yml`
 
 ## 16. Risks
 

@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: develop-tdd
-  note: e01s01 done (UAT passed); start e01s02
+  next_skill: verify-work
+  note: e01s02 all tasks passing; UAT step 7 needs a push to see CI on GitHub
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)

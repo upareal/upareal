@@ -1,7 +1,7 @@
 story_id: e01s02
 title: "Container and CI parity"
 spec: e01s02-container-ci.md
-status: failing
+status: passing
 bcps: 3
 risk: P1
 outcome: docker compose up serves the same app over plain HTTP; CI runs the same Preflight and builds the image.
@@ -28,5 +28,5 @@ tasks:
     description: "GitHub Actions ci.yml: checkout@v7, setup-go@v7 (go.mod), golangci-lint v2.14.0, make preflight, docker build"
     verify: "go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 .github/workflows/ci.yml"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["CI"]}
