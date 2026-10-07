@@ -146,6 +146,7 @@ out_of_scope:
     - "i18n / per-user locale and time zone"
     - "per-leg memos"
     - "monitoring and alerts"
+    - "row-level AAD binding for encrypted fields (revisit before e05 stores descriptions; format change)"
     - "offline PWA"
 
 open_items:
@@ -184,3 +185,5 @@ key_decisions:
     rationale: "ofxgo v0.1.3 passes input through unchanged; Brazilian banks often send CHARSET:1252"
   - decision: "derive encryption and HMAC keys from the master key with crypto/hkdf"
     rationale: "one secret to store and back up; separate keys per purpose"
+  - decision: "encrypted fields are bound to user + field, not row (row binding deferred)"
+    rationale: "swapping values between rows needs DB write access, which already allows worse attacks; low value for v1"

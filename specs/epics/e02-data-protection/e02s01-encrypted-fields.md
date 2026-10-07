@@ -130,7 +130,7 @@ No interfaces are added. The concrete types are the only implementation.
 
 ## 16. Risks
 
-- **Swaps between rows of the same user and field are not detected.** Mitigation if needed later: add the row ID to the AAD (a format change, so decide before e05 stores descriptions).
+- **Swaps between rows of the same user and field are not detected.** Decision (2026-10-07): deferred, not needed for v1. Revisit before e05 stores descriptions (`specs/planning-context.yaml`).
 - **Losing the master key loses all data.** Mitigation: operations require an offline backup (README, e10 runbook).
 - **The plaintext proof may pass for the wrong reason** (for example, the rows were never written). Mitigation: the test first asserts the rows round-trip through SQL, then scans the file.
 

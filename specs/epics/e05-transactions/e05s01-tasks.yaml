@@ -3,6 +3,7 @@ title: Record a simple expense or income
 status: todo
 bcps: 5
 outcome: A user records a dated purchase or income with a category; the account list shows it with a running balance.
+note: "Before storing descriptions, re-check the deferred row-level AAD binding (planning-context out_of_scope.later). Adding it after data exists needs a migration."
 tasks:
 - id: t1
   description: 'Form: account, category, amount, date/time (UTC stored, Sao Paulo shown), encrypted description'
