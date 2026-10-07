@@ -1,4 +1,4 @@
-// story: e07s01
+// story: e07s01 e07s02
 package web
 
 templ importPage(v importView) {
@@ -30,12 +30,15 @@ templ reviewPage(v queueView) {
 		if v.Summary != "" {
 			<p class="hint">{ v.Summary }</p>
 		}
+		if v.Error != "" {
+			<p class="error" role="alert">{ v.Error }</p>
+		}
 		if len(v.Lines) == 0 {
 			<p class="muted">Nada para revisar.</p>
 		} else {
-			<p>Lançamentos importados aguardando uma conta de despesa ou receita:</p>
+			<p>Lançamentos importados aguardando uma conta de despesa ou receita. Para dividir em várias contas, clique na descrição.</p>
 			<table class="register">
-				<thead><tr><th>Quando</th><th>Conta</th><th>Descrição</th><th>Valor</th><th>Texto do banco</th></tr></thead>
+				<thead><tr><th>Quando</th><th>Conta</th><th>Descrição</th><th>Valor</th><th>Texto do banco</th><th>Categorizar</th></tr></thead>
 				<tbody>
 					for _, l := range v.Lines {
 						<tr>
@@ -44,6 +47,22 @@ templ reviewPage(v queueView) {
 							<td><a href={ templ.SafeURL(l.Link) }>{ l.Description }</a></td>
 							<td class="num">{ l.Amount }</td>
 							<td>{ l.Conta }</td>
+							<td>
+								<form method="post" action={ templ.SafeURL("/revisao/" + l.ID) } class="inline">
+									<select name="contra" required>
+										if l.Out {
+											for _, a := range v.Expenses {
+												<option value={ a.ID }>{ a.Name }</option>
+											}
+										} else {
+											for _, a := range v.Incomes {
+												<option value={ a.ID }>{ a.Name }</option>
+											}
+										}
+									</select>
+									<button type="submit">Salvar</button>
+								</form>
+							</td>
 						</tr>
 					}
 				</tbody>

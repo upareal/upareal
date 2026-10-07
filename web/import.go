@@ -1,4 +1,4 @@
-// story: e07s01
+// story: e07s01 e07s02
 package web
 
 import (
@@ -22,11 +22,15 @@ type importView struct {
 }
 
 type queueView struct {
-	Summary string
-	Lines   []queueLineView
+	Summary, Error    string
+	Lines             []queueLineView
+	Expenses, Incomes []ledger.Account
 }
 
-type queueLineView struct{ Link, When, Account, Description, Amount, Conta string }
+type queueLineView struct {
+	ID, Link, When, Account, Description, Amount, Conta string
+	Out                                                bool // money left: offer expense accounts
+}
 
 func importGet(svc *users.Service, ledg *ledger.Service) http.HandlerFunc {
 	return signedInPage(svc, func(w http.ResponseWriter, r *http.Request, u users.User) {
@@ -67,24 +71,77 @@ func importPost(svc *users.Service, ledg *ledger.Service, limit *ipLimiter) http
 
 func reviewGet(svc *users.Service, ledg *ledger.Service) http.HandlerFunc {
 	return signedInPage(svc, func(w http.ResponseWriter, r *http.Request, u users.User) {
-		queue, err := ledg.ReviewQueue(r.Context(), u.ID)
+		summary := ""
+		if imported := r.URL.Query().Get("importadas"); imported != "" {
+			summary = fmt.Sprintf("%s importadas, %s já existentes", imported, r.URL.Query().Get("existentes"))
+		}
+		renderReview(w, r, ledg, u.ID, http.StatusOK, summary, "")
+	})
+}
+
+// reviewAssign gives a queued line's whole amount to one expense/income account.
+func reviewAssign(svc *users.Service, ledg *ledger.Service) http.HandlerFunc {
+	return signedInPage(svc, func(w http.ResponseWriter, r *http.Request, u users.User) {
+		id := r.PathValue("id")
+		tx, err := ledg.Transaction(r.Context(), u.ID, id)
 		if err != nil {
-			renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Não foi possível carregar a revisão.")
+			status, msg := editError(err)
+			renderReview(w, r, ledg, u.ID, status, "", msg)
 			return
 		}
-		v := queueView{}
-		if imported := r.URL.Query().Get("importadas"); imported != "" {
-			v.Summary = fmt.Sprintf("%s importadas, %s já existentes", imported, r.URL.Query().Get("existentes"))
+		var amount int64
+		for _, l := range tx.Legs {
+			if l.SystemRole != "" {
+				amount = l.Amount
+			}
 		}
-		for _, l := range queue {
-			v.Lines = append(v.Lines, queueLineView{
-				Link: "/lancamentos/" + l.TransactionID + "?conta=" + l.AccountID,
-				When: l.At.In(saoPaulo).Format("02/01/2006 15:04"), Account: l.AccountName,
-				Description: orNoDescription(l.Description), Amount: money.FormatBRL(l.Amount), Conta: l.Conta,
-			})
+		if amount < 0 {
+			amount = -amount
 		}
-		renderHTML(w, r, http.StatusOK, reviewPage(v))
+		if err := ledg.Categorize(r.Context(), u.ID, id, []ledger.Part{{CounterID: r.FormValue("contra"), Amount: amount}}); err != nil {
+			status, msg := editError(err)
+			var mm ledger.SplitMismatch
+			if errors.As(err, &mm) {
+				msg = "Escolha uma conta de despesa para saídas e de receita para entradas."
+			}
+			renderReview(w, r, ledg, u.ID, status, "", msg)
+			return
+		}
+		http.Redirect(w, r, "/revisao", http.StatusSeeOther)
 	})
+}
+
+func renderReview(w http.ResponseWriter, r *http.Request, ledg *ledger.Service, userID string, status int, summary, errMsg string) {
+	queue, err := ledg.ReviewQueue(r.Context(), userID)
+	if err != nil {
+		renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Não foi possível carregar a revisão.")
+		return
+	}
+	accounts, err := ledg.Accounts(r.Context(), userID)
+	if err != nil {
+		renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Não foi possível carregar as contas.")
+		return
+	}
+	v := queueView{Summary: summary, Error: errMsg}
+	for _, a := range accounts {
+		if a.SystemRole != "" {
+			continue
+		}
+		switch a.Type {
+		case "expense":
+			v.Expenses = append(v.Expenses, a)
+		case "income":
+			v.Incomes = append(v.Incomes, a)
+		}
+	}
+	for _, l := range queue {
+		v.Lines = append(v.Lines, queueLineView{
+			ID: l.TransactionID, Link: "/lancamentos/" + l.TransactionID + "?conta=" + l.AccountID,
+			When: l.At.In(saoPaulo).Format("02/01/2006 15:04"), Account: l.AccountName,
+			Description: orNoDescription(l.Description), Amount: money.FormatBRL(l.Amount), Conta: l.Conta, Out: l.Amount < 0,
+		})
+	}
+	renderHTML(w, r, status, reviewPage(v))
 }
 
 func renderImport(w http.ResponseWriter, r *http.Request, ledg *ledger.Service, userID, id string, status int, errs []string) {
