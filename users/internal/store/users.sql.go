@@ -46,7 +46,7 @@ type CreateUserParams struct {
 	CreatedAt string
 }
 
-// story: e03s01
+// story: e03s01 e03s02
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 	_, err := q.db.ExecContext(ctx, createUser,
 		arg.ID,
@@ -59,22 +59,66 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 	return err
 }
 
-const getUserBySessionHash = `-- name: GetUserBySessionHash :one
-SELECT u.id, u.sub_idx, u.data_key, u.email, u.name, u.created_at FROM users_session s
+const deleteExpiredUserSessions = `-- name: DeleteExpiredUserSessions :exec
+DELETE FROM users_session
+WHERE user_id = ?1
+  AND (last_seen_at < ?2 OR created_at < ?3)
+`
+
+type DeleteExpiredUserSessionsParams struct {
+	UserID         string
+	IdleCutoff     string
+	AbsoluteCutoff string
+}
+
+func (q *Queries) DeleteExpiredUserSessions(ctx context.Context, arg DeleteExpiredUserSessionsParams) error {
+	_, err := q.db.ExecContext(ctx, deleteExpiredUserSessions, arg.UserID, arg.IdleCutoff, arg.AbsoluteCutoff)
+	return err
+}
+
+const deleteSession = `-- name: DeleteSession :exec
+DELETE FROM users_session WHERE token_hash = ?
+`
+
+func (q *Queries) DeleteSession(ctx context.Context, tokenHash []byte) error {
+	_, err := q.db.ExecContext(ctx, deleteSession, tokenHash)
+	return err
+}
+
+const deleteUserSessions = `-- name: DeleteUserSessions :exec
+DELETE FROM users_session WHERE user_id = ?
+`
+
+func (q *Queries) DeleteUserSessions(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserSessions, userID)
+	return err
+}
+
+const getSessionWithUser = `-- name: GetSessionWithUser :one
+SELECT s.token_hash, s.user_id, s.created_at, s.last_seen_at, u.id, u.sub_idx, u.data_key, u.email, u.name, u.created_at FROM users_session s
 JOIN users_user u ON u.id = s.user_id
 WHERE s.token_hash = ?
 `
 
-func (q *Queries) GetUserBySessionHash(ctx context.Context, tokenHash []byte) (UsersUser, error) {
-	row := q.db.QueryRowContext(ctx, getUserBySessionHash, tokenHash)
-	var i UsersUser
+type GetSessionWithUserRow struct {
+	UsersSession UsersSession
+	UsersUser    UsersUser
+}
+
+func (q *Queries) GetSessionWithUser(ctx context.Context, tokenHash []byte) (GetSessionWithUserRow, error) {
+	row := q.db.QueryRowContext(ctx, getSessionWithUser, tokenHash)
+	var i GetSessionWithUserRow
 	err := row.Scan(
-		&i.ID,
-		&i.SubIdx,
-		&i.DataKey,
-		&i.Email,
-		&i.Name,
-		&i.CreatedAt,
+		&i.UsersSession.TokenHash,
+		&i.UsersSession.UserID,
+		&i.UsersSession.CreatedAt,
+		&i.UsersSession.LastSeenAt,
+		&i.UsersUser.ID,
+		&i.UsersUser.SubIdx,
+		&i.UsersUser.DataKey,
+		&i.UsersUser.Email,
+		&i.UsersUser.Name,
+		&i.UsersUser.CreatedAt,
 	)
 	return i, err
 }
@@ -95,6 +139,20 @@ func (q *Queries) GetUserBySubIdx(ctx context.Context, subIdx []byte) (UsersUser
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const touchSession = `-- name: TouchSession :exec
+UPDATE users_session SET last_seen_at = ? WHERE token_hash = ?
+`
+
+type TouchSessionParams struct {
+	LastSeenAt string
+	TokenHash  []byte
+}
+
+func (q *Queries) TouchSession(ctx context.Context, arg TouchSessionParams) error {
+	_, err := q.db.ExecContext(ctx, touchSession, arg.LastSeenAt, arg.TokenHash)
+	return err
 }
 
 const updateUserIdentity = `-- name: UpdateUserIdentity :exec

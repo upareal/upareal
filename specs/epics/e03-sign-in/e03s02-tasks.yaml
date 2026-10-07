@@ -10,7 +10,7 @@ tasks:
     description: "Idle 30d / absolute 90d expiry, hourly last_seen_at touch, expired sessions deleted"
     verify: "go test -race ./users/... -run TestSessionExpiry"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Auth", "Security Review"]}
   - id: t2
     description: "EndSession/EndAllSessions; POST /auth/logout and /auth/logout-all; buttons on home"
