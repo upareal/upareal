@@ -1,0 +1,68 @@
+// story: e06s04
+package web
+
+templ editPage(v editView, errMsg string) {
+	@layout("Editar lançamento — upareal") {
+		<p><a href={ templ.SafeURL("/contas/" + v.Conta + "/lancamentos") }>← { v.ContaName }</a></p>
+		<h1>Editar lançamento</h1>
+		if errMsg != "" {
+			<p class="error" role="alert">{ errMsg }</p>
+		}
+		switch v.Shape {
+			case "system":
+				<p class="hint">Este lançamento usa uma conta do sistema (saldo inicial ou ajuste). Para corrigir o saldo, use Ajustar saldo em Contas.</p>
+			case "transfer":
+				<form method="post" action={ templ.SafeURL("/lancamentos/" + v.TxID + "?conta=" + v.Conta) }>
+					<label>
+						De
+						<select name="origem">
+							for _, a := range v.Holders {
+								<option value={ a.ID } selected?={ a.ID == v.From }>{ a.Name }</option>
+							}
+						</select>
+					</label>
+					<label>
+						Para
+						<select name="destino">
+							for _, a := range v.Holders {
+								<option value={ a.ID } selected?={ a.ID == v.To }>{ a.Name }</option>
+							}
+						</select>
+					</label>
+					<label>Valor <input name="valor" value={ v.Amount } inputmode="decimal" required/></label>
+					@editWhen(v)
+					<button type="submit">Salvar</button>
+				</form>
+			default:
+				<form method="post" action={ templ.SafeURL("/lancamentos/" + v.TxID + "?conta=" + v.Conta) }>
+					<div id="linhas">
+						for _, l := range v.Lines {
+							@splitLineRow(l, v.Expenses, v.Incomes)
+						}
+						@splitLineRow(splitLineView{}, v.Expenses, v.Incomes)
+					</div>
+					@editWhen(v)
+					<button type="submit">Salvar</button>
+				</form>
+		}
+		<form method="post" action={ templ.SafeURL("/lancamentos/" + v.TxID + "/excluir?conta=" + v.Conta) } class="inline">
+			<button type="submit">Excluir lançamento</button>
+		</form>
+		if len(v.History) > 0 {
+			<section>
+				<h2>Histórico</h2>
+				<ul>
+					for _, h := range v.History {
+						<li>{ h.When } — { h.Action }. Antes: { h.Desc } { h.Amount }</li>
+					}
+				</ul>
+			</section>
+		}
+	}
+}
+
+templ editWhen(v editView) {
+	<label>Data <input type="date" name="data" value={ v.Date } required/></label>
+	<label>Hora <input type="time" name="hora" value={ v.Time } required/></label>
+	<label>Descrição <input name="descricao" value={ v.Desc } maxlength="200"/></label>
+}

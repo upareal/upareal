@@ -1,4 +1,4 @@
-// story: e06s02
+// story: e06s02 e06s04
 package web
 
 import (
@@ -95,14 +95,26 @@ func splitPost(svc *users.Service, ledg *ledger.Service) http.HandlerFunc {
 	})
 }
 
+// errInvalidAmount means a form amount is malformed or not positive.
+var errInvalidAmount = errors.New("web: invalid amount")
+
 // parseSplit reads total and the non-empty lines; a half-filled line is an error.
 func parseSplit(r *http.Request) (int64, []ledger.Part, error) {
 	if err := r.ParseForm(); err != nil {
 		return 0, nil, err
 	}
-	total, err := money.ParseBRL(r.FormValue("total"))
-	if err != nil || total <= 0 {
-		return 0, nil, errors.New("invalid total")
+	total, err := parsePositiveBRL(r.FormValue("total"))
+	if err != nil {
+		return 0, nil, err
+	}
+	parts, err := parseLines(r)
+	return total, parts, err
+}
+
+// parseLines reads the non-empty contra/parte lines of a form.
+func parseLines(r *http.Request) ([]ledger.Part, error) {
+	if err := r.ParseForm(); err != nil {
+		return nil, err
 	}
 	var parts []ledger.Part
 	for i, c := range r.Form["contra"] {
@@ -110,13 +122,21 @@ func parseSplit(r *http.Request) (int64, []ledger.Part, error) {
 		if c == "" && a == "" {
 			continue // spare empty row
 		}
-		amount, err := money.ParseBRL(a)
-		if c == "" || err != nil || amount <= 0 {
-			return 0, nil, errors.New("invalid line")
+		amount, err := parsePositiveBRL(a)
+		if c == "" || err != nil {
+			return nil, errInvalidAmount
 		}
 		parts = append(parts, ledger.Part{CounterID: c, Amount: amount})
 	}
-	return total, parts, nil
+	return parts, nil
+}
+
+func parsePositiveBRL(s string) (int64, error) {
+	c, err := money.ParseBRL(s)
+	if err != nil || c <= 0 {
+		return 0, errInvalidAmount
+	}
+	return c, nil
 }
 
 func renderSplit(w http.ResponseWriter, r *http.Request, ledg *ledger.Service, userID, id string, v splitView, status int, errMsg string) {

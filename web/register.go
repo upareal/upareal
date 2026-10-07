@@ -1,4 +1,4 @@
-// story: e06s01 e06s03
+// story: e06s01 e06s03 e06s04
 package web
 
 import (
@@ -25,7 +25,7 @@ type registerView struct {
 }
 
 type registerLineView struct {
-	When, Description, Counterparts, Amount, Balance string
+	Link, When, Description, Counterparts, Amount, Balance string
 }
 
 func registerGet(svc *users.Service, ledg *ledger.Service) http.HandlerFunc {
@@ -85,8 +85,13 @@ func renderRegister(w http.ResponseWriter, r *http.Request, ledg *ledger.Service
 		Label: fmt.Sprintf("%s de %d", monthNames[start.Month()-1], start.Year()), Prev: m.Prev().String(), Next: m.Next().String(),
 		CanRecord: acc.Type == "asset" || acc.Type == "liability", Today: now.Format("2006-01-02"), Now: now.Format("15:04")}
 	for _, l := range lines {
+		desc := l.Description
+		if desc == "" {
+			desc = "(sem descrição)"
+		}
 		v.Lines = append(v.Lines, registerLineView{
-			When: l.At.In(saoPaulo).Format("02/01 15:04"), Description: l.Description,
+			Link: "/lancamentos/" + l.TransactionID + "?conta=" + acc.ID,
+			When: l.At.In(saoPaulo).Format("02/01 15:04"), Description: desc,
 			Counterparts: strings.Join(l.Counterparts, ", "),
 			Amount:       displayChange(acc.Type, l.Amount), Balance: displayBalance(acc.Type, l.Balance),
 		})

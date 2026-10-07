@@ -28,7 +28,7 @@ tasks:
     description: "Web: register lines link to edit page (entry or transfer form, delete, history)"
     verify: "go test -race ./web/... -run TestEditTransactionPage"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["UI", "integration"]}
   - id: t5
     description: "Proof: history snapshots not stored in plaintext"

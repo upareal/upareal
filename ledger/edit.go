@@ -143,9 +143,11 @@ func (s *Service) recordHistory(ctx context.Context, q *store.Queries, dk *vault
 }
 
 // EditEntry replaces an expense/income transaction (one or more lines).
+// Total is what left the paying account; it is negative when money came in
+// (an income), and never zero (L2).
 func (s *Service) EditEntry(ctx context.Context, userID, id string, e SplitEntry) error {
-	if e.Total <= 0 {
-		return fmt.Errorf("%w: total must be greater than zero", ErrInvalidEntry)
+	if e.Total == 0 {
+		return fmt.Errorf("%w: total cannot be zero", ErrInvalidEntry)
 	}
 	if err := validEntryText(e.At, e.Description); err != nil {
 		return err

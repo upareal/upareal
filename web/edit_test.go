@@ -82,3 +82,16 @@ func TestEditTransactionPage_OpeningBalanceOnlyDeletes(t *testing.T) {
 		t.Errorf("unknown transaction = %d, want 404", res.StatusCode)
 	}
 }
+
+func TestEditTransactionPage_AccountMustBelongToTheTransaction(t *testing.T) {
+	b := newBrowser(t)
+	signIn(t, b)
+	itau, mercado, casa := splitBook(t, b)
+	_, body := b.postForm(t, "/contas/"+itau+"/lancamentos", entry(mercado, "10,00", "2026-01-20", "10:00", "Pão"))
+	link := txLink(t, body, "Pão")
+	tampered := strings.Replace(link, "conta="+itau, "conta="+casa, 1)
+	form := url.Values{"contra": {mercado}, "parte": {"10,00"}, "data": {"2026-01-20"}, "hora": {"10:00"}}
+	if res, _ := b.postForm(t, tampered, form); res.StatusCode != http.StatusNotFound {
+		t.Errorf("edit with an account outside the transaction = %d, want 404", res.StatusCode)
+	}
+}

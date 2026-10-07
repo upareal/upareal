@@ -1,4 +1,4 @@
-// story: e06s01 e06s02 e06s03
+// story: e06s01 e06s02 e06s03 e06s04
 package web
 
 templ registerPage(v registerView, errMsg string) {
@@ -22,7 +22,7 @@ templ registerPage(v registerView, errMsg string) {
 					for _, l := range v.Lines {
 						<tr>
 							<td>{ l.When }</td>
-							<td>{ l.Description }</td>
+							<td><a href={ templ.SafeURL(l.Link) }>{ l.Description }</a></td>
 							<td>{ l.Counterparts }</td>
 							<td class="num">{ l.Amount }</td>
 							<td class="num">{ l.Balance }</td>
