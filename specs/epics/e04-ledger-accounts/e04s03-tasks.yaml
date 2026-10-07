@@ -16,7 +16,7 @@ tasks:
     description: "MoveAccount up/down within type"
     verify: "go test -race ./ledger/... -run TestMoveAccount"
     risk: P2
-    status: failing
+    status: passing
     allure: {severity: normal, categories: ["Ledger"]}
   - id: t3
     description: "Archive/restore only at zero balance; ArchivedAccounts; L6/L7"

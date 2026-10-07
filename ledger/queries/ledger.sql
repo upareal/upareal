@@ -21,7 +21,7 @@ ORDER BY CASE type WHEN 'asset' THEN 1 WHEN 'liability' THEN 2 WHEN 'income' THE
          position, created_at;
 
 -- name: GetAccount :one
-SELECT id, type, system_role, archived_at FROM ledger_account WHERE id = ? AND user_id = ?;
+SELECT id, type, system_role, archived_at, position FROM ledger_account WHERE id = ? AND user_id = ?;
 
 -- name: GetSystemAccountID :one
 SELECT id FROM ledger_account WHERE user_id = ? AND system_role = ?;
@@ -56,3 +56,16 @@ UPDATE ledger_account SET name = ?, type = ?, on_budget = ?, is_card = ? WHERE i
 
 -- name: CountAccountLegs :one
 SELECT count(*) FROM ledger_leg WHERE account_id = ?;
+
+-- name: PreviousAccount :one
+SELECT id, position FROM ledger_account
+WHERE user_id = ? AND type = ? AND archived_at IS NULL AND system_role IS NULL AND position < ?
+ORDER BY position DESC LIMIT 1;
+
+-- name: NextAccount :one
+SELECT id, position FROM ledger_account
+WHERE user_id = ? AND type = ? AND archived_at IS NULL AND system_role IS NULL AND position > ?
+ORDER BY position ASC LIMIT 1;
+
+-- name: SetAccountPosition :exec
+UPDATE ledger_account SET position = ? WHERE id = ? AND user_id = ?;

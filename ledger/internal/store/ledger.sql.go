@@ -196,7 +196,7 @@ func (q *Queries) CreateUserKey(ctx context.Context, arg CreateUserKeyParams) er
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, type, system_role, archived_at FROM ledger_account WHERE id = ? AND user_id = ?
+SELECT id, type, system_role, archived_at, position FROM ledger_account WHERE id = ? AND user_id = ?
 `
 
 type GetAccountParams struct {
@@ -209,6 +209,7 @@ type GetAccountRow struct {
 	Type       string
 	SystemRole sql.NullString
 	ArchivedAt sql.NullString
+	Position   int64
 }
 
 func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (GetAccountRow, error) {
@@ -219,6 +220,7 @@ func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (GetAcco
 		&i.Type,
 		&i.SystemRole,
 		&i.ArchivedAt,
+		&i.Position,
 	)
 	return i, err
 }
@@ -326,6 +328,30 @@ func (q *Queries) ListSystemRoles(ctx context.Context, userID string) ([]sql.Nul
 	return items, nil
 }
 
+const nextAccount = `-- name: NextAccount :one
+SELECT id, position FROM ledger_account
+WHERE user_id = ? AND type = ? AND archived_at IS NULL AND system_role IS NULL AND position > ?
+ORDER BY position ASC LIMIT 1
+`
+
+type NextAccountParams struct {
+	UserID   string
+	Type     string
+	Position int64
+}
+
+type NextAccountRow struct {
+	ID       string
+	Position int64
+}
+
+func (q *Queries) NextAccount(ctx context.Context, arg NextAccountParams) (NextAccountRow, error) {
+	row := q.db.QueryRowContext(ctx, nextAccount, arg.UserID, arg.Type, arg.Position)
+	var i NextAccountRow
+	err := row.Scan(&i.ID, &i.Position)
+	return i, err
+}
+
 const nextAccountPosition = `-- name: NextAccountPosition :one
 SELECT CAST(COALESCE(MAX(position), -1) + 1 AS INTEGER) FROM ledger_account WHERE user_id = ? AND type = ?
 `
@@ -340,6 +366,45 @@ func (q *Queries) NextAccountPosition(ctx context.Context, arg NextAccountPositi
 	var column_1 int64
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const previousAccount = `-- name: PreviousAccount :one
+SELECT id, position FROM ledger_account
+WHERE user_id = ? AND type = ? AND archived_at IS NULL AND system_role IS NULL AND position < ?
+ORDER BY position DESC LIMIT 1
+`
+
+type PreviousAccountParams struct {
+	UserID   string
+	Type     string
+	Position int64
+}
+
+type PreviousAccountRow struct {
+	ID       string
+	Position int64
+}
+
+func (q *Queries) PreviousAccount(ctx context.Context, arg PreviousAccountParams) (PreviousAccountRow, error) {
+	row := q.db.QueryRowContext(ctx, previousAccount, arg.UserID, arg.Type, arg.Position)
+	var i PreviousAccountRow
+	err := row.Scan(&i.ID, &i.Position)
+	return i, err
+}
+
+const setAccountPosition = `-- name: SetAccountPosition :exec
+UPDATE ledger_account SET position = ? WHERE id = ? AND user_id = ?
+`
+
+type SetAccountPositionParams struct {
+	Position int64
+	ID       string
+	UserID   string
+}
+
+func (q *Queries) SetAccountPosition(ctx context.Context, arg SetAccountPositionParams) error {
+	_, err := q.db.ExecContext(ctx, setAccountPosition, arg.Position, arg.ID, arg.UserID)
+	return err
 }
 
 const updateAccount = `-- name: UpdateAccount :exec

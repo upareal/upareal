@@ -3,6 +3,7 @@ package ledger
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -46,6 +47,13 @@ func (s *Service) UpdateAccount(ctx context.Context, userID, id string, u Accoun
 			if legs > 0 {
 				return ErrTypeLocked
 			}
+			pos, err := q.NextAccountPosition(ctx, store.NextAccountPositionParams{UserID: userID, Type: n.Type})
+			if err != nil {
+				return fmt.Errorf("ledger: next position: %w", err)
+			}
+			if err := q.SetAccountPosition(ctx, store.SetAccountPositionParams{Position: pos, ID: id, UserID: userID}); err != nil {
+				return fmt.Errorf("ledger: move to new type: %w", err)
+			}
 		}
 		dk, err := s.userKey(ctx, q, userID)
 		if err != nil {
@@ -63,6 +71,36 @@ func (s *Service) UpdateAccount(ctx context.Context, userID, id string, u Accoun
 		return Account{}, err
 	}
 	return Account{ID: id, Type: n.Type, Name: n.Name, OnBudget: n.OnBudget, IsCard: n.IsCard}, nil
+}
+
+// MoveAccount swaps an account with its neighbour within its type (up =
+// earlier). Moving past either end is a no-op.
+func (s *Service) MoveAccount(ctx context.Context, userID, id string, up bool) error {
+	return s.inTx(ctx, func(q *store.Queries) error {
+		cur, err := s.loadUserAccount(ctx, q, userID, id)
+		if err != nil {
+			return err
+		}
+		var nID string
+		var nPos int64
+		if up {
+			n, e := q.PreviousAccount(ctx, store.PreviousAccountParams{UserID: userID, Type: cur.Type, Position: cur.Position})
+			nID, nPos, err = n.ID, n.Position, e
+		} else {
+			n, e := q.NextAccount(ctx, store.NextAccountParams{UserID: userID, Type: cur.Type, Position: cur.Position})
+			nID, nPos, err = n.ID, n.Position, e
+		}
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil // already first or last
+		}
+		if err != nil {
+			return fmt.Errorf("ledger: find neighbour: %w", err)
+		}
+		if err := q.SetAccountPosition(ctx, store.SetAccountPositionParams{Position: nPos, ID: id, UserID: userID}); err != nil {
+			return fmt.Errorf("ledger: move: %w", err)
+		}
+		return q.SetAccountPosition(ctx, store.SetAccountPositionParams{Position: cur.Position, ID: nID, UserID: userID})
+	})
 }
 
 // loadUserAccount guards every account mutation: other users' accounts are
