@@ -221,3 +221,25 @@ func (s *Service) replaceTransaction(ctx context.Context, q *store.Queries, user
 	}
 	return writeLegs(ctx, q, id, legs)
 }
+
+// DeleteTransaction soft-deletes one of userID's transactions: it leaves every
+// balance and register, and its previous version goes to history. Any
+// transaction can be deleted, including opening balances and adjustments.
+func (s *Service) DeleteTransaction(ctx context.Context, userID, id string) error {
+	return s.inTx(ctx, func(q *store.Queries) error {
+		cur, err := s.loadTransaction(ctx, q, userID, id)
+		if err != nil {
+			return err
+		}
+		dk, err := s.userKey(ctx, q, userID)
+		if err != nil {
+			return err
+		}
+		if err := s.recordHistory(ctx, q, dk, userID, cur, "delete"); err != nil {
+			return err
+		}
+		return q.SoftDeleteTransaction(ctx, store.SoftDeleteTransactionParams{
+			DeletedAt: sql.NullString{String: stamp(s.now()), Valid: true}, ID: id, UserID: userID,
+		})
+	})
+}

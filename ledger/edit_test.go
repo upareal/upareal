@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/upareal/upareal/ledger"
 )
@@ -165,12 +166,12 @@ func TestSoftDelete_LeavesEverySumAndList(t *testing.T) {
 			t.Error("the deleted transaction is still in the register")
 		}
 	}
-	later, _ := f.svc.Register(ctx, userA, b.itau.ID, jan10.AddDate(0, 0, 1), jan10.AddDate(0, 1, 0))
-	_ = later // no lines; the opening balance of a later range must ignore the deleted leg:
-	next := expense(t, f, b, 1000, "Depois")
-	_ = next
-	l2, _ := f.svc.Register(ctx, userA, b.itau.ID, jan10.Add(1), jan10.AddDate(0, 1, 0))
-	if len(l2) == 0 || l2[len(l2)-1].Balance != 99000 {
+	// The balance carried into a later range (BalanceBefore) must ignore the deleted leg too.
+	if _, err := f.svc.RecordSimple(ctx, userA, ledger.SimpleEntry{AccountID: b.itau.ID, CounterID: b.shell.ID, Amount: 1000, At: jan10.AddDate(0, 0, 1), Description: "Depois"}); err != nil {
+		t.Fatal(err)
+	}
+	l2, _ := f.svc.Register(ctx, userA, b.itau.ID, jan10.Add(12*time.Hour), jan10.AddDate(0, 1, 0))
+	if len(l2) != 1 || l2[0].Balance != 99000 {
 		t.Errorf("running balance after the delete = %+v, want ending at 99000", l2)
 	}
 	if _, err := f.svc.Transaction(ctx, userA, id); !errors.Is(err, ledger.ErrTransactionNotFound) {

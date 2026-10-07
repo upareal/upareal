@@ -22,7 +22,7 @@ tasks:
     description: "DeleteTransaction (soft, with history); excluded from Balance, Balances, Register; account still counts as used"
     verify: "go test -race ./ledger/... -run TestSoftDelete"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger"]}
   - id: t4
     description: "Web: register lines link to edit page (entry or transfer form, delete, history)"
