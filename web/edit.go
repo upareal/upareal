@@ -1,4 +1,4 @@
-// story: e06s04
+// story: e06s04 e07s02
 package web
 
 import (
@@ -15,7 +15,8 @@ import (
 // editView is the edit page of one transaction, seen from account Conta.
 type editView struct {
 	TxID, Conta, ContaName string
-	Shape                  string // "entry", "transfer" or "system"
+	Shape                  string // "entry", "transfer", "queued" (imported, on A categorizar) or "system"
+	BankAmount             string // queued: the imported amount, fixed during review
 	Date, Time, Desc       string
 	Lines                  []splitLineView
 	Expenses, Incomes      []ledger.Account
@@ -37,6 +38,16 @@ func editPost(svc *users.Service, ledg *ledger.Service) http.HandlerFunc {
 		id, conta := r.PathValue("id"), r.URL.Query().Get("conta")
 		if tx, err := ledg.Transaction(r.Context(), u.ID, id); err != nil || legAmount(tx, conta) == 0 {
 			renderError(w, r, http.StatusNotFound, "Lançamento", "Lançamento não encontrado nesta conta.")
+			return
+		}
+		if r.FormValue("categorizar") != "" {
+			if err := categorizeLine(r, ledg, u.ID, id); err != nil {
+				status, msg := editError(err)
+				renderEdit(w, r, ledg, u.ID, id, conta, r, status, msg)
+				return
+			}
+			tx, _ := ledg.Transaction(r.Context(), u.ID, id)
+			http.Redirect(w, r, "/contas/"+conta+"/lancamentos?mes="+url.QueryEscape(budget.MonthOf(tx.At).String()), http.StatusSeeOther)
 			return
 		}
 		at, err := time.ParseInLocation("2006-01-02 15:04", r.FormValue("data")+" "+r.FormValue("hora"), saoPaulo)
@@ -102,6 +113,18 @@ func editTransfer(r *http.Request, ledg *ledger.Service, userID, id string, at t
 	})
 }
 
+// categorizeLine assigns the review-queue line to the form's accounts.
+func categorizeLine(r *http.Request, ledg *ledger.Service, userID, id string) error {
+	parts, err := parseLines(r)
+	if err != nil {
+		return err
+	}
+	if len(parts) == 0 {
+		return ledger.ErrInvalidEntry
+	}
+	return ledg.Categorize(r.Context(), userID, id, parts)
+}
+
 // renderEdit shows the edit page; when form is not nil its values are kept.
 func renderEdit(w http.ResponseWriter, r *http.Request, ledg *ledger.Service, userID, id, conta string, form *http.Request, status int, errMsg string) {
 	tx, err := ledg.Transaction(r.Context(), userID, id)
@@ -130,8 +153,13 @@ func renderEdit(w http.ResponseWriter, r *http.Request, ledg *ledger.Service, us
 			v.Holders = append(v.Holders, a)
 		}
 	}
+	if v.Shape == "queued" {
+		v.BankAmount = displayChange(acc.Type, legAmount(tx, conta))
+	}
 	for _, l := range tx.Legs {
 		switch {
+		case v.Shape == "queued":
+			// lines start empty: the user says where the money went
 		case v.Shape == "transfer" && l.Amount < 0:
 			v.From, v.Amount = l.AccountID, brlInput(-l.Amount)
 		case v.Shape == "transfer":
@@ -167,6 +195,11 @@ func renderEdit(w http.ResponseWriter, r *http.Request, ledg *ledger.Service, us
 func txShape(tx ledger.Transaction, conta string) string {
 	var others []ledger.TxLeg
 	for _, l := range tx.Legs {
+		if l.SystemRole == "uncategorized_income" || l.SystemRole == "uncategorized_expense" {
+			return "queued"
+		}
+	}
+	for _, l := range tx.Legs {
 		if l.SystemRole != "" {
 			return "system"
 		}
@@ -191,7 +224,9 @@ func legAmount(tx ledger.Transaction, accountID string) int64 {
 }
 
 func keepFormValues(v *editView, r *http.Request) {
-	v.Date, v.Time, v.Desc = r.FormValue("data"), r.FormValue("hora"), r.FormValue("descricao")
+	if v.Shape != "queued" {
+		v.Date, v.Time, v.Desc = r.FormValue("data"), r.FormValue("hora"), r.FormValue("descricao")
+	}
 	if r.Form.Has("destino") {
 		v.From, v.To, v.Amount = r.FormValue("origem"), r.FormValue("destino"), r.FormValue("valor")
 		return
@@ -208,6 +243,8 @@ func editError(err error) (int, string) {
 	switch {
 	case errors.Is(err, ledger.ErrTransactionNotFound):
 		return http.StatusNotFound, "Lançamento não encontrado."
+	case errors.Is(err, ledger.ErrNotQueued):
+		return http.StatusBadRequest, "Este lançamento não está mais na revisão."
 	case errors.Is(err, ledger.ErrNotEditable):
 		return http.StatusBadRequest, "Este lançamento não pode ser editado; exclua-o ou use Ajustar saldo."
 	case errors.As(err, &mm):

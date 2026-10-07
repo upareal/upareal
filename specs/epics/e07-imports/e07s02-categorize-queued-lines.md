@@ -24,7 +24,7 @@ Either the user picks an account on `/revisao` and saves, or the user opens a qu
 1. **Quick assign** on `/revisao`: each line has one picker (the user's expense and income accounts) and **Salvar**. The whole bank amount goes to that account.
 2. **Detailed** on the edit page: a queued line opens a **"Categorizar"** form showing:
    - **Valor do extrato** (read-only),
-   - one or more lines (account and amount), with **"Falta distribuir"** (HTMX),
+   - one or more lines (account and amount). A mismatch is reported on save as **"Falta distribuir R$ X"**. The live HTMX version is left out here, because an imported income has a negative total from the account's point of view (refined during implementation).
    - date, time and description (read-only here: they can be edited afterwards with the normal edit form; refined during implementation).
 3. `ledger.Categorize` replaces the "A categorizar" leg with the chosen accounts, under these rules:
    - the money account's leg keeps the **imported amount** (lines must add up to it, or `SplitMismatch`);

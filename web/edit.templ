@@ -1,4 +1,4 @@
-// story: e06s04
+// story: e06s04 e07s02
 package web
 
 templ editPage(v editView, errMsg string) {
@@ -9,6 +9,22 @@ templ editPage(v editView, errMsg string) {
 			<p class="error" role="alert">{ errMsg }</p>
 		}
 		switch v.Shape {
+			case "queued":
+				<h2>Categorizar</h2>
+				<p>{ v.Desc } — { v.Date } { v.Time }</p>
+				<p><strong>Valor do extrato:</strong> { v.BankAmount }</p>
+				<p class="muted">Distribua o valor do extrato entre uma ou mais contas de despesa ou receita. O valor do extrato não muda.</p>
+				<form method="post" action={ templ.SafeURL("/lancamentos/" + v.TxID + "?conta=" + v.Conta) }>
+					<input type="hidden" name="categorizar" value="1"/>
+					<div id="linhas">
+						for _, l := range v.Lines {
+							@splitLineRow(l, v.Expenses, v.Incomes)
+						}
+						@splitLineRow(splitLineView{}, v.Expenses, v.Incomes)
+						@splitLineRow(splitLineView{}, v.Expenses, v.Incomes)
+					</div>
+					<button type="submit">Salvar</button>
+				</form>
 			case "system":
 				<p class="hint">Este lançamento usa uma conta do sistema (saldo inicial ou ajuste). Para corrigir o saldo, use Ajustar saldo em Contas.</p>
 			case "transfer":

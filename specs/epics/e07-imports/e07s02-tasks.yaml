@@ -16,7 +16,7 @@ tasks:
     description: "Web: queued shape on the edit page (Categorizar form, fixed bank amount); misleading system hint fixed"
     verify: "go test -race ./web/... -run TestReviewCategorize"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["UI", "integration"]}
   - id: t3
     description: "Web: quick assign on /revisao (one account, whole amount)"
