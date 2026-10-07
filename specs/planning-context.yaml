@@ -1,0 +1,174 @@
+# specs/planning-context.yaml — written by elaborate-spec; consumed by scope-work and slice-tasks
+feature_name: "upareal v1 — personal budget web app"
+problem_statement: >
+  Individuals need a private personal budget app that tracks their real money with
+  double-entry bookkeeping (signed amounts, every transaction sums to zero) and plans
+  each month with envelope (zero-based, YNAB-style) budgeting. It is a responsive web
+  app (desktop and mobile) for many independent users in Brazil, signing in with Google.
+  Financial data must stay private (LGPD) and be unreadable if the database file or
+  backups leak.
+
+architecture:
+  module: github.com/upareal/upareal
+  shape: one Go binary, one deploy, one SQLite database
+  packages:
+    users: "public package at repo root — Google sign-in, sessions, admin, self-service export/delete"
+    ledger: "public package at repo root — accounts, transactions, legs, imports"
+    planning: "public package at repo root — monthly envelope budgets"
+    web: "templ + HTMX; imports the modules; only layer that renders HTML"
+    internal: "shared code within this repo only (db helpers, config, crypto)"
+  future_split: "each module may move to its own repo (e.g. upareal-planning-svc) that instantiates the service and API"
+  module_rules:
+    - "modules contain no HTML"
+    - "each module owns its goose migrations, sqlc queries, goose version table (goose_<module>) and table prefix (<module>_*)"
+    - "no foreign keys between modules (user_id is a plain UUID column); foreign keys inside a module are kept"
+    - "cross-module integrity in Go (e.g. account deletion calls each module's DeleteUserData(userID))"
+    - "migrations run at startup in order: users, ledger, planning"
+
+domain:
+  users:
+    - "Google OIDC only; scopes openid email profile; first login creates the user"
+    - "server-side sessions: 32 random bytes, only SHA-256 hash stored; HttpOnly+Secure+SameSite=Lax cookie"
+    - "session expiry: 30 days idle, 90 days absolute; logout and log out of all devices"
+    - "admin role only from ADMIN_EMAILS env var; ADMIN_EMAILS users cannot be disabled/deleted via UI"
+    - "admins list, disable, delete users; cannot see users' financial data"
+    - "disable/delete removes the user's sessions immediately; disabled users cannot sign in"
+    - "self-service export my data and delete my account in v1"
+    - "terms acceptance stored (terms_version + accepted_at); new version asks again"
+  ledger:
+    - "account types: asset, liability, income, expense, equity"
+    - "categories are income/expense accounts; one level of grouping: Category Group -> Category"
+    - "new users get default grouped pt-BR categories, editable"
+    - "per-user system account 'Opening Balances' (equity) for opening balances and manual balance adjustments"
+    - "amounts: signed int64 centavos, BRL only; positive increases, negative decreases an account"
+    - "every transaction's legs sum to zero; unbalanced transactions are never saved"
+    - "full split transactions (multi-leg) in form and review queue; one description per transaction"
+    - "plain editing with encrypted transaction_history; soft delete (deleted_at)"
+    - "asset/liability accounts have on_budget flag; credit cards always on-budget; off-budget accounts only in balances/net worth"
+    - "archive categories only when envelope is zero (user merges or moves money first); accounts only at zero balance"
+    - "hard delete only for items never used (no legs, no budget amounts)"
+    - "display order via plaintext position INTEGER on account groups, categories and accounts"
+  import:
+    - "bank stored on each account; one parser per supported bank (best format the bank offers) behind a small Parser interface"
+    - "generic CSV fallback with documented column order, formats and example file"
+    - "all parsers return the same Line (import id, time, description, amount in centavos)"
+    - "imported lines go to a review queue with second leg on Uncategorized income/expense"
+    - "dedupe by OFX FITID or CSV row id, per account"
+    - "transfer matching in review queue: opposite amount, ±3 days, user confirms; both import ids recorded"
+    - "limits: 5 MB and 10.000 lines per file; all-or-nothing validation with line-numbered errors"
+    - "OFX: handle 1.x SGML and 2.x XML and Latin-1/Windows-1252 charsets"
+  planning:
+    - "envelope (zero-based) budgeting: all income assigned to categories"
+    - "leftovers carry over; overspending reduces next month's budget"
+    - "new month copies previous month's plan"
+    - "credit cards YNAB-style: categorized card spending moves money into the card's payment envelope; unfunded overspending shown as warning"
+    - "off-budget transfers need a category; inflows from off-budget become money to assign"
+    - "available amounts are derived from the ledger, never stored; editing past months recomputes carry-over"
+
+data_conventions:
+  - "IDs: UUIDv7 via github.com/google/uuid (uuid.NewV7), stored as TEXT(36); always scoped by user_id"
+  - "all times stored in UTC (including transaction occurred_at); displayed in America/Sao_Paulo"
+  - "day/month membership always computed in America/Sao_Paulo; date-only import lines stored at 00:00 America/Sao_Paulo"
+  - "binary imports time/tzdata"
+  - "UI pt-BR (R$ 1.234,56, dd/mm/aaaa); code, logs and README in English"
+
+privacy_security:
+  - "LGPD applies"
+  - "field-level AES-256-GCM encryption of sensitive text (email, names, account/category names, descriptions, history, import payloads)"
+  - "per-user data keys wrapped by a master key, with key version for rotation; deleting the user key crypto-shreds data in backups"
+  - "HMAC blind indexes for email lookup and import dedupe ids"
+  - "amounts and dates stay plaintext"
+  - "text search: filter in SQL on plaintext columns, decrypt and search/sort in Go; search always date-bounded (default last 12 months)"
+  - "isolation tests prove user A can never read user B's data"
+  - "encrypted EBS volume and S3 bucket; HTTPS only; CSRF protection on HTMX requests"
+  - "logs never contain amounts, descriptions or emails; only user ids"
+  - "limited Litestream retention (e.g. 30 days)"
+  - "static pages /, /privacidade, /termos (templ, pt-BR) for Google OAuth consent screen publishing"
+
+tech_stack:
+  - "Go; templ; HTMX"
+  - "SQLite via modernc.org/sqlite (no CGO); PRAGMA foreign_keys = ON in DSN"
+  - "goose (library, embedded SQL migrations); sqlc"
+  - "github.com/aclindsa/ofxgo for OFX; golang.org/x/text/encoding/charmap for charsets"
+  - "log/slog JSON to stdout"
+
+operations:
+  - "Docker-first: easy local dev, CI and AWS hosting"
+  - "AWS: single EC2 instance, Docker Compose: caddy (TLS, Let's Encrypt) -> app"
+  - "app entrypoint: litestream restore -if-replica-exists, then litestream replicate -exec the app; WAL streamed to S3"
+  - "SQLite on encrypted EBS volume; single instance only"
+  - "AWS access via EC2 instance role (SSM read, S3 write); no access keys on disk"
+  - "local dev: compose override without Caddy/Litestream, http://localhost:8080"
+  - "config from env vars only, read into a Config struct at startup, fail fast on missing values"
+  - "secrets (GOOGLE_CLIENT_SECRET, master key): from SSM SecureString when *_SSM_PARAM is set, otherwise from env var; never in a .env file"
+  - "tests and CI use no real secrets: random master key per run and a fake OIDC provider (httptest)"
+  - "/healthz (SELECT 1) used by Docker healthcheck"
+  - "graceful shutdown on SIGTERM (10s drain, close DB)"
+  - "make restore-test: restore S3 replica to temp dir and run PRAGMA integrity_check"
+  - "master key also backed up offline (e.g. password manager)"
+
+success_criteria:
+  - "user signs in with Google; account created with default grouped categories"
+  - "user creates a checking account with an opening balance"
+  - "user imports a bank file; lines land in the review queue; re-importing adds nothing"
+  - "user categorizes queued lines (including splits and transfers) or enters transactions manually"
+  - "user assigns income to categories until money to assign is R$ 0"
+  - "budget view shows assigned, spent and available per category; next month copies the plan with carry-over and overspending applied"
+  - "admin from ADMIN_EMAILS lists, disables and deletes users; disabled users cannot sign in"
+  - "all of the above works on a phone-sized screen"
+  - "an unbalanced transaction is never saved"
+  - "user A can never read user B's data"
+  - "self-service export and account deletion work"
+  - "a copy of the database contains no plaintext names, emails or descriptions"
+
+constraints:
+  - "single binary, single SQLite file, single instance"
+  - "BRL only; Brazil-only locale and time zone, no settings in v1"
+  - "Google is the only login method"
+  - "modules must stay splittable into separate repos"
+
+out_of_scope:
+  never:
+    - "automatic bank sync (Open Finance, aggregators)"
+    - "native mobile apps"
+    - "login methods other than Google"
+  later:
+    - "auto-categorization rules"
+    - "reconciliation (cleared/reconciled status)"
+    - "admin audit log"
+    - "recurring transactions"
+    - "reports and charts beyond budget view and balances"
+    - "attachments"
+    - "sharing budgets between users"
+    - "multiple currencies"
+    - "i18n / per-user locale and time zone"
+    - "per-leg memos"
+    - "monitoring and alerts"
+    - "offline PWA"
+
+open_items:
+  - "list of supported banks and their export formats (per account type)"
+  - "privacy policy and terms of service text"
+  - "domain name"
+
+key_decisions:
+  - decision: "one binary with public modules users, ledger, planning at repo root"
+    rationale: "simple to run now; public packages can be imported by future per-module service repos (internal/ cannot)"
+  - decision: "web/ layer with templ + HTMX renders all HTML"
+    rationale: "modules stay UI-free and easy to split"
+  - decision: "SQLite on EC2 with Litestream to S3"
+    rationale: "one file, no DB server, cheap; EFS/Fargate unsafe for SQLite locking"
+  - decision: "everything is an account, including equity for opening balances"
+    rationale: "real double-entry; planned-vs-actual becomes a simple query"
+  - decision: "YNAB-style envelope budgeting with credit card payment envelopes"
+    rationale: "avoids budgeting card spending twice"
+  - decision: "application field-level encryption with per-user keys wrapped by a master key in SSM Parameter Store"
+    rationale: "protects leaked DB/backups at near-zero cost; crypto-shredding covers LGPD deletion in backups"
+  - decision: "amounts and dates in plaintext"
+    rationale: "SQLite keeps sums and the zero-sum check"
+  - decision: "each module owns schema and migrations, no cross-module foreign keys"
+    rationale: "modules can move to their own repos without untangling the schema"
+  - decision: "all times stored in UTC, month logic in America/Sao_Paulo"
+    rationale: "one storage rule; correct month boundaries for Brazilian users"
+  - decision: "secrets from SSM or env, never .env files"
+    rationale: "no plaintext secrets on disk"

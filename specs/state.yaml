@@ -1,0 +1,3 @@
+workflow_mode: solo-git
+handoff:
+  next_skill: write-document

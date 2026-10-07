@@ -30,3 +30,12 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Local data and build output
+/bin/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+.env.*
+!.env.example
