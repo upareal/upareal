@@ -73,3 +73,38 @@ func TestBudgetMonthPage_DefaultsToCurrentMonthAndIsLinked(t *testing.T) {
 		t.Error("home has no link to /orcamento")
 	}
 }
+
+// story: e08s02
+func TestBudgetMonthPage_ShowsSpentAvailableAndToBeAssigned(t *testing.T) {
+	b := newBrowser(t)
+	signIn(t, b)
+	createAccount(t, b, url.Values{"nome": {"Itaú"}, "tipo": {"asset"}, "saldo": {"0,00"}, "data": {"2026-01-01"}, "orcamento": {"on"}})
+	createAccount(t, b, url.Values{"nome": {"Posto Shell"}, "tipo": {"expense"}})
+	createAccount(t, b, url.Values{"nome": {"Padaria"}, "tipo": {"expense"}})
+	_, accounts := createAccount(t, b, url.Values{"nome": {"Recebimentos"}, "tipo": {"income"}})
+	itau, shell, padaria, recebimentos := accountID(t, accounts, "Itaú"), accountID(t, accounts, "Posto Shell"), accountID(t, accounts, "Padaria"), accountID(t, accounts, "Recebimentos")
+	_, cats := b.get(t, "/categorias")
+	fuel, salary := linkID(t, cats, "/categorias/", "Combustível"), linkID(t, cats, "/categorias/", "Salário")
+	b.postForm(t, "/planejamento/mapa/"+shell, url.Values{"categoria": {fuel}})
+	b.postForm(t, "/planejamento/mapa/"+recebimentos, url.Values{"categoria": {salary}})
+	b.postForm(t, "/orcamento/2026-01/"+fuel, url.Values{"valor": {"300,00"}})
+	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(shell, "120,00", "2026-01-15", "", "Gasolina"))
+	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(recebimentos, "8.000,00", "2026-01-05", "", "Salário"))
+	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(padaria, "50,00", "2026-01-16", "", "Pão"))
+
+	_, body := b.get(t, "/orcamento?mes=2026-01")
+	for _, want := range []string{
+		"A distribuir: R$ 7.700,00",
+		"Gasto R$ 120,00", "Disponível R$ 180,00",
+		"Recebido R$ 8.000,00",
+		"Sem categoria", "Gasto R$ 50,00", `href="/planejamento/mapa"`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("month page missing %q", want)
+		}
+	}
+	b.postForm(t, "/contas/"+itau+"/lancamentos", entry(shell, "200,00", "2026-01-20", "", "Gasolina"))
+	if _, body = b.get(t, "/orcamento?mes=2026-01"); !strings.Contains(body, `class="negative">Disponível -R$ 20,00`) {
+		t.Error("overspent category is not shown as negative")
+	}
+}
