@@ -3,6 +3,8 @@ package ledger
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"sort"
 	"time"
@@ -71,4 +73,65 @@ func absDuration(d time.Duration) time.Duration {
 		return -d
 	}
 	return d
+}
+
+// ErrInvalidMatch means the chosen twin is not a valid candidate (any more).
+var ErrInvalidMatch = errors.New("ledger: the chosen line is not a matching transfer")
+
+// MarkTransfer turns queued line txID into a transfer between its account and
+// otherAccountID. When matchTxID is set, it must be a current candidate: that
+// twin (the same money seen from the other statement) is soft-deleted, keeping
+// its import record so re-importing still skips it. All in one transaction.
+func (s *Service) MarkTransfer(ctx context.Context, userID, txID, otherAccountID, matchTxID string) error {
+	return s.inTx(ctx, func(q *store.Queries) error {
+		tx, money, err := s.queuedLine(ctx, q, userID, txID)
+		if err != nil {
+			return err
+		}
+		if err := s.checkTransferTarget(ctx, q, userID, money.AccountID, otherAccountID); err != nil {
+			return err
+		}
+		var twin Transaction
+		if matchTxID != "" {
+			if twin, err = s.validTwin(ctx, q, userID, tx, money, otherAccountID, matchTxID); err != nil {
+				return err
+			}
+		}
+		legs := []Leg{{AccountID: money.AccountID, Amount: money.Amount}, {AccountID: otherAccountID, Amount: -money.Amount}}
+		if err := s.replaceTransaction(ctx, q, userID, tx, tx.At, tx.Description, legs); err != nil {
+			return err
+		}
+		if matchTxID == "" {
+			return nil
+		}
+		dk, err := s.userKey(ctx, q, userID)
+		if err != nil {
+			return err
+		}
+		if err := s.recordHistory(ctx, q, dk, userID, twin, "delete"); err != nil {
+			return err
+		}
+		return q.SoftDeleteTransaction(ctx, store.SoftDeleteTransactionParams{
+			DeletedAt: sql.NullString{String: stamp(s.now()), Valid: true}, ID: twin.ID, UserID: userID,
+		})
+	})
+}
+
+// validTwin checks that matchTxID is a queued line on otherAccountID with the
+// opposite amount within the match window.
+func (s *Service) validTwin(ctx context.Context, q *store.Queries, userID string, tx Transaction, money TxLeg, otherAccountID, matchTxID string) (Transaction, error) {
+	if matchTxID == tx.ID {
+		return Transaction{}, ErrInvalidMatch
+	}
+	twin, twinMoney, err := s.queuedLine(ctx, q, userID, matchTxID)
+	if errors.Is(err, ErrTransactionNotFound) || errors.Is(err, ErrNotQueued) {
+		return Transaction{}, ErrInvalidMatch
+	}
+	if err != nil {
+		return Transaction{}, err
+	}
+	if twinMoney.AccountID != otherAccountID || twinMoney.Amount != -money.Amount || absDuration(twin.At.Sub(tx.At)) > matchWindow {
+		return Transaction{}, ErrInvalidMatch
+	}
+	return twin, nil
 }

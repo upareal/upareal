@@ -16,7 +16,7 @@ tasks:
     description: "ledger.MarkTransfer: convert with or without twin; twin soft-deleted with history; dedupe kept; invalid match rejected"
     verify: "go test -race ./ledger/... -run TestTransferMerge"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Import", "Ledger"]}
   - id: t3
     description: "Web: 'É uma transferência' on Categorizar, confirmation page, both paths"

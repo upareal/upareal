@@ -122,13 +122,16 @@ func TestTransferMerge_WithoutTwin(t *testing.T) {
 	if err := f.svc.MarkTransfer(ctx, userA, ids["TED para poupança"], poupanca.ID, ""); err != nil {
 		t.Fatalf("MarkTransfer without twin: %v", err)
 	}
-	if balance(t, f, f.systemID(t, userA, "uncategorized_expense")) != 0 {
-		t.Error("the line still sits on A categorizar")
+	tx, _ := f.svc.Transaction(ctx, userA, ids["TED para poupança"])
+	if len(tx.Legs) != 2 || legOf(tx, poupanca.ID).Amount != 100000 || legOf(tx, b.itau.ID).Amount != -100000 {
+		t.Errorf("legs = %+v, want Itaú -100000 / Poupança +100000 (no A categorizar)", tx.Legs)
 	}
-	if balance(t, f, poupanca.ID) == 0 {
-		t.Error("Poupança did not receive the transfer")
+	q, _ := f.svc.ReviewQueue(ctx, userA)
+	for _, l := range q {
+		if l.TransactionID == ids["TED para poupança"] {
+			t.Error("the line is still in the queue")
+		}
 	}
-	_ = b
 }
 
 func TestTransferMerge_RejectsInvalidMatch(t *testing.T) {
