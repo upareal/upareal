@@ -1,0 +1,10 @@
+# story: e01s02
+.git
+.agents
+.github
+bin
+specs
+*.db
+*.db-shm
+*.db-wal
+.env*

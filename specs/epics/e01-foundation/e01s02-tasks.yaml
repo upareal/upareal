@@ -16,7 +16,7 @@ tasks:
     description: "Multi-stage Dockerfile: golang:1.26 CGO_ENABLED=0 -> distroless static-debian13:nonroot; /data owned by 65532; .dockerignore"
     verify: "docker build -t upareal:dev ."
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Container"]}
   - id: t3
     description: "compose.yaml: app service, 8080:8080, upareal-data:/data, DB_PATH, healthcheck with start_period/retries"
