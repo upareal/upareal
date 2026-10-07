@@ -1,4 +1,4 @@
-// story: e04s01
+// story: e04s01 e04s02
 package ledger
 
 import (
@@ -14,6 +14,8 @@ type Account struct {
 	Type       string // asset, liability, income, expense, equity
 	Name       string
 	SystemRole string
+	OnBudget   bool // asset/liability only: counts in the budget
+	IsCard     bool // liability only: credit card (always on-budget)
 }
 
 // Accounts returns userID's active accounts, ordered by type (asset,
@@ -40,7 +42,8 @@ func (s *Service) Accounts(ctx context.Context, userID string) ([]Account, error
 		if err != nil {
 			return nil, err
 		}
-		accounts = append(accounts, Account{ID: r.ID, Type: r.Type, Name: name, SystemRole: r.SystemRole.String})
+		accounts = append(accounts, Account{ID: r.ID, Type: r.Type, Name: name, SystemRole: r.SystemRole.String,
+			OnBudget: r.OnBudget == 1, IsCard: r.IsCard == 1})
 	}
 	return accounts, nil
 }

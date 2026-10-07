@@ -55,7 +55,8 @@ func (s *Service) EnsureDefaults(ctx context.Context, userID string) error {
 			if have[sa.role] {
 				continue
 			}
-			if err := s.insertAccount(ctx, q, dk, userID, sa.accountType, sa.name, 0, sql.NullString{String: sa.role, Valid: true}); err != nil {
+			row := accountRow{accountType: sa.accountType, name: sa.name, role: sql.NullString{String: sa.role, Valid: true}}
+			if _, err := s.insertAccount(ctx, q, dk, userID, row); err != nil {
 				return err
 			}
 		}
@@ -63,21 +64,35 @@ func (s *Service) EnsureDefaults(ctx context.Context, userID string) error {
 	})
 }
 
-func (s *Service) insertAccount(ctx context.Context, q *store.Queries, dk *vault.DataKey, userID, accountType, name string,
-	position int64, role sql.NullString) error {
-	id, sealed, err := newSealedRow(dk, name)
+// accountRow is what insertAccount writes.
+type accountRow struct {
+	accountType, name string
+	position          int64
+	role              sql.NullString
+	onBudget, isCard  bool
+}
+
+func (s *Service) insertAccount(ctx context.Context, q *store.Queries, dk *vault.DataKey, userID string, r accountRow) (string, error) {
+	id, sealed, err := newSealedRow(dk, r.name)
 	if err != nil {
-		return err
+		return "", err
 	}
 	err = q.CreateAccount(ctx, store.CreateAccountParams{
-		ID: id, UserID: userID, Type: accountType, Name: sealed,
-		Position: position, SystemRole: role, CreatedAt: stamp(s.now()),
-		OnBudget: 0, IsCard: 0,
+		ID: id, UserID: userID, Type: r.accountType, Name: sealed,
+		Position: r.position, SystemRole: r.role, CreatedAt: stamp(s.now()),
+		OnBudget: boolInt(r.onBudget), IsCard: boolInt(r.isCard),
 	})
 	if err != nil {
-		return fmt.Errorf("ledger: create %s account: %w", accountType, err)
+		return "", fmt.Errorf("ledger: create %s account: %w", r.accountType, err)
 	}
-	return nil
+	return id, nil
+}
+
+func boolInt(b bool) int64 {
+	if b {
+		return 1
+	}
+	return 0
 }
 
 // userKey returns the ledger's data key for userID, creating it on first use.

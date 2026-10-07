@@ -28,7 +28,7 @@ tasks:
     description: "CreateAccount: all types, on_budget/is_card rules, opening balance vs Saldo inicial"
     verify: "go test -race ./ledger/... -run TestCreateAccount"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger"]}
   - id: t5
     description: "Balance (sum of legs, L4) and AdjustBalance vs Saldo inicial"
