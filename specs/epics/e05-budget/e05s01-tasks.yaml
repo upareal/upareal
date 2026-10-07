@@ -1,0 +1,18 @@
+story_id: e05s01
+title: Default grouped categories and categories page
+status: todo
+bcps: 3
+outcome: A new user gets the default pt-BR groups and categories in the budget module and sees them on /categorias.
+tasks:
+- id: t1
+  description: 'budget module: own data key, groups and categories schema, EnsureDefaults (idempotent, concurrent-safe)'
+  verify: go test -race ./budget/... -run TestEnsureDefaults
+  status: todo
+- id: t2
+  description: Categories listing in order; user isolation; no plaintext names at rest
+  verify: go test -race ./budget/... -run 'TestCategories|TestIsolation|TestBudgetHasNoPlaintext'
+  status: todo
+- id: t3
+  description: Sign-in callback ensures budget defaults; /categorias page
+  verify: go test -race ./web/... -run TestCategoriesPage
+  status: todo

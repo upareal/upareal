@@ -1,0 +1,14 @@
+story_id: e07s04
+title: Generic OFX import
+status: todo
+bcps: 5
+outcome: A user imports an OFX 1.x or 2.x file (including Windows-1252) into an account; FITID prevents duplicates.
+tasks:
+- id: t1
+  description: Transcode CHARSET 1252/8859-1 to UTF-8, then ofxgo.ParseResponse; fixture tests
+  verify: go test -race ./ledger/importer/... -run TestOFX
+  status: todo
+- id: t2
+  description: Account's bank selects its parser (generic CSV / generic OFX for now)
+  verify: go test -race ./ledger/... -run TestParserForAccount
+  status: todo

@@ -2,7 +2,7 @@
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Go](https://img.shields.io/badge/Go-1.26-00ADD8.svg)
-![Status](https://img.shields.io/badge/status-planning-lightgrey.svg)
+![Status](https://img.shields.io/badge/status-in%20development-yellow.svg)
 
 > Private personal budgeting for Brazilians: double-entry bookkeeping plus envelope budgeting, in a responsive web app.
 
@@ -10,7 +10,7 @@ upareal tracks every real you own or owe with double-entry bookkeeping. Every tr
 
 It is built for individuals in Brazil: BRL only, pt-BR interface, Google sign-in, and bank statement imports. Financial data is private by design. Names and descriptions are encrypted per user, so a leaked database or backup reveals no readable personal data.
 
-> **Status: planning.** No application code exists yet. The commands below describe the target workflow. Decisions live in [`specs/planning-context.yaml`](specs/planning-context.yaml).
+> **Status: in development.** Sign-in, sessions and encryption work; budgeting is being built. Decisions live in [`specs/planning-context.yaml`](specs/planning-context.yaml).
 
 ## Features
 
@@ -27,8 +27,9 @@ It is built for individuals in Brazil: BRL only, pt-BR interface, Google sign-in
 |------|------|
 | `cmd/upareal/` | `main`: wires config, database, modules and web |
 | `users/` | Google sign-in, sessions, admin, export and deletion |
-| `ledger/` | Accounts, transactions, imports |
-| `planning/` | Monthly envelope budgets |
+| `ledger/` | Money movement: accounts, transactions, imports |
+| `budget/` | Intent: categories (one level of groups) and monthly amounts |
+| `planning/` | Joins ledger and budget: account→category mapping, envelopes, carry-over, card payment envelopes |
 | `web/` | templ + HTMX pages and fragments; the only layer that renders HTML |
 | `internal/` | Shared code for this repo: config, database helpers, crypto |
 

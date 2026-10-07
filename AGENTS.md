@@ -58,7 +58,10 @@ Stack: Go 1.26, templ + HTMX, SQLite (`modernc.org/sqlite`), goose, sqlc, Docker
 ## Architecture
 
 One Go binary. `cmd/upareal` wires config, database, modules and `web/`.
-Public modules `users`, `ledger` and `planning` hold domain logic and own their schemas.
+Public modules `users`, `ledger`, `budget` and `planning` hold domain logic and own their schemas.
+`ledger` holds accounts and transactions. `budget` holds categories and monthly amounts.
+`planning` joins ledger and budget.
+Domain invariants (L1-L7, B1-B4, P1-P4, X1-X2) live in `specs/planning-context.yaml` → `domain.invariants`.
 `web/` (templ + HTMX) imports the modules and renders all HTML. `internal/` holds shared code.
 Full decisions live in `specs/planning-context.yaml`.
 

@@ -13,8 +13,9 @@ architecture:
   shape: one Go binary, one deploy, one SQLite database
   packages:
     users: "public package at repo root — Google sign-in, sessions, admin, self-service export/delete"
-    ledger: "public package at repo root — accounts, transactions, legs, imports"
-    planning: "public package at repo root — monthly envelope budgets"
+    ledger: "public package at repo root — money movement only: accounts, transactions, legs, imports"
+    budget: "public package at repo root — categories (one level of groups) and the amount allowed/expected per category per month; knows nothing about real money"
+    planning: "public package at repo root — joins ledger and budget: maps ledger accounts to budget categories and computes spent, available, carry-over, to be assigned, card payment envelopes; goals later"
     web: "templ + HTMX; imports the modules; only layer that renders HTML"
     internal: "shared code within this repo only (db helpers, config, crypto)"
   future_split: "each module may move to its own repo (e.g. upareal-planning-svc) that instantiates the service and API"
@@ -23,7 +24,7 @@ architecture:
     - "each module owns its goose migrations, sqlc queries, goose version table (goose_<module>) and table prefix (<module>_*)"
     - "no foreign keys between modules (user_id is a plain UUID column); foreign keys inside a module are kept"
     - "cross-module integrity in Go (e.g. account deletion calls each module's DeleteUserData(userID))"
-    - "migrations run at startup in order: users, ledger, planning"
+    - "migrations run at startup in order: users, ledger, budget, planning"
 
 domain:
   users:
@@ -38,18 +39,16 @@ domain:
     - "self-service export my data and delete my account in v1"
     - "terms acceptance stored (terms_version + accepted_at); new version asks again"
   ledger:
-    - "account types: asset, liability, income, expense, equity"
-    - "categories are income/expense accounts; one level of grouping: Category Group -> Category"
-    - "new users get default grouped pt-BR categories, editable"
-    - "per-user system account 'Opening Balances' (equity) for opening balances and manual balance adjustments"
+    - "ledger stores money movement only: accounts and transactions (no categories, no groups)"
+    - "account types: asset, liability, income, expense, equity; users create accounts of every type as they go"
+    - "new users get only system accounts: 'Saldo inicial' (equity) for opening balances and manual adjustments, 'A categorizar' (income) and 'A categorizar' (expense) for imported lines"
     - "amounts: signed int64 centavos, BRL only; positive increases, negative decreases an account"
     - "every transaction's legs sum to zero; unbalanced transactions are never saved"
     - "full split transactions (multi-leg) in form and review queue; one description per transaction"
     - "plain editing with encrypted transaction_history; soft delete (deleted_at)"
     - "asset/liability accounts have on_budget flag; credit cards always on-budget; off-budget accounts only in balances/net worth"
-    - "archive categories only when envelope is zero (user merges or moves money first); accounts only at zero balance"
-    - "hard delete only for items never used (no legs, no budget amounts)"
-    - "display order via plaintext position INTEGER on account groups, categories and accounts"
+    - "archive accounts only at zero balance; hard delete only for accounts never used (no legs)"
+    - "display order via plaintext position INTEGER on accounts"
   import:
     - "bank stored on each account; one parser per supported bank (best format the bank offers) behind a small Parser interface"
     - "generic CSV fallback with documented column order, formats and example file"
@@ -59,13 +58,45 @@ domain:
     - "transfer matching in review queue: opposite amount, ±3 days, user confirms; both import ids recorded"
     - "limits: 5 MB and 10.000 lines per file; all-or-nothing validation with line-numbered errors"
     - "OFX: handle 1.x SGML and 2.x XML; transcode Latin-1/Windows-1252 to UTF-8 BEFORE ofxgo.ParseResponse (ofxgo ignores CHARSET)"
+  budget:
+    - "categories are expense or income; one level of grouping: Category Group -> Category"
+    - "new users get the default grouped pt-BR categories (10 groups, 37 categories), editable"
+    - "stores the amount allowed/expected per category per month (e.g. Combustivel, January, R$ 300,00); does not know where real money comes from"
+    - "a new month starts as a copy of the previous month's amounts"
+    - "archive categories only when their planning envelope is zero (user merges or moves money first); merge moves amounts to the target category"
+    - "display order via plaintext position INTEGER on groups and categories"
   planning:
-    - "envelope (zero-based) budgeting: all income assigned to categories"
-    - "leftovers carry over; overspending reduces next month's budget"
-    - "new month copies previous month's plan"
-    - "credit cards YNAB-style: categorized card spending moves money into the card's payment envelope; unfunded overspending shown as warning"
+    - "maps ledger income/expense accounts to budget categories: each account maps to at most one category; a category can have many accounts"
+    - "v1 maps only income/expense accounts (open: whether asset/liability accounts may be mapped)"
+    - "spent of a category in a month = sum of legs on its mapped ledger accounts; unmapped accounts are shown as 'Sem categoria' so no money is left out"
+    - "envelope (zero-based) budgeting: to be assigned = income received - amounts assigned"
+    - "available = amount + carry-over - spent; leftovers carry over; overspending reduces next month"
+    - "credit cards YNAB-style: a virtual payment envelope per card sets aside money equal to the budgeted card spending; unfunded card debt is flagged"
     - "off-budget transfers need a category; inflows from off-budget become money to assign"
-    - "available amounts are derived from the ledger, never stored; editing past months recomputes carry-over"
+    - "everything derived is computed, never stored; editing past months recomputes carry-over"
+    - "goals (later) will be referenced by planning"
+  invariants:
+    ledger:
+      - "L1 every transaction has at least 2 legs and the legs sum to zero"
+      - "L2 a leg amount is non-zero int64 centavos (BRL)"
+      - "L3 all legs of a transaction belong to accounts of the same user"
+      - "L4 an account balance is the sum of its legs, never stored"
+      - "L5 an account type cannot change once it has legs"
+      - "L6 archived accounts take no new legs"
+      - "L7 system accounts cannot be deleted or archived"
+    budget:
+      - "B1 one level of groups; a category belongs to exactly one group; groups do not nest"
+      - "B2 a category kind (expense|income) matches its group kind"
+      - "B3 at most one amount per (category, month); months are calendar months in America/Sao_Paulo"
+      - "B4 amounts are int64 centavos >= 0"
+    planning:
+      - "P1 a ledger account maps to at most one category"
+      - "P2 kinds match: income account -> income category, expense account -> expense category"
+      - "P3 unmapped accounts appear as 'Sem categoria'; no money is left out of totals"
+      - "P4 derived values (spent, available, carry-over, to be assigned, card envelopes) are computed, never stored"
+    cross_module:
+      - "X1 modules reference each other by ID only, no foreign keys; a deleted category or account drops its mappings (account becomes Sem categoria)"
+      - "X2 every row belongs to exactly one user; every query filters by user_id"
 
 data_conventions:
   - "IDs: UUIDv7 via github.com/google/uuid (uuid.NewV7), stored as TEXT(36); always scoped by user_id"
@@ -148,7 +179,7 @@ out_of_scope:
     - "i18n / per-user locale and time zone"
     - "per-leg memos"
     - "monitoring and alerts"
-    - "row-level AAD binding for encrypted fields (revisit before e05 stores descriptions; format change)"
+    - "row-level AAD binding for encrypted fields (revisit before e06 stores transaction descriptions; format change)"
     - "offline PWA"
 
 open_items:
@@ -157,14 +188,14 @@ open_items:
   - "domain name"
 
 key_decisions:
-  - decision: "one binary with public modules users, ledger, planning at repo root"
+  - decision: "one binary with public modules users, ledger, budget, planning at repo root"
     rationale: "simple to run now; public packages can be imported by future per-module service repos (internal/ cannot)"
   - decision: "web/ layer with templ + HTMX renders all HTML"
     rationale: "modules stay UI-free and easy to split"
   - decision: "SQLite on EC2 with Litestream to S3"
     rationale: "one file, no DB server, cheap; EFS/Fargate unsafe for SQLite locking"
-  - decision: "everything is an account, including equity for opening balances"
-    rationale: "real double-entry; planned-vs-actual becomes a simple query"
+  - decision: "everything in the ledger is an account, including equity for opening balances"
+    rationale: "real double-entry"
   - decision: "YNAB-style envelope budgeting with credit card payment envelopes"
     rationale: "avoids budgeting card spending twice"
   - decision: "application field-level encryption with per-user keys wrapped by a master key in SSM Parameter Store"
@@ -201,3 +232,9 @@ key_decisions:
     rationale: "no change to users API; a failed first sign-in self-heals on the next"
   - decision: "SQLite write transactions use _txlock=immediate"
     rationale: "concurrent writers wait for the lock up front instead of racing read-then-write"
+  - decision: "SUPERSEDES 'categories are income/expense ledger accounts': categories live in a separate budget module; planning maps ledger accounts to categories (2026-10-07)"
+    rationale: "ledger records money movement only; budget records intent; planning joins them and will host goals"
+  - decision: "keep YNAB-style card payment envelopes, computed by planning"
+    rationale: "user wants money set aside for card bills, as in YNAB"
+  - decision: "new users get budget categories and ledger system accounts only; no default ledger income/expense accounts and no default mapping"
+    rationale: "user creates ledger accounts as they go; unmapped accounts show as Sem categoria"

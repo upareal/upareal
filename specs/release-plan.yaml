@@ -1,5 +1,5 @@
 # Release index. Story status lives in execution-status.yaml, not here.
-# Order = dependency-driven WSJF: each epic builds on the previous ones. plan-release refines BCPs.
+# Order = dependency-driven WSJF. Re-sliced 2026-10-07 after the ledger/budget/planning split.
 release:
   codename: v1
   version: null
@@ -21,37 +21,42 @@ epics:
   wsjf_rank: 3
   bcps: 16
 - id: e04
-  slug: accounts-categories
-  path: specs/epics/e04-accounts-categories
+  slug: ledger-accounts
+  path: specs/epics/e04-ledger-accounts
   wsjf_rank: 4
-  bcps: 21
+  bcps: 18
 - id: e05
-  slug: transactions
-  path: specs/epics/e05-transactions
+  slug: budget
+  path: specs/epics/e05-budget
   wsjf_rank: 5
-  bcps: 23
+  bcps: 13
 - id: e06
-  slug: imports
-  path: specs/epics/e06-imports
+  slug: transactions
+  path: specs/epics/e06-transactions
   wsjf_rank: 6
-  bcps: 26
+  bcps: 23
 - id: e07
-  slug: envelope-budget
-  path: specs/epics/e07-envelope-budget
+  slug: imports
+  path: specs/epics/e07-imports
   wsjf_rank: 7
-  bcps: 29
+  bcps: 26
 - id: e08
-  slug: admin
-  path: specs/epics/e08-admin
+  slug: planning
+  path: specs/epics/e08-planning
   wsjf_rank: 8
-  bcps: 8
+  bcps: 34
 - id: e09
-  slug: data-rights
-  path: specs/epics/e09-data-rights
+  slug: admin
+  path: specs/epics/e09-admin
   wsjf_rank: 9
   bcps: 8
 - id: e10
-  slug: production
-  path: specs/epics/e10-production
+  slug: data-rights
+  path: specs/epics/e10-data-rights
   wsjf_rank: 10
+  bcps: 8
+- id: e11
+  slug: production
+  path: specs/epics/e11-production
+  wsjf_rank: 11
   bcps: 16

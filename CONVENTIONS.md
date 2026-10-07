@@ -17,7 +17,7 @@ fix(planning): carry overspending into next month
 chore(deps): bump templ to v0.3
 ```
 
-**Scopes:** `users`, `ledger`, `planning`, `web`, `internal`, `deploy`, `deps`.
+**Scopes:** `users`, `ledger`, `budget`, `planning`, `web`, `internal`, `deploy`, `deps`.
 
 ### Types & Version Bumps
 
@@ -98,13 +98,15 @@ DO NOT put story status in `release-plan.yaml`. Git tags are the version authori
 
 ## Architecture Rules
 
-- `users`, `ledger` and `planning` are public packages at the repo root. They MUST stay splittable into separate repos.
+- `users`, `ledger`, `budget` and `planning` are public packages at the repo root. They MUST stay splittable into separate repos.
+- `ledger` holds money movement only (accounts, transactions). `budget` holds intent (categories, monthly amounts). `planning` joins them.
+- Every change MUST preserve the domain invariants in `specs/planning-context.yaml` → `domain.invariants`.
 - Modules MUST NOT contain HTML. `web/` renders all pages and HTMX fragments with templ.
 - A module MUST NOT import another module's unexported internals or query another module's tables.
 - Each module owns `migrations/` (goose SQL, embedded), `queries/` (sqlc) and its generated code.
 - Each module uses its own goose version table `goose_<module>` and table prefix `<module>_`.
 - Foreign keys exist ONLY inside a module. Cross-module integrity is enforced in Go.
-- `cmd/upareal` runs migrations at startup in order: users, ledger, planning.
+- `cmd/upareal` runs migrations at startup in order: users, ledger, budget, planning.
 - `internal/` holds code shared within this repo only: config, database helpers, crypto.
 
 ## Data Rules

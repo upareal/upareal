@@ -1,0 +1,14 @@
+story_id: e09s01
+title: Admin lists users
+status: todo
+bcps: 3
+outcome: Users in ADMIN_EMAILS see a user list (email, created, last seen, status) and nothing financial.
+tasks:
+- id: t1
+  description: Admin role from ADMIN_EMAILS on each sign-in; admin-only routes
+  verify: go test -race ./users/... ./web/... -run TestAdminAccess
+  status: todo
+- id: t2
+  description: User list page
+  verify: go test -race ./web/... -run TestAdminUserList
+  status: todo

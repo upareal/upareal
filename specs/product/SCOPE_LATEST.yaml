@@ -1,174 +1,183 @@
-# specs/product/SCOPE_LATEST.yaml — written by scope-work; source of truth for WHAT and WHY.
-# HOW lives in specs/planning-context.yaml (decisions) and epic capsules (implementation).
-# Epic IDs below are provisional; plan-release/slice-tasks confirm them.
-initiative: "upareal v1"
-core_value: "Brazilians plan every real of their monthly income and see their true balances, without exposing their financial data."
+initiative: upareal v1
+core_value: Brazilians plan every real of their monthly income and see their true balances, without exposing their financial data.
+summary: 'upareal v1 is a private personal budget web app for individuals in Brazil. Anyone signs in
 
-summary: |
-  upareal v1 is a private personal budget web app for individuals in Brazil. Anyone signs in
   with a Google account and keeps their own accounts, transactions and monthly plans, which
+
   no other user and no admin can see.
 
+
   The ledger records real money with double-entry bookkeeping using signed amounts: every
+
   transaction sums to zero. Users enter transactions by hand or import bank statements, then
-  review and categorize them. Monthly planning follows the envelope (zero-based) method:
+
+  review and categorize them. The ledger records money movement only (accounts and transactions). The budget records intent: an amount per category per
+  month. Planning joins both with the envelope (zero-based) method:
+
   all income is assigned to categories, leftovers carry over, overspending reduces the next
+
   month, and credit card spending is set aside for the bill.
 
+
   Privacy is a product feature, not an add-on: personal text is unreadable in a leaked
+
   database or backup, and users can export or delete their data themselves (LGPD). The app
+
   works on desktop and phone browsers.
 
+  '
 in_scope:
-  - id: S01
-    item: "The app runs locally with one command over plain HTTP and passes the same checks locally and in CI."
-    epic: e01-foundation
-  - id: S02
-    item: "Personal text (emails, names, account and category names, descriptions) is unreadable without the app's keys."
-    epic: e02-data-protection
-    note: "The master key comes from configuration; a secure key store is not required here (see S23)."
-  - id: S23
-    item: "In production the app is reachable only over HTTPS, its secrets never sit on disk, and its data recovers from continuous backups."
-    epic: e10-production
-  - id: S03
-    item: "Users sign in with Google; first sign-in creates the account; users accept the current privacy policy and terms."
-    epic: e03-sign-in
-  - id: S04
-    item: "Users stay signed in across visits, can log out, and can log out of all devices."
-    epic: e03-sign-in
-  - id: S05
-    item: "Public pages: landing, privacy policy, terms of service (pt-BR)."
-    epic: e03-sign-in
-  - id: S06
-    item: "Users manage accounts (asset, liability) and categories (income, expense) in groups, starting from a default grouped pt-BR list."
-    epic: e04-accounts-categories
-  - id: S07
-    item: "Users set opening balances and correct balances by hand."
-    epic: e04-accounts-categories
-  - id: S08
-    item: "Users archive, restore and merge categories and accounts without losing history."
-    epic: e04-accounts-categories
-  - id: S09
-    item: "Users mark asset and liability accounts as on-budget or tracking-only."
-    epic: e04-accounts-categories
-  - id: S10
-    item: "Users record, edit, split and delete transactions; an unbalanced transaction is never saved; every edit is kept in history."
-    epic: e05-transactions
-  - id: S11
-    item: "Users record transfers between their own accounts, including credit card bill payments."
-    epic: e05-transactions
-  - id: S12
-    item: "Users find transactions by text, account, category, amount and date range."
-    epic: e05-transactions
-  - id: S13
-    item: "Users import statements in a documented generic CSV format into a specific account."
-    epic: e06-imports
-  - id: S14
-    item: "Users import statements from supported banks in the best format each bank offers."
-    epic: e06-imports
-    note: "Bank list is an open item (see planning-context.yaml)."
-  - id: S15
-    item: "Imported lines wait in a review queue for categorization or splitting; re-importing the same file adds nothing."
-    epic: e06-imports
-  - id: S16
-    item: "The review queue proposes merging the two sides of a transfer imported from two statements; the user confirms."
-    epic: e06-imports
-  - id: S17
-    item: "Users assign income to categories each month until nothing is left to assign; a new month starts from the previous plan."
-    epic: e07-envelope-budget
-  - id: S18
-    item: "The budget view shows assigned, spent and available per category; leftovers carry over and overspending reduces next month."
-    epic: e07-envelope-budget
-  - id: S19
-    item: "Credit card spending on budgeted categories is set aside for the card bill; unfunded card debt is flagged."
-    epic: e07-envelope-budget
-  - id: S20
-    item: "Admins list, disable and delete users; disabled users cannot sign in; admins never see users' financial data."
-    epic: e08-admin
-  - id: S21
-    item: "Users export all their data and delete their account themselves; deleted data becomes unrecoverable, including in backups."
-    epic: e09-data-rights
-  - id: S22
-    item: "Every screen works on a phone-sized browser."
-    epic: all
-    note: "Cross-cutting acceptance criterion for every UI story, not a separate epic."
-
+- id: S01
+  item: The app runs locally with one command over plain HTTP and passes the same checks locally and in CI.
+  epic: e01-foundation
+- id: S02
+  item: Personal text (emails, names, account and category names, descriptions) is unreadable without the app's keys.
+  epic: e02-data-protection
+  note: The master key comes from configuration; a secure key store is not required here (see S23).
+- id: S23
+  item: In production the app is reachable only over HTTPS, its secrets never sit on disk, and its data recovers from continuous backups.
+  epic: e11-production
+- id: S03
+  item: Users sign in with Google; first sign-in creates the account; users accept the current privacy policy and terms.
+  epic: e03-sign-in
+- id: S04
+  item: Users stay signed in across visits, can log out, and can log out of all devices.
+  epic: e03-sign-in
+- id: S05
+  item: 'Public pages: landing, privacy policy, terms of service (pt-BR).'
+  epic: e03-sign-in
+- id: S06
+  item: Users manage budget categories (expense and income) in one level of groups, starting from a default grouped pt-BR list.
+  epic: e05-budget
+- id: S07
+  item: Users create ledger accounts of every type (bank, card, income, expense), set opening balances and correct balances by hand.
+  epic: e04-ledger-accounts
+- id: S08
+  item: Users archive, restore and merge budget categories and archive ledger accounts without losing history.
+  epic: e05-budget
+  note: Account archive in e04; category archive/merge in e07 (needs planning envelope = 0 check).
+- id: S09
+  item: Users mark asset and liability accounts as on-budget or tracking-only.
+  epic: e04-ledger-accounts
+- id: S10
+  item: Users record, edit, split and delete transactions; an unbalanced transaction is never saved; every edit is kept in history.
+  epic: e06-transactions
+- id: S11
+  item: Users record transfers between their own accounts, including credit card bill payments.
+  epic: e06-transactions
+- id: S12
+  item: Users find transactions by text, account, category, amount and date range.
+  epic: e06-transactions
+- id: S13
+  item: Users import statements in a documented generic CSV format into a specific account.
+  epic: e07-imports
+- id: S14
+  item: Users import statements from supported banks in the best format each bank offers.
+  epic: e07-imports
+  note: Bank list is an open item (see planning-context.yaml).
+- id: S15
+  item: Imported lines wait in a review queue for categorization or splitting; re-importing the same file adds nothing.
+  epic: e07-imports
+- id: S16
+  item: The review queue proposes merging the two sides of a transfer imported from two statements; the user confirms.
+  epic: e07-imports
+- id: S17
+  item: Users set the amount for each budget category each month; a new month starts from the previous month's amounts.
+  epic: e05-budget
+- id: S18
+  item: Users map ledger accounts to budget categories; the planning view shows assigned, spent and available per category, to be assigned, carry-over and
+    overspending; unmapped spending shows as Sem categoria.
+  epic: e08-planning
+- id: S19
+  item: Credit card spending on budgeted categories is set aside for the card bill; unfunded card debt is flagged.
+  epic: e08-planning
+- id: S20
+  item: Admins list, disable and delete users; disabled users cannot sign in; admins never see users' financial data.
+  epic: e09-admin
+- id: S21
+  item: Users export all their data and delete their account themselves; deleted data becomes unrecoverable, including in backups.
+  epic: e10-data-rights
+- id: S22
+  item: Every screen works on a phone-sized browser.
+  epic: all
+  note: Cross-cutting acceptance criterion for every UI story, not a separate epic.
+- id: S24
+  item: Planning is the place that joins real money (ledger) with intent (budget); goals will attach to it later.
+  epic: e08-planning
+  note: Goals themselves are deferred.
 out_of_scope:
   never:
-    - item: "Automatic bank sync (Open Finance, aggregators)"
-      why: "Not valuable enough: needs a regulated or paid provider and adds a third party holding bank access."
-    - item: "Native mobile apps"
-      why: "Not valuable: responsive web covers phones with one codebase."
-    - item: "Sign-in methods other than Google"
-      why: "Not valuable: Google avoids passwords, password reset and email delivery entirely."
+  - item: Automatic bank sync (Open Finance, aggregators)
+    why: 'Not valuable enough: needs a regulated or paid provider and adds a third party holding bank access.'
+  - item: Native mobile apps
+    why: 'Not valuable: responsive web covers phones with one codebase.'
+  - item: Sign-in methods other than Google
+    why: 'Not valuable: Google avoids passwords, password reset and email delivery entirely.'
   deferred:
-    - item: "Auto-categorization rules for imports"
-      why: "Deferred: review queue works manually first; rules build on real usage."
-    - item: "Reconciliation (cleared/reconciled status, statement balance check)"
-      why: "Deferred: manual balance correction (S07) covers v1."
-    - item: "Admin audit log"
-      why: "Deferred: low admin volume in v1."
-    - item: "Recurring or scheduled transactions"
-      why: "Deferred: not needed to prove the budget loop."
-    - item: "Reports and charts beyond the budget view and balances"
-      why: "Deferred: budget view answers the core question first."
-    - item: "Attachments and receipts"
-      why: "Deferred: adds file storage and more encrypted data."
-    - item: "Sharing budgets between users"
-      why: "Deferred: v1 data model is strictly one owner per record."
-    - item: "Multiple currencies"
-      why: "Deferred: BRL-only keeps sums exact and simple."
-    - item: "Other languages, locales and time zones"
-      why: "Deferred: v1 targets Brazil only."
-    - item: "Memos per transaction leg"
-      why: "Deferred: one description per transaction is enough for v1."
-    - item: "Goals and savings targets"
-      why: "Deferred: envelope carry-over covers saving in v1."
-    - item: "Notifications (email, push)"
-      why: "Deferred: no email provider in v1."
-    - item: "Offline use (PWA offline mode)"
-      why: "Deferred: server-rendered app needs connectivity."
-    - item: "Monitoring and alerting beyond a health check"
-      why: "Deferred: single-user operator in v1."
-
+  - item: Auto-categorization rules for imports
+    why: 'Deferred: review queue works manually first; rules build on real usage.'
+  - item: Reconciliation (cleared/reconciled status, statement balance check)
+    why: 'Deferred: manual balance correction (S07) covers v1.'
+  - item: Admin audit log
+    why: 'Deferred: low admin volume in v1.'
+  - item: Recurring or scheduled transactions
+    why: 'Deferred: not needed to prove the budget loop.'
+  - item: Reports and charts beyond the budget view and balances
+    why: 'Deferred: budget view answers the core question first.'
+  - item: Attachments and receipts
+    why: 'Deferred: adds file storage and more encrypted data.'
+  - item: Sharing budgets between users
+    why: 'Deferred: v1 data model is strictly one owner per record.'
+  - item: Multiple currencies
+    why: 'Deferred: BRL-only keeps sums exact and simple.'
+  - item: Other languages, locales and time zones
+    why: 'Deferred: v1 targets Brazil only.'
+  - item: Memos per transaction leg
+    why: 'Deferred: one description per transaction is enough for v1.'
+  - item: Goals and savings targets
+    why: 'Deferred: envelope carry-over covers saving in v1.'
+  - item: Notifications (email, push)
+    why: 'Deferred: no email provider in v1.'
+  - item: Offline use (PWA offline mode)
+    why: 'Deferred: server-rendered app needs connectivity.'
+  - item: Monitoring and alerting beyond a health check
+    why: 'Deferred: single-user operator in v1.'
 constraints:
   product:
-    - "Brazil only: BRL currency, pt-BR interface, Sao Paulo time for days and months."
-    - "Many independent users; each record has exactly one owner."
-    - "Google account required to use the app."
-    - "Must comply with LGPD: consent record, access/export, deletion."
+  - 'Brazil only: BRL currency, pt-BR interface, Sao Paulo time for days and months.'
+  - Many independent users; each record has exactly one owner.
+  - Google account required to use the app.
+  - 'Must comply with LGPD: consent record, access/export, deletion.'
   technical:
-    - "Single instance with a single local database file (details in planning-context.yaml)."
-    - "Hosted on AWS; must run identically in a container locally, in CI and in production."
-    - "Modules users, ledger and planning must stay splittable into separate services later."
+  - Single instance with a single local database file (details in planning-context.yaml).
+  - Hosted on AWS; must run identically in a container locally, in CI and in production.
+  - Modules users, ledger and planning must stay splittable into separate services later.
   cost:
-    - "Low fixed hosting cost; no paid services required for key storage or TLS."
+  - Low fixed hosting cost; no paid services required for key storage or TLS.
   resources:
-    - "Solo developer."
-
+  - Solo developer.
 success_criteria:
-  - "A new user signs in with Google and sees the default grouped categories."
-  - "The user creates a checking account with an opening balance."
-  - "The user imports a statement; lines land in the review queue; re-importing adds nothing."
-  - "The user categorizes queued lines (including a split and a transfer) and enters one transaction by hand."
-  - "The user assigns income until nothing is left to assign."
-  - "The budget view shows assigned, spent and available; next month starts from a copy with carry-over and overspending applied."
-  - "Card spending moves money to the card's payment envelope; paying the bill does not hit a category again."
-  - "An admin disables a user; that user can no longer sign in."
-  - "All of the above works on a phone-sized screen."
-  - "An unbalanced transaction is never saved."
-  - "User A can never read user B's data."
-  - "A user exports their data and then deletes their account."
-  - "A copy of the database contains no plaintext names, emails or descriptions."
-
+- A new user signs in with Google and sees the default grouped categories.
+- The user creates a checking account with an opening balance.
+- The user imports a statement; lines land in the review queue; re-importing adds nothing.
+- The user categorizes queued lines (including a split and a transfer) and enters one transaction by hand.
+- The user assigns income until nothing is left to assign.
+- The budget view shows assigned, spent and available; next month starts from a copy with carry-over and overspending applied.
+- Card spending moves money to the card's payment envelope; paying the bill does not hit a category again.
+- An admin disables a user; that user can no longer sign in.
+- All of the above works on a phone-sized screen.
+- An unbalanced transaction is never saved.
+- User A can never read user B's data.
+- A user exports their data and then deletes their account.
+- A copy of the database contains no plaintext names, emails or descriptions.
 open_items:
-  - "Supported banks and their export formats (affects S14)."
-  - "Privacy policy and terms text (affects S05)."
-  - "Domain name (affects S05, S23)."
-
+- Supported banks and their export formats (affects S14).
+- Privacy policy and terms text (affects S05).
+- Domain name (affects S05, S23).
 references:
-  - specs/planning-context.yaml
-  - AGENTS.md
-  - CONVENTIONS.md
-  - README.md
-  - specs/product/PRIOR_ART_LATEST.md
+- specs/planning-context.yaml
+- AGENTS.md
+- CONVENTIONS.md
+- README.md
+- specs/product/PRIOR_ART_LATEST.md
+- specs/planning-context.yaml#domain.invariants

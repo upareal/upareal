@@ -1,0 +1,14 @@
+story_id: e06s05
+title: Find transactions
+status: todo
+bcps: 5
+outcome: A user filters by date range (default 12 months), account, income/expense account, amount, and searches description text.
+tasks:
+- id: t1
+  description: SQL filters on plaintext columns, always date-bounded
+  verify: go test -race ./ledger/... -run TestSearchFilters
+  status: todo
+- id: t2
+  description: Decrypt the filtered page and match text in Go (case/accent-insensitive)
+  verify: go test -race ./ledger/... -run TestSearchText
+  status: todo

@@ -1,0 +1,26 @@
+story_id: e04s02
+title: Create accounts with opening balance and manual adjustment
+status: todo
+bcps: 8
+outcome: A user creates asset, liability, income and expense accounts; an opening balance or adjustment posts a zero-sum transaction against Saldo inicial.
+tasks:
+- id: t1
+  description: Transactions and legs schema; every write enforces L1-L3 (>=2 legs, sum zero, non-zero legs, same user)
+  verify: go test -race ./ledger/... -run TestTransactionInvariants
+  status: todo
+- id: t2
+  description: Create account of every type with name, position; asset/liability get bank and on_budget (cards always on-budget)
+  verify: go test -race ./ledger/... -run TestCreateAccount
+  status: todo
+- id: t3
+  description: pt-BR money parsing/formatting (1.234,56 <-> centavos)
+  verify: go test -race ./internal/... -run TestBRL
+  status: todo
+- id: t4
+  description: Opening balance and balance adjustment against Saldo inicial; balance = sum of legs (L4)
+  verify: go test -race ./ledger/... -run TestBalance
+  status: todo
+- id: t5
+  description: Accounts page grouped by type with balances; create-account form (HTMX)
+  verify: go test -race ./web/... -run TestAccountsPage
+  status: todo

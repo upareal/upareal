@@ -1,0 +1,19 @@
+story_id: e06s01
+title: Record a simple expense or income
+status: todo
+bcps: 5
+outcome: A user records a dated purchase or income against an income or expense account; the account list shows it with a running balance.
+note: "Before storing descriptions, re-check the deferred row-level AAD binding (planning-context out_of_scope.later). Adding it after data exists needs a migration."
+tasks:
+- id: t1
+  description: 'Form: account, income/expense account, amount, date/time (UTC stored, Sao Paulo shown), encrypted description'
+  verify: go test -race ./ledger/... ./web/... -run TestRecordTransaction
+  status: todo
+- id: t2
+  description: Account register with running balance, Sao Paulo dates
+  verify: go test -race ./web/... -run TestAccountRegister
+  status: todo
+- id: t3
+  description: 'Month boundary: 22:30 on the last day in Sao Paulo belongs to that month'
+  verify: go test -race ./internal/... -run TestMonthInSaoPaulo
+  status: todo

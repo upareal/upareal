@@ -1,0 +1,14 @@
+story_id: e08s03
+title: Carry-over and overspending
+status: todo
+bcps: 5
+outcome: Leftovers carry over; overspending reduces next month; editing past months recomputes.
+tasks:
+- id: t1
+  description: Available = amount + carry-over - spent across months
+  verify: go test -race ./planning/... -run TestCarryOver
+  status: todo
+- id: t2
+  description: Overspending reduces next month's to be assigned
+  verify: go test -race ./planning/... -run TestOverspending
+  status: todo

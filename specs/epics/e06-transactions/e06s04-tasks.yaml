@@ -1,0 +1,14 @@
+story_id: e06s04
+title: Edit and delete with history
+status: todo
+bcps: 5
+outcome: A user edits or deletes a transaction; previous versions are kept encrypted; deleted ones leave balances.
+tasks:
+- id: t1
+  description: Edit writes encrypted transaction_history row and re-checks zero sum
+  verify: go test -race ./ledger/... -run TestEditKeepsHistory
+  status: todo
+- id: t2
+  description: Soft delete removes the transaction from balances
+  verify: go test -race ./ledger/... -run TestSoftDelete
+  status: todo

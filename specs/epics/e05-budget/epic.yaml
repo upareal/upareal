@@ -1,0 +1,20 @@
+epic_id: e05
+slug: budget
+goal: Users manage budget categories in one level of groups and set an amount per category per month.
+scope_items:
+- S06
+- S17
+stories:
+- id: e05s01
+  title: Default grouped categories and categories page
+  bcps: 3
+  delta: ADDED
+- id: e05s02
+  title: Organize groups and categories
+  bcps: 5
+  delta: ADDED
+- id: e05s03
+  title: Monthly amounts
+  bcps: 5
+  delta: ADDED
+bcps_total: 13

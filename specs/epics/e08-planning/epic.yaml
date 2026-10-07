@@ -1,0 +1,34 @@
+epic_id: e08
+slug: planning
+goal: Planning maps ledger accounts to budget categories and computes envelopes, carry-over and card payment envelopes.
+scope_items:
+- S08
+- S18
+- S19
+- S24
+stories:
+- id: e08s01
+  title: Map ledger accounts to budget categories
+  bcps: 5
+  delta: ADDED
+- id: e08s02
+  title: Planning view for a month
+  bcps: 8
+  delta: ADDED
+- id: e08s03
+  title: Carry-over and overspending
+  bcps: 5
+  delta: ADDED
+- id: e08s04
+  title: Credit card payment envelopes
+  bcps: 8
+  delta: ADDED
+- id: e08s05
+  title: Off-budget accounts in planning
+  bcps: 3
+  delta: ADDED
+- id: e08s06
+  title: Archive and merge categories
+  bcps: 5
+  delta: ADDED
+bcps_total: 34

@@ -1,0 +1,15 @@
+epic_id: e10
+slug: data-rights
+goal: Users export and delete their own data (LGPD).
+scope_items:
+- S21
+stories:
+- id: e10s01
+  title: Export my data
+  bcps: 5
+  delta: ADDED
+- id: e10s02
+  title: Delete my account
+  bcps: 3
+  delta: ADDED
+bcps_total: 8

@@ -1,0 +1,14 @@
+story_id: e05s02
+title: Organize groups and categories
+status: todo
+bcps: 5
+outcome: A user creates, renames, reorders and moves categories between groups (B1, B2).
+tasks:
+- id: t1
+  description: Create/rename groups and categories (encrypted names); kind matches group (B2)
+  verify: go test -race ./budget/... -run TestCategoryCRUD
+  status: todo
+- id: t2
+  description: Reorder and move category to another group of the same kind (HTMX)
+  verify: go test -race ./budget/... ./web/... -run TestReorder
+  status: todo

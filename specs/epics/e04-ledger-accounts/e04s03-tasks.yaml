@@ -1,0 +1,18 @@
+story_id: e04s03
+title: Organize, archive and delete accounts
+status: todo
+bcps: 5
+outcome: A user renames and reorders accounts; archives zero-balance accounts; deletes never-used ones; system accounts and used account types are protected.
+tasks:
+- id: t1
+  description: Rename and reorder accounts
+  verify: go test -race ./ledger/... -run TestOrganizeAccounts
+  status: todo
+- id: t2
+  description: Archive/restore only at zero balance; archived accounts take no new legs (L6)
+  verify: go test -race ./ledger/... -run TestArchiveAccount
+  status: todo
+- id: t3
+  description: Hard delete only without legs; type change only without legs (L5); system accounts cannot be deleted or archived (L7)
+  verify: go test -race ./ledger/... -run TestProtectedAccounts
+  status: todo

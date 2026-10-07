@@ -1,0 +1,18 @@
+story_id: e05s03
+title: Monthly amounts
+status: todo
+bcps: 5
+outcome: A user sets the amount for each category in a month; opening a new month copies the previous month's amounts (B3, B4).
+tasks:
+- id: t1
+  description: Amount per (category, month), >= 0, months in America/Sao_Paulo
+  verify: go test -race ./budget/... -run TestMonthlyAmounts
+  status: todo
+- id: t2
+  description: First open of a month copies the previous month's amounts
+  verify: go test -race ./budget/... -run TestCopyPreviousMonth
+  status: todo
+- id: t3
+  description: Month amounts page with inline HTMX edit
+  verify: go test -race ./web/... -run TestBudgetMonthPage
+  status: todo

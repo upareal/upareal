@@ -1,0 +1,21 @@
+epic_id: e04
+slug: ledger-accounts
+goal: Users create ledger accounts of every type with opening balances; money moves only in zero-sum transactions.
+scope_items:
+- S07
+- S09
+- S22
+stories:
+- id: e04s01
+  title: Default grouped categories on sign-up
+  bcps: 5
+  delta: ADDED
+- id: e04s02
+  title: Create accounts with opening balance and manual adjustment
+  bcps: 8
+  delta: ADDED
+- id: e04s03
+  title: Organize, archive and delete accounts
+  bcps: 5
+  delta: ADDED
+bcps_total: 18
