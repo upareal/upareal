@@ -1,7 +1,7 @@
 story_id: e04s02
 title: "Create accounts with opening balance and manual adjustment"
 spec: e04s02-accounts-opening-balance.md
-status: failing
+status: passing
 bcps: 8
 risk: P0
 outcome: A user creates accounts of every type; opening balances and adjustments post zero-sum transactions against Saldo inicial; /contas shows balances.
@@ -52,5 +52,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
