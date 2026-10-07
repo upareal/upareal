@@ -6,6 +6,7 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/upareal/upareal/ledger"
 )
@@ -103,5 +104,71 @@ func TestRecordSimple_CannotUseAnotherUsersAccount(t *testing.T) {
 	}
 	if balance(t, f, b.shell.ID) != 0 {
 		t.Error("user A's account changed")
+	}
+}
+
+func TestRegister_MonthWithRunningBalanceAndCounterparts(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	b := newBook(t, f) // Itaú opened with 100000 on jan10
+	at := func(day, hour int) time.Time { return time.Date(2026, 2, day, hour, 0, 0, 0, time.UTC) }
+	record := func(counter string, amount int64, when time.Time, desc string) {
+		t.Helper()
+		if _, err := f.svc.RecordSimple(ctx, userA, ledger.SimpleEntry{AccountID: b.itau.ID, CounterID: counter, Amount: amount, At: when, Description: desc}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	record(b.shell.ID, 2000, time.Date(2026, 1, 31, 12, 0, 0, 0, time.UTC), "Janeiro")
+	record(b.salario.ID, 800000, at(20, 12), "Salário fevereiro")
+	record(b.shell.ID, 15000, at(5, 12), "Gasolina")
+	record(b.shell.ID, 999, time.Date(2026, 3, 1, 3, 0, 0, 0, time.UTC), "Março") // exactly at `to`: excluded
+
+	lines, err := f.svc.Register(ctx, userA, b.itau.ID, time.Date(2026, 2, 1, 3, 0, 0, 0, time.UTC), time.Date(2026, 3, 1, 3, 0, 0, 0, time.UTC))
+	if err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+	if len(lines) != 2 {
+		t.Fatalf("lines = %+v, want 2 (February only)", lines)
+	}
+	first, second := lines[0], lines[1]
+	if first.Description != "Gasolina" || first.Amount != -15000 || first.Balance != 83000 ||
+		len(first.Counterparts) != 1 || first.Counterparts[0] != "Posto Shell" || !first.At.Equal(at(5, 12)) {
+		t.Errorf("first = %+v, want Gasolina -15000 balance 83000 vs Posto Shell", first)
+	}
+	if second.Description != "Salário fevereiro" || second.Amount != 800000 || second.Balance != 883000 {
+		t.Errorf("second = %+v, want Salário fevereiro +800000 balance 883000", second)
+	}
+}
+
+func TestRegister_SplitShowsEveryCounterpart(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	b := newBook(t, f)
+	if _, err := ledger.PostTransaction(ctx, f.svc, userA, jan10, "Mercado e posto", []ledger.Leg{
+		{AccountID: b.itau.ID, Amount: -3000}, {AccountID: b.shell.ID, Amount: 2000}, {AccountID: b.salario.ID, Amount: 1000},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	lines, err := f.svc.Register(ctx, userA, b.itau.ID, time.Date(2026, 1, 10, 15, 0, 1, 0, time.UTC).Add(-time.Second), time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var split ledger.RegisterLine
+	for _, l := range lines {
+		if l.Description == "Mercado e posto" {
+			split = l
+		}
+	}
+	if split.Amount != -3000 || len(split.Counterparts) != 2 {
+		t.Errorf("split line = %+v, want -3000 with 2 counterparts", split)
+	}
+}
+
+func TestRegister_IsolatedPerUser(t *testing.T) {
+	f := newFixture(t)
+	b := newBook(t, f)
+	_ = f.svc.EnsureDefaults(context.Background(), userB)
+	if _, err := f.svc.Register(context.Background(), userB, b.itau.ID, jan10.AddDate(0, -1, 0), jan10.AddDate(0, 1, 0)); !errors.Is(err, ledger.ErrAccountNotFound) {
+		t.Errorf("user B reading user A's register = %v, want ErrAccountNotFound", err)
 	}
 }
