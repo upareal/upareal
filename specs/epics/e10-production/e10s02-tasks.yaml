@@ -3,6 +3,7 @@ title: Production stack with TLS and continuous backups
 status: todo
 bcps: 8
 outcome: Caddy terminates TLS; the app runs under litestream replicate -exec and restores itself on an empty volume.
+note: "Rate limiter keys on r.RemoteAddr (e03s02). Behind Caddy, forward the real client IP and trust only Caddy's header."
 tasks:
 - id: t1
   description: Image includes litestream; entrypoint restores -if-replica-exists then replicate -exec
