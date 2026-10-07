@@ -135,7 +135,7 @@ No interfaces: `users.Google` is concrete; tests point it at the fake provider t
 2. Users schema (goose SQL) + sqlc queries + `sqlc.yaml`; pin sqlc tool; `make gen` runs sqlc too. → verify: `make gen && go build ./users/...`
 3. `internal/oidctest` fake provider (discovery, JWKS, authorize, token) with configurable user claims. → verify: `go test -race ./internal/oidctest/...`
 4. `users.Service.SignIn`: create by `sub` index, reuse on return, update changed email/name, refuse unverified. → verify: `go test -race ./users/... -run TestSignIn`
-5. `users.Google`: auth URL carries state, nonce, S256 challenge; `Exchange` verifies token + nonce + email_verified. → verify: `go test -race ./users/... -run TestGoogle`
+5. `users.Google`: auth URL carries state, nonce, S256 challenge; `Exchange` verifies token + nonce and reports `email_verified`, which `SignIn` enforces (one place for the rule). → verify: `go test -race ./users/... -run TestGoogle`
 6. Sessions: `CreateSession` / `UserBySession`; only the hash stored. → verify: `go test -race ./users/... -run TestSession`
 7. Web flow: `/auth/login`, `/auth/callback`, greeting on `/`; error pages per §6; `run` wires migrations, vault, users, Google. → verify: `go test -race ./web/... ./cmd/upareal/... -run 'TestGoogleSignIn|TestGracefulShutdown'`
 8. `CrossOriginProtection` on the handler. → verify: `go test -race ./web/... -run TestCrossOrigin`

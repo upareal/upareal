@@ -37,10 +37,10 @@ tasks:
     status: passing
     allure: {severity: critical, categories: ["Auth", "Security Review"]}
   - id: t5
-    description: "users.Google: AuthCodeURL with state, nonce, PKCE S256; Exchange verifies ID token, nonce, email_verified"
+    description: "users.Google: AuthCodeURL with state, nonce, PKCE S256; Exchange verifies ID token and nonce, reports email_verified (SignIn enforces it)"
     verify: "go test -race ./users/... -run TestGoogle"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Auth", "Security Review"]}
   - id: t6
     description: "Sessions: CreateSession (32 random bytes, SHA-256 stored) and UserBySession"
