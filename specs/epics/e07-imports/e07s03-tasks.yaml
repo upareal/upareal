@@ -10,7 +10,7 @@ tasks:
     description: "ledger.TransferCandidates: queued lines on the other account, opposite amount, ±3 days, closest first; isolation"
     verify: "go test -race ./ledger/... -run TestTransferCandidates"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Import", "Ledger"]}
   - id: t2
     description: "ledger.MarkTransfer: convert with or without twin; twin soft-deleted with history; dedupe kept; invalid match rejected"
