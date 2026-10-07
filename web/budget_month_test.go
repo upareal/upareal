@@ -133,3 +133,36 @@ func TestBudgetMonthPage_ShowsCarryOver(t *testing.T) {
 		t.Error("overspent carry-over is not shown as negative")
 	}
 }
+
+// story: e08s04
+func TestBudgetMonthPage_ShowsCardsAndUncoveredDebt(t *testing.T) {
+	b := newBrowser(t)
+	signIn(t, b)
+	createAccount(t, b, url.Values{"nome": {"Itaú"}, "tipo": {"asset"}, "saldo": {"1.000,00"}, "data": {"2026-01-01"}, "orcamento": {"on"}})
+	createAccount(t, b, url.Values{"nome": {"Nubank"}, "tipo": {"liability"}, "cartao": {"on"}})
+	_, accounts := createAccount(t, b, url.Values{"nome": {"Posto Shell"}, "tipo": {"expense"}})
+	itau, nubank, shell := accountID(t, accounts, "Itaú"), accountID(t, accounts, "Nubank"), accountID(t, accounts, "Posto Shell")
+	_, cats := b.get(t, "/categorias")
+	fuel := linkID(t, cats, "/categorias/", "Combustível")
+	b.postForm(t, "/planejamento/mapa/"+shell, url.Values{"categoria": {fuel}})
+	b.postForm(t, "/orcamento/2026-01/"+fuel, url.Values{"valor": {"300,00"}})
+	b.postForm(t, "/contas/"+nubank+"/lancamentos", entry(shell, "45,00", "2026-01-15", "10:00", "Gasolina"))
+
+	_, body := b.get(t, "/orcamento?mes=2026-01")
+	for _, want := range []string{"Cartões de crédito", "Nubank", "Para pagar R$ 45,00", "A distribuir: R$ 700,00"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("page missing %q", want)
+		}
+	}
+	if strings.Contains(body, "Sem cobertura") {
+		t.Error("funded card spending flagged as Sem cobertura")
+	}
+	b.postForm(t, "/contas/"+nubank+"/lancamentos", entry(shell, "355,00", "2026-01-16", "10:00", "Gasolina"))
+	if _, body = b.get(t, "/orcamento?mes=2026-01"); !strings.Contains(body, `class="negative">Sem cobertura: R$ 100,00`) {
+		t.Error("overspent card debt is not flagged as Sem cobertura: R$ 100,00")
+	}
+	b.postForm(t, "/contas/"+itau+"/transferencia", url.Values{"destino": {nubank}, "valor": {"400,00"}, "data": {"2026-01-20"}, "hora": {"09:00"}, "descricao": {"Fatura"}})
+	if _, body = b.get(t, "/orcamento?mes=2026-01"); strings.Contains(body, "Cartões de crédito") {
+		t.Error("a paid-off card is still listed")
+	}
+}
