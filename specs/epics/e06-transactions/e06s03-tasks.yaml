@@ -1,7 +1,7 @@
 story_id: e06s03
 title: "Transfers between own accounts"
 spec: e06s03-transfers.md
-status: failing
+status: passing
 bcps: 3
 risk: P0
 outcome: A user moves money between own asset/liability accounts, including paying a card bill.
@@ -22,5 +22,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
