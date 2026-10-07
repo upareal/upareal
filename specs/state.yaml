@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e07s03 all tasks passing; awaiting user UAT (spec §19)
+  next_skill: plan-work
+  note: e07s03 done; plan e07s04 (generic OFX import)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -19,12 +19,13 @@ environment:
   smoke: no Go packages yet; first lint/test smoke runs in e01
 pending:
 - Replace provisional legal text in /privacidade and /termos (web) and bump web.CurrentTermsVersion
+- 'UX candidate: after import/match, link to the register month where the lines landed (e07s03 UAT feedback)'
 active_epic: e07
 git:
   branch: feat/e07-imports
   worktree: null
   base: main@d770bd1
-active_story: e07s03
+active_story: e07s04
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'
