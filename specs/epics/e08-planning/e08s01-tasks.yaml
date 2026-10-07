@@ -1,18 +1,32 @@
 story_id: e08s01
-title: Map ledger accounts to budget categories
-status: todo
+title: "Map ledger accounts to budget categories"
+spec: e08s01-map-accounts.md
+status: failing
 bcps: 5
-outcome: A user maps each income/expense account to at most one category of the same kind; unmapped accounts show as Sem categoria (P1-P3, X1).
+risk: P0
+outcome: A user maps each income/expense account to at most one category of the same kind (P1, P2); unmapped accounts show as Sem categoria (P3, X1).
 tasks:
-- id: t1
-  description: 'planning module: mapping schema; at most one category per account; kinds match'
-  verify: go test -race ./planning/... -run TestMapping
-  status: todo
-- id: t2
-  description: Deleted category or account drops its mappings; unmapped listed as Sem categoria
-  verify: go test -race ./planning/... -run TestUnmapped
-  status: todo
-- id: t3
-  description: Mapping page (HTMX select per account)
-  verify: go test -race ./web/... -run TestMappingPage
-  status: todo
+  - id: t1
+    description: "planning module: migration, SetMapping (P1, P2, guards, isolation); run() migrates planning"
+    verify: "go test -race ./planning/... -run TestMapping"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Planning"]}
+  - id: t2
+    description: "Mappings: one row per user income/expense account; Sem categoria for unmapped or stale mappings (X1, P3)"
+    verify: "go test -race ./planning/... -run TestUnmapped"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Planning"]}
+  - id: t3
+    description: "Web: /planejamento/mapa with same-kind pickers and Sem categoria counter"
+    verify: "go test -race ./web/... -run TestMappingPage"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t4
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}

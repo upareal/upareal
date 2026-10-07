@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: plan-work
-  note: e07 done except e07s05 (blocked on bank list); push + merge feat/e07-imports, then plan e08 (planning) on a new branch
+  next_skill: develop-tdd
+  note: e08s01 planned (4 tasks); planning stores IDs only, no data key
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -22,9 +22,9 @@ pending:
 - 'UX candidate: after import/match, link to the register month where the lines landed (e07s03 UAT feedback)'
 active_epic: e08
 git:
-  branch: feat/e07-imports
+  branch: feat/e08-planning
   worktree: null
-  base: main@d770bd1
+  base: main@7a8ee7d
 active_story: e08s01
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
