@@ -4,6 +4,8 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"net"
 	"net/http"
 	"path/filepath"
@@ -32,7 +34,7 @@ func TestRun_FailsFastWithoutDBPath(t *testing.T) {
 func TestGracefulShutdown(t *testing.T) {
 	ln := listen(t)
 	url := "http://" + ln.Addr().String() + "/healthz"
-	env := map[string]string{"DB_PATH": filepath.Join(t.TempDir(), "app.db")}
+	env := testEnv(t)
 	var logs bytes.Buffer
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -55,6 +57,22 @@ func TestGracefulShutdown(t *testing.T) {
 	}
 	if !strings.Contains(logs.String(), `"msg":"shutdown complete"`) {
 		t.Errorf("logs missing shutdown line: %s", logs.String())
+	}
+}
+
+// testEnv returns a complete, valid configuration with a random master key.
+func testEnv(t *testing.T) map[string]string {
+	t.Helper()
+	key := make([]byte, 32)
+	if _, err := rand.Read(key); err != nil {
+		t.Fatal(err)
+	}
+	return map[string]string{
+		"DB_PATH":              filepath.Join(t.TempDir(), "app.db"),
+		"MASTER_KEY":           base64.StdEncoding.EncodeToString(key),
+		"GOOGLE_CLIENT_ID":     "test-client",
+		"GOOGLE_CLIENT_SECRET": "test-secret",
+		"BASE_URL":             "http://localhost:8080",
 	}
 }
 

@@ -10,7 +10,7 @@ tasks:
     description: "Config requires MASTER_KEY (vault.ParseMasterKey), GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, BASE_URL; optional OIDC_ISSUER_URL; compose passes them from the shell"
     verify: "go test -race ./internal/config/... -run TestLoad && MASTER_KEY=x GOOGLE_CLIENT_ID=x GOOGLE_CLIENT_SECRET=x docker compose config -q"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Config", "Security Review"]}
   - id: t1
     description: "internal/db.Migrate: embedded goose migrations per module with table goose_<module>"

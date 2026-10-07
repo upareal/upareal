@@ -1,4 +1,4 @@
-# story: e01s02
+# story: e01s02 e03s01
 # Local development: plain HTTP on http://localhost:8080. No secrets here.
 services:
   app:
@@ -6,8 +6,13 @@ services:
     image: upareal:dev
     ports:
       - "8080:8080"
+    # Secrets pass through from your shell; nothing is stored in files.
     environment:
       DB_PATH: /data/upareal.db
+      BASE_URL: http://localhost:8080
+      MASTER_KEY: ${MASTER_KEY:?export MASTER_KEY (base64 of 32 bytes) in your shell}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?export GOOGLE_CLIENT_ID in your shell}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?export GOOGLE_CLIENT_SECRET in your shell}
     volumes:
       - upareal-data:/data
     healthcheck:

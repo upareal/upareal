@@ -64,6 +64,7 @@ All configuration comes from environment variables. Secrets are read from AWS SS
 | `GOOGLE_CLIENT_ID` | No | Google OAuth client ID |
 | `GOOGLE_CLIENT_SECRET` / `GOOGLE_CLIENT_SECRET_SSM_PARAM` | Yes | Google OAuth client secret |
 | `MASTER_KEY` / `MASTER_KEY_SSM_PARAM` | Yes | 32-byte key that wraps per-user data keys |
+| `OIDC_ISSUER_URL` | No | OpenID issuer; defaults to `https://accounts.google.com` (tests override it) |
 
 > **Back up the master key offline.** Losing it makes all user data, including backups, unreadable.
 
