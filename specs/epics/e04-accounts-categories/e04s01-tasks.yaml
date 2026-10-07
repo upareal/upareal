@@ -16,7 +16,7 @@ tasks:
     description: "ledger.EnsureDefaults: per-module data key, default groups/categories from defaults.go, system accounts; idempotent; concurrent-safe"
     verify: "go test -race ./ledger/... -run TestEnsureDefaults"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger", "integration"]}
   - id: t3
     description: "ledger.Categories: ordered, decrypted, active only, system accounts hidden; user isolation"
