@@ -42,8 +42,7 @@ domain_change:
   impact: e04s01 (unmerged, on feat/e04-accounts-categories) put groups/categories in ledger; must move to budget. planning-context and epics e04-e07 need
     revision.
   open_questions:
-  - 'which ledger account types may be mapped (default v1: income/expense only)'
-  - the missing invariants
+  - 'which ledger account types may be mapped (default v1: income/expense only; revisit)'
   answers:
     q1_fed_by: budget categories store allowed/expected amounts per month (e.g. Combustivel, January, R$ 300,00); budget does not know where real money
       comes from. planning maps budget categories to ledger accounts and joins budget with ledger.
@@ -58,3 +57,25 @@ domain_change:
       (and warns on unfunded card debt)'
     q5_defaults: budget gets the default groups/categories; ledger gets only system accounts (Saldo inicial, A categorizar income/expense); user creates
       ledger accounts as they go; no default mapping (unmapped show as Sem categoria)
+    q6_invariants:
+      ledger:
+      - L1 >=2 legs, legs sum to zero
+      - L2 leg amount non-zero int64 centavos BRL
+      - L3 all legs of a transaction belong to accounts of the same user
+      - L4 balance = sum of legs, never stored
+      - L5 account type immutable once it has legs
+      - L6 archived accounts take no new legs
+      - L7 system accounts cannot be deleted or archived
+      budget:
+      - B1 one level of groups; category in exactly one group
+      - B2 category kind expense|income matches group kind
+      - B3 at most one amount per (category, month); months in America/Sao_Paulo
+      - B4 amounts int64 centavos >= 0
+      planning:
+      - P1 ledger account maps to at most one category
+      - P2 kinds match (income->income, expense->expense)
+      - P3 unmapped accounts shown as Sem categoria; no money left out
+      - P4 derived values computed, never stored
+      cross_module:
+      - X1 references by ID only, no FKs; deleted category or account drops its mappings
+      - X2 every row has one owner; every query filters by user_id
