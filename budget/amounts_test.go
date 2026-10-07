@@ -92,3 +92,58 @@ func TestMonthlyAmounts_RejectsNegativeAndForeign(t *testing.T) {
 		t.Error("user B sees an amount for user A's category")
 	}
 }
+
+func TestCopyPreviousMonth_FirstOpenCopiesLatestEarlierMonth(t *testing.T) {
+	f := seeded(t)
+	ctx := context.Background()
+	fuel := categoryNamed(t, f, "Combustível").ID
+	_ = f.svc.SetAmount(ctx, userA, fuel, month(t, "2026-01"), 30000)
+
+	feb, err := f.svc.OpenMonth(ctx, userA, month(t, "2026-02"))
+	if err != nil || feb[fuel] != 30000 {
+		t.Fatalf("first open of 2026-02 = %v, %v; want Combustível 30000 copied", feb, err)
+	}
+	// Skipped month: April copies from February, the latest opened month before it.
+	_ = f.svc.SetAmount(ctx, userA, fuel, month(t, "2026-02"), 31000)
+	apr, _ := f.svc.OpenMonth(ctx, userA, month(t, "2026-04"))
+	if apr[fuel] != 31000 {
+		t.Errorf("2026-04 = %d, want 31000 from 2026-02", apr[fuel])
+	}
+}
+
+func TestCopyPreviousMonth_CopiesOnlyOnce(t *testing.T) {
+	f := seeded(t)
+	ctx := context.Background()
+	fuel := categoryNamed(t, f, "Combustível").ID
+	_ = f.svc.SetAmount(ctx, userA, fuel, month(t, "2026-01"), 30000)
+	_, _ = f.svc.OpenMonth(ctx, userA, month(t, "2026-02"))
+
+	_ = f.svc.SetAmount(ctx, userA, fuel, month(t, "2026-01"), 35000) // edit January later
+	feb, _ := f.svc.OpenMonth(ctx, userA, month(t, "2026-02"))
+	if feb[fuel] != 30000 {
+		t.Errorf("2026-02 after editing January = %d, want 30000 (copied once)", feb[fuel])
+	}
+	_ = f.svc.SetAmount(ctx, userA, fuel, month(t, "2026-02"), 0) // deliberately zero
+	feb, _ = f.svc.OpenMonth(ctx, userA, month(t, "2026-02"))
+	if v, ok := feb[fuel]; !ok || v != 0 {
+		t.Errorf("2026-02 deliberately zero = %d (present %v), want 0 kept", v, ok)
+	}
+}
+
+func TestCopyPreviousMonth_NoEarlierMonthOpensEmpty(t *testing.T) {
+	f := seeded(t)
+	got, err := f.svc.OpenMonth(context.Background(), userA, month(t, "2026-01"))
+	if err != nil || len(got) != 0 {
+		t.Errorf("first ever month = %v, %v; want empty", got, err)
+	}
+}
+
+func TestCopyPreviousMonth_NeverCopiesAcrossUsers(t *testing.T) {
+	f := seeded(t)
+	ctx := context.Background()
+	_ = f.svc.SetAmount(ctx, userA, categoryNamed(t, f, "Combustível").ID, month(t, "2026-01"), 30000)
+	got, _ := f.svc.OpenMonth(ctx, userB, month(t, "2026-02"))
+	if len(got) != 0 {
+		t.Errorf("user B's new month = %v, want empty (nothing copied from user A)", got)
+	}
+}
