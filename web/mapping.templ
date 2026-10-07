@@ -1,0 +1,37 @@
+// story: e08s01
+package web
+
+templ mappingPage(v mappingView) {
+	@layout("Mapa de categorias — upareal") {
+		<p><a href="/">← Início</a></p>
+		<h1>Mapa de categorias</h1>
+		<p>Ligue cada conta de despesa ou receita a uma categoria do orçamento. Várias contas podem ir para a mesma categoria.</p>
+		<p class="totals">{ v.Unmapped }</p>
+		if v.Error != "" {
+			<p class="error" role="alert">{ v.Error }</p>
+		}
+		if len(v.Rows) == 0 {
+			<p class="muted">Nenhuma conta de despesa ou receita. <a href="/contas#nova-conta">Crie uma em Contas</a>.</p>
+		}
+		<ul>
+			for _, row := range v.Rows {
+				<li>
+					<form method="post" action={ templ.SafeURL("/planejamento/mapa/" + row.AccountID) } class="inline">
+						<strong>{ row.Name }</strong>
+						<select name="categoria">
+							<option value="" selected?={ row.CategoryID == "" }>Sem categoria</option>
+							for _, g := range row.Groups {
+								<optgroup label={ g.Name }>
+									for _, c := range g.Categories {
+										<option value={ c.ID } selected?={ c.ID == row.CategoryID }>{ c.Name }</option>
+									}
+								</optgroup>
+							}
+						</select>
+						<button type="submit">Salvar</button>
+					</form>
+				</li>
+			}
+		</ul>
+	}
+}

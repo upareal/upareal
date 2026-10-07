@@ -126,5 +126,7 @@ func wireModules(ctx context.Context, cfg config.Config, conn *sql.DB) (web.Deps
 	if err != nil {
 		return web.Deps{}, err
 	}
-	return web.Deps{DB: conn, Users: users.NewService(conn, kr), Ledger: ledger.NewService(conn, kr), Budget: budget.NewService(conn, kr), Google: google}, nil
+	ledg, bud := ledger.NewService(conn, kr), budget.NewService(conn, kr)
+	return web.Deps{DB: conn, Users: users.NewService(conn, kr), Ledger: ledg, Budget: bud,
+		Planning: planning.NewService(conn, ledg, bud), Google: google}, nil
 }

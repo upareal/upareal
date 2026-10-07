@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02 e05s03 e06s01 e06s02 e06s03 e06s04 e06s05 e07s01 e07s02 e07s03
+// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02 e05s03 e06s01 e06s02 e06s03 e06s04 e06s05 e07s01 e07s02 e07s03 e08s01
 
 // Package web renders all HTML pages and HTMX fragments and wires the HTTP routes.
 package web
@@ -16,6 +16,7 @@ import (
 
 	"github.com/upareal/upareal/budget"
 	"github.com/upareal/upareal/ledger"
+	"github.com/upareal/upareal/planning"
 	"github.com/upareal/upareal/users"
 )
 
@@ -26,11 +27,12 @@ var staticFiles embed.FS
 
 // Deps are the modules the web layer renders. web owns no data.
 type Deps struct {
-	DB     *sql.DB
-	Users  *users.Service
-	Ledger *ledger.Service
-	Budget *budget.Service
-	Google *users.Google
+	DB       *sql.DB
+	Users    *users.Service
+	Ledger   *ledger.Service
+	Budget   *budget.Service
+	Planning *planning.Service
+	Google   *users.Google
 }
 
 // NewHandler returns the app's HTTP handler.
@@ -41,6 +43,8 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("GET /healthz", healthz(d.DB))
 	mux.Handle("GET /static/", staticHandler())
 	mux.HandleFunc("GET /{$}", home(d.Users))
+	mux.HandleFunc("GET /planejamento/mapa", mappingGet(d.Users, d.Planning, d.Budget))
+	mux.HandleFunc("POST /planejamento/mapa/{conta}", mappingPost(d.Users, d.Planning, d.Budget))
 	mux.HandleFunc("GET /orcamento", budgetMonthGet(d.Users, d.Budget))
 	mux.HandleFunc("POST /orcamento/{mes}/{categoria}", budgetMonthSet(d.Users, d.Budget))
 	mux.HandleFunc("GET /categorias", categories(d.Users, d.Budget))

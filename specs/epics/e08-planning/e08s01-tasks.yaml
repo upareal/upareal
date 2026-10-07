@@ -22,7 +22,7 @@ tasks:
     description: "Web: /planejamento/mapa with same-kind pickers and Sem categoria counter"
     verify: "go test -race ./web/... -run TestMappingPage"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["UI", "integration"]}
   - id: t4
     description: "Full local gate green"
