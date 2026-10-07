@@ -1,34 +1,74 @@
 story_id: e03s01
-title: First Google sign-in creates the account
-status: todo
+title: "First Google sign-in creates the account"
+spec: e03s01-google-sign-in.md
+status: failing
 bcps: 8
-outcome: A visitor signs in with Google; a user row with encrypted email/name is created and the home page greets them.
+risk: P0
+outcome: A visitor signs in with Google; a user with encrypted email/name is created (recognized by sub) and the home page greets them.
 tasks:
-- id: t0
-  description: 'Require MASTER_KEY in config.Load (vault.ParseMasterKey); decide how make run and compose supply a dev-only key without committing secrets'
-  verify: go test -race ./internal/config/... -run TestLoad
-  status: todo
-- id: t1
-  description: Per-module goose migrations (embedded, goose_users table) run at startup
-  verify: go test -race ./internal/db/... -run TestMigrateModules
-  status: todo
-- id: t2
-  description: 'users schema + sqlc queries: user, data key, email blind index'
-  verify: make gen && git diff --exit-code
-  status: todo
-- id: t3
-  description: OIDC login/callback with go-oidc + x/oauth2; state and nonce checks; fake OIDC provider in tests
-  verify: go test -race ./users/... ./web/... -run TestGoogleSignIn
-  status: todo
-- id: t4
-  description: Create user on first sign-in (email/name encrypted, lookup by blind index); returning user reuses row
-  verify: go test -race ./users/... -run TestSignInCreatesOrFindsUser
-  status: todo
-- id: t5
-  description: 'Server-side session: random ID, SHA-256 stored, HttpOnly+Secure+SameSite=Lax cookie; CrossOriginProtection on'
-  verify: go test -race ./users/... ./web/... -run TestSession
-  status: todo
-- id: t6
-  description: Database copy after sign-in contains no plaintext email or name
-  verify: go test -race ./users/... -run TestUsersTableHasNoPlaintext
-  status: todo
+  - id: t0
+    description: "Config requires MASTER_KEY (vault.ParseMasterKey), GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, BASE_URL; optional OIDC_ISSUER_URL; compose passes them from the shell"
+    verify: "go test -race ./internal/config/... -run TestLoad && MASTER_KEY=x GOOGLE_CLIENT_ID=x GOOGLE_CLIENT_SECRET=x docker compose config -q"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Config", "Security Review"]}
+  - id: t1
+    description: "internal/db.Migrate: embedded goose migrations per module with table goose_<module>"
+    verify: "go test -race ./internal/db/... -run TestMigrate"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Database", "integration"]}
+  - id: t2
+    description: "users schema (users_user, users_session) + sqlc queries + sqlc.yaml; pin sqlc tool; make gen runs sqlc"
+    verify: "make gen && go build ./users/..."
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Database"]}
+  - id: t3
+    description: "internal/oidctest fake OIDC provider: discovery, JWKS, authorize, token with configurable claims"
+    verify: "go test -race ./internal/oidctest/..."
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Test Infra"]}
+  - id: t4
+    description: "users.Service.SignIn: create by sub blind index, reuse on return, update changed email/name, refuse unverified"
+    verify: "go test -race ./users/... -run TestSignIn"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Auth", "Security Review"]}
+  - id: t5
+    description: "users.Google: AuthCodeURL with state, nonce, PKCE S256; Exchange verifies ID token, nonce, email_verified"
+    verify: "go test -race ./users/... -run TestGoogle"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Auth", "Security Review"]}
+  - id: t6
+    description: "Sessions: CreateSession (32 random bytes, SHA-256 stored) and UserBySession"
+    verify: "go test -race ./users/... -run TestSession"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Auth", "Security Review"]}
+  - id: t7
+    description: "Web: /auth/login, /auth/callback, greeting on /, error pages; run wires migrations, vault, users, Google"
+    verify: "go test -race ./web/... ./cmd/upareal/... -run 'TestGoogleSignIn|TestGracefulShutdown'"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Auth", "integration"]}
+  - id: t8
+    description: "http.CrossOriginProtection wraps the handler"
+    verify: "go test -race ./web/... -run TestCrossOrigin"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Security Review"]}
+  - id: t9
+    description: "Proof: after sign-in the database copy holds no plaintext email, name or sub"
+    verify: "go test -race ./users/... -run TestUsersTableHasNoPlaintext"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Security Review", "integration"]}
+  - id: t10
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}

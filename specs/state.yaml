@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: plan-work
-  note: e03s01 decisions recorded (sub, shell env, email_verified); write plan
+  next_skill: develop-tdd
+  note: e03s01 planned (11 tasks); start t0
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -30,3 +30,6 @@ discovery_e03s01:
 - 'stdlib: http.NewCrossOriginProtection().Handler(h)'
 - 'goose v3.28.0: NewProvider(DialectSQLite3, db, fsys, WithTableName), Provider.Up(ctx)'
 - 'go-jose v4.1.4 is transitive via go-oidc: fake OIDC provider can sign tokens in tests'
+workspace_notes:
+- bigpowers plan-consistency-check.sh exits 1 silently when a capsule has unplanned stories (grep without match under set -euo pipefail); check planned
+  stories in a scratch copy
