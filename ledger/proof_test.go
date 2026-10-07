@@ -15,8 +15,8 @@ func TestLedgerHasNoPlaintext(t *testing.T) {
 	if err := f.svc.EnsureDefaults(ctx, userA); err != nil {
 		t.Fatal(err)
 	}
-	if n := f.count(t, `SELECT count(*) FROM ledger_account WHERE user_id = ?`, userA); n != wantSystem {
-		t.Fatalf("accounts = %d; the scan below would prove nothing", n)
+	if accounts, err := f.svc.Accounts(ctx, userA); err != nil || len(accounts) != wantSystem || accounts[2].Name != "Saldo inicial" {
+		t.Fatalf("round trip = %+v, %v; the scan below would prove nothing", accounts, err)
 	}
 	if err := f.conn.Close(); err != nil {
 		t.Fatal(err)

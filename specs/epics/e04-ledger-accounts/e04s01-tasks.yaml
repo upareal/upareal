@@ -34,7 +34,7 @@ tasks:
     description: "Proof: database copy holds no plaintext system account names"
     verify: "go test -race ./ledger/... -run TestLedgerHasNoPlaintext"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Security Review"]}
   - id: t6
     description: "Full local gate green"
