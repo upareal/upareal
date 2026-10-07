@@ -64,7 +64,7 @@ tasks:
     description: "Proof: after sign-in the database copy holds no plaintext email, name or sub"
     verify: "go test -race ./users/... -run TestUsersTableHasNoPlaintext"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Security Review", "integration"]}
   - id: t10
     description: "Full local gate green"
