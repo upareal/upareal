@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: reworked e04s01 all tasks passing; awaiting user UAT (spec §19); delete /tmp/upareal.db* first
+  next_skill: plan-work
+  note: e04s01 done; plan e04s02 (accounts, opening balance, zero-sum core)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -24,7 +24,7 @@ git:
   branch: feat/e04-accounts-categories
   worktree: null
   base: main@90b3993
-active_story: e04s01
+active_story: e04s02
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'
