@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e03s02 e03s03
+// story: e01s01 e03s01 e03s02 e03s03 e04s01
 
 // Package web renders all HTML pages and HTMX fragments and wires the HTTP routes.
 package web
@@ -14,6 +14,7 @@ import (
 
 	"github.com/a-h/templ"
 
+	"github.com/upareal/upareal/ledger"
 	"github.com/upareal/upareal/users"
 )
 
@@ -26,6 +27,7 @@ var staticFiles embed.FS
 type Deps struct {
 	DB     *sql.DB
 	Users  *users.Service
+	Ledger *ledger.Service
 	Google *users.Google
 }
 
@@ -37,13 +39,14 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("GET /healthz", healthz(d.DB))
 	mux.Handle("GET /static/", staticHandler())
 	mux.HandleFunc("GET /{$}", home(d.Users))
+	mux.HandleFunc("GET /categorias", categories(d.Users, d.Ledger))
 	mux.Handle("GET /privacidade", templ.Handler(privacyPage()))
 	mux.Handle("GET /termos", templ.Handler(termsPage()))
 	mux.HandleFunc("GET /termos/aceitar", acceptTermsForm(d.Users))
 	mux.HandleFunc("POST /termos/aceitar", acceptTermsSubmit(d.Users))
 	authLimit := newIPLimiter()
 	mux.Handle("GET /auth/login", authLimit.limit(login(d.Google)))
-	mux.Handle("GET /auth/callback", authLimit.limit(callback(d.Users, d.Google)))
+	mux.Handle("GET /auth/callback", authLimit.limit(callback(d.Users, d.Ledger, d.Google)))
 	mux.HandleFunc("POST /auth/logout", logout(d.Users, false))
 	mux.HandleFunc("POST /auth/logout-all", logout(d.Users, true))
 	// CSRF: reject cross-origin unsafe methods (Sec-Fetch-Site / Origin checks).

@@ -1,0 +1,21 @@
+// story: e04s01
+package web
+
+import "github.com/upareal/upareal/ledger"
+
+templ categoriesPage(groups []ledger.Group) {
+	@layout("Categorias — upareal") {
+		<p><a href="/">← Início</a></p>
+		<h1>Categorias</h1>
+		for _, g := range groups {
+			<section class="group">
+				<h2>{ g.Name }</h2>
+				<ul>
+					for _, c := range g.Categories {
+						<li>{ c.Name }</li>
+					}
+				</ul>
+			</section>
+		}
+	}
+}

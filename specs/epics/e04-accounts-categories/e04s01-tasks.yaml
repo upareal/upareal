@@ -28,7 +28,7 @@ tasks:
     description: "Web: callback runs EnsureDefaults before the session; /categorias page; home link"
     verify: "go test -race ./web/... -run TestCategoriesPage"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["UI", "integration"]}
   - id: t5
     description: "Proof: database copy holds no plaintext default names"
