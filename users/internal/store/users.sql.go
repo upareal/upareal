@@ -7,7 +7,26 @@ package store
 
 import (
 	"context"
+	"database/sql"
 )
+
+const acceptTerms = `-- name: AcceptTerms :execrows
+UPDATE users_user SET terms_version = ?, terms_accepted_at = ? WHERE id = ?
+`
+
+type AcceptTermsParams struct {
+	TermsVersion    sql.NullString
+	TermsAcceptedAt sql.NullString
+	ID              string
+}
+
+func (q *Queries) AcceptTerms(ctx context.Context, arg AcceptTermsParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, acceptTerms, arg.TermsVersion, arg.TermsAcceptedAt, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
 
 const createSession = `-- name: CreateSession :exec
 INSERT INTO users_session (token_hash, user_id, created_at, last_seen_at)
@@ -95,7 +114,7 @@ func (q *Queries) DeleteUserSessions(ctx context.Context, userID string) error {
 }
 
 const getSessionWithUser = `-- name: GetSessionWithUser :one
-SELECT s.token_hash, s.user_id, s.created_at, s.last_seen_at, u.id, u.sub_idx, u.data_key, u.email, u.name, u.created_at FROM users_session s
+SELECT s.token_hash, s.user_id, s.created_at, s.last_seen_at, u.id, u.sub_idx, u.data_key, u.email, u.name, u.created_at, u.terms_version, u.terms_accepted_at FROM users_session s
 JOIN users_user u ON u.id = s.user_id
 WHERE s.token_hash = ?
 `
@@ -119,12 +138,14 @@ func (q *Queries) GetSessionWithUser(ctx context.Context, tokenHash []byte) (Get
 		&i.UsersUser.Email,
 		&i.UsersUser.Name,
 		&i.UsersUser.CreatedAt,
+		&i.UsersUser.TermsVersion,
+		&i.UsersUser.TermsAcceptedAt,
 	)
 	return i, err
 }
 
 const getUserBySubIdx = `-- name: GetUserBySubIdx :one
-SELECT id, sub_idx, data_key, email, name, created_at FROM users_user WHERE sub_idx = ?
+SELECT id, sub_idx, data_key, email, name, created_at, terms_version, terms_accepted_at FROM users_user WHERE sub_idx = ?
 `
 
 func (q *Queries) GetUserBySubIdx(ctx context.Context, subIdx []byte) (UsersUser, error) {
@@ -137,6 +158,8 @@ func (q *Queries) GetUserBySubIdx(ctx context.Context, subIdx []byte) (UsersUser
 		&i.Email,
 		&i.Name,
 		&i.CreatedAt,
+		&i.TermsVersion,
+		&i.TermsAcceptedAt,
 	)
 	return i, err
 }

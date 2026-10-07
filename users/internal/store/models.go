@@ -4,6 +4,10 @@
 
 package store
 
+import (
+	"database/sql"
+)
+
 type UsersSession struct {
 	TokenHash  []byte
 	UserID     string
@@ -12,10 +16,12 @@ type UsersSession struct {
 }
 
 type UsersUser struct {
-	ID        string
-	SubIdx    []byte
-	DataKey   []byte
-	Email     []byte
-	Name      []byte
-	CreatedAt string
+	ID              string
+	SubIdx          []byte
+	DataKey         []byte
+	Email           []byte
+	Name            []byte
+	CreatedAt       string
+	TermsVersion    sql.NullString
+	TermsAcceptedAt sql.NullString
 }

@@ -33,3 +33,6 @@ DELETE FROM users_session WHERE user_id = ?;
 DELETE FROM users_session
 WHERE user_id = sqlc.arg(user_id)
   AND (last_seen_at < sqlc.arg(idle_cutoff) OR created_at < sqlc.arg(absolute_cutoff));
+
+-- name: AcceptTerms :execrows
+UPDATE users_user SET terms_version = ?, terms_accepted_at = ? WHERE id = ?;

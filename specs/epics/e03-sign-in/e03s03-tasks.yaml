@@ -16,7 +16,7 @@ tasks:
     description: "Migration 00002 (terms_version, terms_accepted_at); users.AcceptTerms; User.TermsVersion loaded"
     verify: "go test -race ./users/... -run TestAcceptTerms"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Legal", "Database"]}
   - id: t3
     description: "requireTerms gate on app pages; /termos/aceitar form and POST; version bump asks again"

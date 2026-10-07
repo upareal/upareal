@@ -1,4 +1,4 @@
-// story: e03s01
+// story: e03s01 e03s03
 package users
 
 import (
@@ -34,10 +34,11 @@ type Identity struct {
 
 // User is a decrypted user record.
 type User struct {
-	ID        string
-	Email     string
-	Name      string
-	CreatedAt time.Time
+	ID           string
+	Email        string
+	Name         string
+	CreatedAt    time.Time
+	TermsVersion string // latest accepted terms version; "" if never accepted
 }
 
 // Service owns user records and sessions.
@@ -138,7 +139,7 @@ func (s *Service) decrypt(row store.UsersUser) (User, *vault.DataKey, error) {
 	if err != nil {
 		return User{}, nil, fmt.Errorf("users: user %s created_at %q: %w", row.ID, row.CreatedAt, err)
 	}
-	return User{ID: row.ID, Email: email, Name: name, CreatedAt: created}, dk, nil
+	return User{ID: row.ID, Email: email, Name: name, CreatedAt: created, TermsVersion: row.TermsVersion.String}, dk, nil
 }
 
 func sealIdentity(dk *vault.DataKey, id Identity) (email, name []byte, err error) {
