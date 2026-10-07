@@ -16,7 +16,7 @@ tasks:
     description: "Migration 00002: on_budget, is_card, ledger_transaction, ledger_leg; queries"
     verify: "make gen && go build ./... && go test -race ./ledger/... -run TestEnsureDefaults"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Database"]}
   - id: t3
     description: "postTransaction: the only leg write path; enforces L1-L3 and L6 atomically"

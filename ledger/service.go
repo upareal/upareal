@@ -72,6 +72,7 @@ func (s *Service) insertAccount(ctx context.Context, q *store.Queries, dk *vault
 	err = q.CreateAccount(ctx, store.CreateAccountParams{
 		ID: id, UserID: userID, Type: accountType, Name: sealed,
 		Position: position, SystemRole: role, CreatedAt: stamp(s.now()),
+		OnBudget: 0, IsCard: 0,
 	})
 	if err != nil {
 		return fmt.Errorf("ledger: create %s account: %w", accountType, err)

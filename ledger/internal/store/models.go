@@ -17,6 +17,23 @@ type LedgerAccount struct {
 	SystemRole sql.NullString
 	ArchivedAt sql.NullString
 	CreatedAt  string
+	OnBudget   int64
+	IsCard     int64
+}
+
+type LedgerLeg struct {
+	ID            string
+	TransactionID string
+	AccountID     string
+	Amount        int64
+}
+
+type LedgerTransaction struct {
+	ID          string
+	UserID      string
+	OccurredAt  string
+	Description []byte
+	CreatedAt   string
 }
 
 type LedgerUserKey struct {

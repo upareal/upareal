@@ -8,11 +8,94 @@ package store
 import (
 	"context"
 	"database/sql"
+	"strings"
 )
 
+const accountBalance = `-- name: AccountBalance :one
+SELECT CAST(COALESCE(SUM(l.amount), 0) AS INTEGER) FROM ledger_leg l
+JOIN ledger_account a ON a.id = l.account_id
+WHERE a.user_id = ? AND l.account_id = ?
+`
+
+type AccountBalanceParams struct {
+	UserID    string
+	AccountID string
+}
+
+func (q *Queries) AccountBalance(ctx context.Context, arg AccountBalanceParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, accountBalance, arg.UserID, arg.AccountID)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const accountBalances = `-- name: AccountBalances :many
+SELECT l.account_id, CAST(SUM(l.amount) AS INTEGER) AS balance FROM ledger_leg l
+JOIN ledger_account a ON a.id = l.account_id
+WHERE a.user_id = ?
+GROUP BY l.account_id
+`
+
+type AccountBalancesRow struct {
+	AccountID string
+	Balance   int64
+}
+
+func (q *Queries) AccountBalances(ctx context.Context, userID string) ([]AccountBalancesRow, error) {
+	rows, err := q.db.QueryContext(ctx, accountBalances, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AccountBalancesRow
+	for rows.Next() {
+		var i AccountBalancesRow
+		if err := rows.Scan(&i.AccountID, &i.Balance); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const countPostableAccounts = `-- name: CountPostableAccounts :one
+SELECT count(*) FROM ledger_account
+WHERE user_id = ?1 AND archived_at IS NULL AND id IN (/*SLICE:ids*/?)
+`
+
+type CountPostableAccountsParams struct {
+	UserID string
+	Ids    []string
+}
+
+// L3 + L6: accounts of this user that are not archived.
+func (q *Queries) CountPostableAccounts(ctx context.Context, arg CountPostableAccountsParams) (int64, error) {
+	query := countPostableAccounts
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.UserID)
+	if len(arg.Ids) > 0 {
+		for _, v := range arg.Ids {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:ids*/?", strings.Repeat(",?", len(arg.Ids))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:ids*/?", "NULL", 1)
+	}
+	row := q.db.QueryRowContext(ctx, query, queryParams...)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createAccount = `-- name: CreateAccount :exec
-INSERT INTO ledger_account (id, user_id, type, name, position, system_role, created_at)
-VALUES (?, ?, ?, ?, ?, ?, ?)
+INSERT INTO ledger_account (id, user_id, type, name, position, system_role, on_budget, is_card, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateAccountParams struct {
@@ -22,6 +105,8 @@ type CreateAccountParams struct {
 	Name       []byte
 	Position   int64
 	SystemRole sql.NullString
+	OnBudget   int64
+	IsCard     int64
 	CreatedAt  string
 }
 
@@ -33,6 +118,52 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) er
 		arg.Name,
 		arg.Position,
 		arg.SystemRole,
+		arg.OnBudget,
+		arg.IsCard,
+		arg.CreatedAt,
+	)
+	return err
+}
+
+const createLeg = `-- name: CreateLeg :exec
+INSERT INTO ledger_leg (id, transaction_id, account_id, amount) VALUES (?, ?, ?, ?)
+`
+
+type CreateLegParams struct {
+	ID            string
+	TransactionID string
+	AccountID     string
+	Amount        int64
+}
+
+func (q *Queries) CreateLeg(ctx context.Context, arg CreateLegParams) error {
+	_, err := q.db.ExecContext(ctx, createLeg,
+		arg.ID,
+		arg.TransactionID,
+		arg.AccountID,
+		arg.Amount,
+	)
+	return err
+}
+
+const createTransaction = `-- name: CreateTransaction :exec
+INSERT INTO ledger_transaction (id, user_id, occurred_at, description, created_at) VALUES (?, ?, ?, ?, ?)
+`
+
+type CreateTransactionParams struct {
+	ID          string
+	UserID      string
+	OccurredAt  string
+	Description []byte
+	CreatedAt   string
+}
+
+func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) error {
+	_, err := q.db.ExecContext(ctx, createTransaction,
+		arg.ID,
+		arg.UserID,
+		arg.OccurredAt,
+		arg.Description,
 		arg.CreatedAt,
 	)
 	return err
@@ -53,12 +184,56 @@ func (q *Queries) CreateUserKey(ctx context.Context, arg CreateUserKeyParams) er
 	return err
 }
 
+const getAccount = `-- name: GetAccount :one
+SELECT id, type, system_role, archived_at FROM ledger_account WHERE id = ? AND user_id = ?
+`
+
+type GetAccountParams struct {
+	ID     string
+	UserID string
+}
+
+type GetAccountRow struct {
+	ID         string
+	Type       string
+	SystemRole sql.NullString
+	ArchivedAt sql.NullString
+}
+
+func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (GetAccountRow, error) {
+	row := q.db.QueryRowContext(ctx, getAccount, arg.ID, arg.UserID)
+	var i GetAccountRow
+	err := row.Scan(
+		&i.ID,
+		&i.Type,
+		&i.SystemRole,
+		&i.ArchivedAt,
+	)
+	return i, err
+}
+
+const getSystemAccountID = `-- name: GetSystemAccountID :one
+SELECT id FROM ledger_account WHERE user_id = ? AND system_role = ?
+`
+
+type GetSystemAccountIDParams struct {
+	UserID     string
+	SystemRole sql.NullString
+}
+
+func (q *Queries) GetSystemAccountID(ctx context.Context, arg GetSystemAccountIDParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getSystemAccountID, arg.UserID, arg.SystemRole)
+	var id string
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getUserKey = `-- name: GetUserKey :one
 
 SELECT data_key FROM ledger_user_key WHERE user_id = ?
 `
 
-// story: e04s01
+// story: e04s01 e04s02
 func (q *Queries) GetUserKey(ctx context.Context, userID string) ([]byte, error) {
 	row := q.db.QueryRowContext(ctx, getUserKey, userID)
 	var data_key []byte
@@ -67,7 +242,7 @@ func (q *Queries) GetUserKey(ctx context.Context, userID string) ([]byte, error)
 }
 
 const listActiveAccounts = `-- name: ListActiveAccounts :many
-SELECT id, type, name, system_role FROM ledger_account
+SELECT id, type, name, system_role, on_budget, is_card FROM ledger_account
 WHERE user_id = ? AND archived_at IS NULL
 ORDER BY CASE type WHEN 'asset' THEN 1 WHEN 'liability' THEN 2 WHEN 'income' THEN 3
                    WHEN 'expense' THEN 4 ELSE 5 END,
@@ -79,6 +254,8 @@ type ListActiveAccountsRow struct {
 	Type       string
 	Name       []byte
 	SystemRole sql.NullString
+	OnBudget   int64
+	IsCard     int64
 }
 
 func (q *Queries) ListActiveAccounts(ctx context.Context, userID string) ([]ListActiveAccountsRow, error) {
@@ -95,6 +272,8 @@ func (q *Queries) ListActiveAccounts(ctx context.Context, userID string) ([]List
 			&i.Type,
 			&i.Name,
 			&i.SystemRole,
+			&i.OnBudget,
+			&i.IsCard,
 		); err != nil {
 			return nil, err
 		}
@@ -134,4 +313,20 @@ func (q *Queries) ListSystemRoles(ctx context.Context, userID string) ([]sql.Nul
 		return nil, err
 	}
 	return items, nil
+}
+
+const nextAccountPosition = `-- name: NextAccountPosition :one
+SELECT CAST(COALESCE(MAX(position), -1) + 1 AS INTEGER) FROM ledger_account WHERE user_id = ? AND type = ?
+`
+
+type NextAccountPositionParams struct {
+	UserID string
+	Type   string
+}
+
+func (q *Queries) NextAccountPosition(ctx context.Context, arg NextAccountPositionParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, nextAccountPosition, arg.UserID, arg.Type)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
 }
