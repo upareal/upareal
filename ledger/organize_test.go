@@ -244,3 +244,40 @@ func TestArchiveAccount_GuardsSystemAndForeignAccounts(t *testing.T) {
 		t.Errorf("user B restoring user A's account = %v, want ErrAccountNotFound", err)
 	}
 }
+
+func TestDeleteAccount_OnlyWithoutLegs(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	mistake := create(t, f, ledger.NewAccount{Name: "Teste", Type: "expense"})
+	used := create(t, f, ledger.NewAccount{Name: "Conta", Type: "asset", Opening: 1000})
+
+	if err := f.svc.DeleteAccount(ctx, userA, mistake.ID); err != nil {
+		t.Fatalf("deleting an unused account: %v", err)
+	}
+	if n := f.count(t, `SELECT count(*) FROM ledger_account WHERE id = ?`, mistake.ID); n != 0 {
+		t.Error("unused account still exists after delete")
+	}
+	if err := f.svc.DeleteAccount(ctx, userA, used.ID); !errors.Is(err, ledger.ErrHasLegs) {
+		t.Errorf("deleting an account with legs = %v, want ErrHasLegs", err)
+	}
+	if b, _ := f.svc.Balance(ctx, userA, used.ID); b != 1000 {
+		t.Error("used account changed after a refused delete")
+	}
+}
+
+func TestDeleteAccount_GuardsSystemAndForeignAccounts(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	a := create(t, f, ledger.NewAccount{Name: "A", Type: "expense"})
+	for _, role := range []string{"opening_balance", "uncategorized_income", "uncategorized_expense"} {
+		if err := f.svc.DeleteAccount(ctx, userA, f.systemID(t, userA, role)); !errors.Is(err, ledger.ErrSystemAccount) {
+			t.Errorf("deleting system account %s = %v, want ErrSystemAccount (L7)", role, err)
+		}
+	}
+	if err := f.svc.DeleteAccount(ctx, userB, a.ID); !errors.Is(err, ledger.ErrAccountNotFound) {
+		t.Errorf("user B deleting user A's account = %v, want ErrAccountNotFound", err)
+	}
+	if n := f.count(t, `SELECT count(*) FROM ledger_account WHERE id = ?`, a.ID); n != 1 {
+		t.Error("user A's account was deleted by user B")
+	}
+}
