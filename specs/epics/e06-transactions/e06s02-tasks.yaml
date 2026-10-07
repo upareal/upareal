@@ -1,14 +1,26 @@
 story_id: e06s02
-title: Split transactions
-status: todo
+title: "Split transactions"
+spec: e06s02-split-transactions.md
+status: failing
 bcps: 5
-outcome: A user splits one purchase across several income/expense accounts; the form shows remaining to allocate until it is zero.
+risk: P0
+outcome: A user splits one payment across several expense/income accounts; "Falta distribuir" updates live and saving requires it to be zero.
 tasks:
-- id: t1
-  description: Multi-leg form with HTMX add/remove rows and remaining-to-allocate
-  verify: go test -race ./web/... -run TestSplitForm
-  status: todo
-- id: t2
-  description: Save rejects splits that do not balance
-  verify: go test -race ./ledger/... -run TestSplitBalances
-  status: todo
+  - id: t1
+    description: "ledger.RecordSplit: total > 0, >= 2 lines > 0, direction per counter type, mismatch returns remaining"
+    verify: "go test -race ./ledger/... -run TestRecordSplit"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger"]}
+  - id: t2
+    description: "Web: split form, HTMX add-line and remaining fragments, submit with pt-BR errors"
+    verify: "go test -race ./web/... -run 'TestSplitForm|TestSplitBalances'"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t3
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
