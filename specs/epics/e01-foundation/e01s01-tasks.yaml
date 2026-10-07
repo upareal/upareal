@@ -28,7 +28,7 @@ tasks:
     description: "templ base layout (lang pt-BR, viewport, responsive CSS) + home page; vendored htmx 2.0.11 via embed.FS"
     verify: "go test -race ./web/... -run 'TestHomePage|TestStatic'"
     risk: P2
-    status: failing
+    status: passing
     allure: {severity: normal, categories: ["UI", "integration"]}
   - id: t5
     description: "slog JSON request log middleware; http.Server timeouts; run(ctx) with graceful shutdown (10s drain)"
