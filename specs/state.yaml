@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: plan-work
-  note: e07s03 done; plan e07s04 (generic OFX import)
+  next_skill: develop-tdd
+  note: e07s04 planned (3 tasks)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)

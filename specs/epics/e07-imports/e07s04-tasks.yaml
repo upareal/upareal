@@ -1,14 +1,26 @@
 story_id: e07s04
-title: Generic OFX import
-status: todo
+title: "Generic OFX import"
+spec: e07s04-generic-ofx.md
+status: failing
 bcps: 5
-outcome: A user imports an OFX 1.x or 2.x file (including Windows-1252) into an account; FITID prevents duplicates.
+risk: P0
+outcome: Users upload OFX 1.x/2.x bank and card statements (Windows-1252 converted, zone-less dates in São Paulo); lines join the review queue, deduped by FITID.
 tasks:
-- id: t1
-  description: Transcode CHARSET 1252/8859-1 to UTF-8, then ofxgo.ParseResponse; fixture tests
-  verify: go test -race ./ledger/importer/... -run TestOFX
-  status: todo
-- id: t2
-  description: Account's bank selects its parser (generic CSV / generic OFX for now)
-  verify: go test -race ./ledger/... -run TestParserForAccount
-  status: todo
+  - id: t1
+    description: "importer.ParseOFX with fixtures: SGML 1.x Windows-1252 bank, XML 2.x card, dates with/without zone, centavos, errors"
+    verify: "go test -race ./ledger/importer/... -run TestOFX"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Import", "unit"]}
+  - id: t2
+    description: "importer.Parse detects OFX/CSV; web upload uses it; help mentions OFX"
+    verify: "go test -race ./ledger/importer/... ./web/... -run 'TestDetect|TestImportFlow_OFX'"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Import", "integration"]}
+  - id: t3
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
