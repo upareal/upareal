@@ -95,3 +95,115 @@ func TestGroups_RejectsInvalidInputAndForeignIDs(t *testing.T) {
 		t.Error("user A's group changed")
 	}
 }
+
+func categoryNamed(t *testing.T, f fixture, name string) budget.Category {
+	t.Helper()
+	for _, g := range groupsOf(t, f) {
+		for _, c := range g.Categories {
+			if c.Name == name {
+				return c
+			}
+		}
+	}
+	t.Fatalf("category %q not found", name)
+	return budget.Category{}
+}
+
+func names(cs []budget.Category) []string {
+	out := make([]string, len(cs))
+	for i, c := range cs {
+		out[i] = c.Name
+	}
+	return out
+}
+
+func TestCategoryCRUD_CreateRenameAndChangeGroup(t *testing.T) {
+	f := seeded(t)
+	ctx := context.Background()
+	pets, _ := f.svc.CreateGroup(ctx, userA, "expense", "Pets")
+	racao, err := f.svc.CreateCategory(ctx, userA, pets.ID, " Ração ")
+	if err != nil || racao.Name != "Ração" {
+		t.Fatalf("CreateCategory = %+v, %v", racao, err)
+	}
+	if _, err := f.svc.CreateCategory(ctx, userA, pets.ID, "Veterinário"); err != nil {
+		t.Fatal(err)
+	}
+	if got := names(groupNamed(t, f, "Pets").Categories); len(got) != 2 || got[0] != "Ração" || got[1] != "Veterinário" {
+		t.Errorf("Pets = %v, want [Ração Veterinário]", got)
+	}
+	if err := f.svc.RenameCategory(ctx, userA, racao.ID, "Ração e petiscos"); err != nil {
+		t.Fatal(err)
+	}
+	_ = categoryNamed(t, f, "Ração e petiscos")
+
+	streaming := categoryNamed(t, f, "Streaming")
+	if err := f.svc.SetCategoryGroup(ctx, userA, streaming.ID, groupNamed(t, f, "Lazer").ID); err != nil {
+		t.Fatalf("SetCategoryGroup same kind: %v", err)
+	}
+	lazer := names(groupNamed(t, f, "Lazer").Categories)
+	if lazer[len(lazer)-1] != "Streaming" {
+		t.Errorf("Lazer = %v, want Streaming last", lazer)
+	}
+	for _, n := range names(groupNamed(t, f, "Contas e assinaturas").Categories) {
+		if n == "Streaming" {
+			t.Error("Streaming still in its old group")
+		}
+	}
+}
+
+func TestCategoryCRUD_KindsNeverMix(t *testing.T) {
+	f := seeded(t)
+	ctx := context.Background()
+	mercado := categoryNamed(t, f, "Mercado")
+	if err := f.svc.SetCategoryGroup(ctx, userA, mercado.ID, groupNamed(t, f, "Receitas").ID); !errors.Is(err, budget.ErrKindMismatch) {
+		t.Errorf("moving an expense category into Receitas = %v, want ErrKindMismatch (B2)", err)
+	}
+	if got := names(groupNamed(t, f, "Alimentação").Categories); got[0] != "Mercado" {
+		t.Error("Mercado moved despite the kind mismatch")
+	}
+}
+
+func TestCategoryCRUD_RejectsInvalidAndForeign(t *testing.T) {
+	f := seeded(t)
+	ctx := context.Background()
+	moradia := groupNamed(t, f, "Moradia")
+	if _, err := f.svc.CreateCategory(ctx, userA, moradia.ID, ""); !errors.Is(err, budget.ErrInvalidName) {
+		t.Errorf("empty name = %v, want ErrInvalidName", err)
+	}
+	if _, err := f.svc.CreateCategory(ctx, userB, moradia.ID, "Intrusa"); !errors.Is(err, budget.ErrNotFound) {
+		t.Errorf("user B adding to user A's group = %v, want ErrNotFound", err)
+	}
+	mercado := categoryNamed(t, f, "Mercado")
+	if err := f.svc.RenameCategory(ctx, userB, mercado.ID, "Roubada"); !errors.Is(err, budget.ErrNotFound) {
+		t.Errorf("user B renaming user A's category = %v, want ErrNotFound", err)
+	}
+	if err := f.svc.SetCategoryGroup(ctx, userA, mercado.ID, "no-such-group"); !errors.Is(err, budget.ErrNotFound) {
+		t.Errorf("unknown target group = %v, want ErrNotFound", err)
+	}
+	if err := f.svc.MoveCategory(ctx, userB, mercado.ID, true); !errors.Is(err, budget.ErrNotFound) {
+		t.Errorf("user B moving user A's category = %v, want ErrNotFound", err)
+	}
+}
+
+func TestReorder_CategoriesWithinGroup(t *testing.T) {
+	f := seeded(t)
+	ctx := context.Background()
+	condominio := categoryNamed(t, f, "Condomínio")
+	if err := f.svc.MoveCategory(ctx, userA, condominio.ID, true); err != nil {
+		t.Fatal(err)
+	}
+	got := names(groupNamed(t, f, "Moradia").Categories)
+	if got[0] != "Condomínio" || got[1] != "Aluguel ou financiamento" {
+		t.Errorf("Moradia after moving Condomínio up = %v", got[:2])
+	}
+	if err := f.svc.MoveCategory(ctx, userA, condominio.ID, true); err != nil {
+		t.Errorf("moving the first category up = %v, want no-op", err)
+	}
+	last := categoryNamed(t, f, "Manutenção da casa")
+	if err := f.svc.MoveCategory(ctx, userA, last.ID, false); err != nil {
+		t.Errorf("moving the last category down = %v, want no-op", err)
+	}
+	if names(groupNamed(t, f, "Alimentação").Categories)[0] != "Mercado" {
+		t.Error("moving within Moradia changed another group")
+	}
+}
