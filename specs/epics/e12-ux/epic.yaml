@@ -1,0 +1,11 @@
+epic_id: e12
+slug: ux
+goal: Small usability improvements that remove real friction, nothing speculative.
+scope_items:
+- S22
+stories:
+- id: e12s01
+  title: Save without losing your place
+  bcps: 2
+  delta: ADDED
+bcps_total: 2

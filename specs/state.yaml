@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: survey-context
-  note: e01-e10 done (e07s05 blocked, e11 postponed); pick from STATUS_LATEST open items
+  next_skill: develop-tdd
+  note: 'e12s01 planned (2 tasks): htmx keep-place on Orçamento, Revisão, Mapa'
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -24,12 +24,12 @@ pending:
   supported.'
 - 'e11: wrapped per-user data keys live in the backed-up SQLite file, so backups taken before a deletion still hold the key until retention expires; true
   crypto-shredding needs keys stored outside the backup (or short retention). Decide in e11.'
-active_epic: null
+active_epic: e12
 git:
-  branch: docs/consolidation
+  branch: feat/ux-keep-place
   worktree: null
-  base: main@749ae74
-active_story: null
+  base: main@f149ee8
+active_story: e12s01
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'

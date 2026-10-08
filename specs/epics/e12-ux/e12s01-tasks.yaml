@@ -1,0 +1,20 @@
+story_id: e12s01
+title: "Save without losing your place"
+spec: e12s01-keep-place.md
+status: failing
+bcps: 2
+risk: P2
+outcome: Row saves on Orçamento, Revisão and Mapa update the page in place without scrolling; errors still show.
+tasks:
+  - id: t1
+    description: "hx-post/hx-target/hx-select main on the three pages' row forms; htmx-config swaps 4xx/5xx"
+    verify: "go test -race ./web/... -run TestKeepPlace"
+    risk: P2
+    status: failing
+    allure: {severity: normal, categories: ["UI"]}
+  - id: t2
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}

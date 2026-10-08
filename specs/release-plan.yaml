@@ -61,3 +61,8 @@ epics:
   path: specs/epics/e11-production
   wsjf_rank: 11
   bcps: 16
+- id: e12
+  slug: ux
+  path: specs/epics/e12-ux
+  wsjf_rank: 12
+  bcps: 2
