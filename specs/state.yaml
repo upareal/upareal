@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e09s01 all tasks passing; awaiting user UAT (spec §19)
+  next_skill: plan-work
+  note: e09s01 done; plan e09s02 (disable, enable, delete users)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -27,7 +27,7 @@ git:
   branch: feat/e09-admin
   worktree: null
   base: main@6426a72
-active_story: e09s01
+active_story: e09s02
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'
