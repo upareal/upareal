@@ -1,10 +1,32 @@
 story_id: e08s05
-title: Off-budget accounts in planning
-status: todo
+title: "Off-budget accounts in planning"
+spec: e08s05-off-budget.md
+status: failing
 bcps: 3
-outcome: Transfers to tracking accounts need a category; inflows from them count as to be assigned.
+risk: P0
+outcome: Only flows across the budget boundary count; off-budget accounts map to expense categories, outflows to them are spent, inflows from them are money to assign; identity holds with off-budget accounts.
 tasks:
-- id: t1
-  description: Off-budget transfer rules
-  verify: go test -race ./planning/... -run TestOffBudget
-  status: todo
+  - id: t1
+    description: "ledger.BudgetFlows: debit/credit per non-on-budget account, only transactions touching an on-budget account"
+    verify: "go test -race ./ledger/... -run TestBudgetFlows"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Ledger"]}
+  - id: t2
+    description: "planning: map off-budget to expense categories; tally from BudgetFlows; identity with off-budget accounts"
+    verify: "go test -race ./planning/..."
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Planning"]}
+  - id: t3
+    description: "Mapa lists off-budget accounts; Orçamento shows their spending"
+    verify: "go test -race ./web/... -run 'TestMappingPage|TestBudgetMonthPage'"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t4
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
