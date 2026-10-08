@@ -4,7 +4,7 @@
 
 ## Built
 
-The app runs locally (`make run`) and in Docker (`docker compose up --build`). All 32 stories of e01–e10 and e12 have tests and a user verification record in `specs/verifications/`.
+The app runs locally (`make run`) and in Docker (`docker compose up --build`). All 33 stories of e01–e10, e12 and e13 have tests and a user verification record in `specs/verifications/`.
 
 | Epic | What works |
 |------|------------|
@@ -19,6 +19,7 @@ The app runs locally (`make run`) and in Docker (`docker compose up --build`). A
 | e09 admin | `ADMIN_EMAILS` admins list, disable, enable and delete users, without seeing financial data |
 | e10 data rights | Export my data (JSON, all modules); delete my account (typed confirmation) |
 | e12 ux | Row saves on Orçamento, Revisão and Mapa update in place (htmx), keeping the scroll position; soft color palette (CSS variables, WCAG AA text) |
+| e13 public stats | Public `/estatisticas`: users, accounts, transactions, imported lines, categories, planned this month (aggregates only; the X2 exception) |
 
 **Size:** 286 test functions; `go test -race ./...` across 12 packages; golangci-lint (with gofmt) reports 0 issues.
 
@@ -43,7 +44,7 @@ The app runs locally (`make run`) and in Docker (`docker compose up --build`). A
 
 ## Open items
 
-1. **Legal text.** Replace the provisional `/privacidade` and `/termos` text, then bump `web.CurrentTermsVersion`.
+1. **Legal text.** Replace the provisional `/privacidade` and `/termos` text, then bump `web.CurrentTermsVersion`. The privacy policy must also say that aggregate totals are published on `/estatisticas`.
 2. **Refunds.** The ledger can't record a credit on an expense account yet. Planning already nets refunds once they exist.
 3. **UX.** After an import or a match, link to the register month where the lines landed.
 4. **Backups and deletion (e11).** The wrapped per-user keys live in the backed-up SQLite file, so backups taken before a deletion stay readable until retention expires. Fixing this needs keys stored outside the backup, or short retention.

@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e13s01 all tasks passing; awaiting user UAT (spec §19)
+  next_skill: survey-context
+  note: e01-e10, e12, e13 done (e07s05 blocked, e11 postponed); pick from STATUS_LATEST open items
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -25,12 +25,12 @@ pending:
   supported.'
 - 'e11: wrapped per-user data keys live in the backed-up SQLite file, so backups taken before a deletion still hold the key until retention expires; true
   crypto-shredding needs keys stored outside the backup (or short retention). Decide in e11.'
-active_epic: e13
+active_epic: null
 git:
-  branch: feat/public-stats
+  branch: main
   worktree: null
-  base: main@f3910b6
-active_story: e13s01
+  base: main@3354344
+active_story: null
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'
