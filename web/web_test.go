@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e04s01 e05s01 e08s01
+// story: e01s01 e03s01 e04s01 e05s01 e08s01 e09s01
 package web_test
 
 import (
@@ -61,7 +61,7 @@ func newTestApp(t *testing.T, baseURL string) testApp {
 	}
 	ledg := ledger.NewService(conn, kr)
 	bud := budget.NewService(conn, kr)
-	h := web.NewHandler(web.Deps{DB: conn, Users: users.NewService(conn, kr), Ledger: ledg, Budget: bud,
+	h := web.NewHandler(web.Deps{DB: conn, Users: users.NewService(conn, kr, users.AdminEmails("maria@example.com")), Ledger: ledg, Budget: bud,
 		Planning: planning.NewService(conn, ledg, bud), Google: google})
 	return testApp{handler: h, conn: conn, fake: fake, ledger: ledg}
 }
