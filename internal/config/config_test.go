@@ -101,3 +101,20 @@ func TestLoad_RejectsInvalidValuesWithoutLeakingSecrets(t *testing.T) {
 		t.Errorf("Load with BASE_URL without scheme = %v, want error naming BASE_URL", err)
 	}
 }
+
+// story: e09s01
+func TestLoad_AdminEmailsAreOptionalTrimmedAndLowercased(t *testing.T) {
+	env := validEnv(t)
+	cfg, err := config.Load(envOf(env))
+	if err != nil || len(cfg.AdminEmails) != 0 {
+		t.Fatalf("without ADMIN_EMAILS: %v, %v; want no admins and no error", cfg.AdminEmails, err)
+	}
+	env["ADMIN_EMAILS"] = " Maria@Example.com, ,joao@example.com "
+	cfg, err = config.Load(envOf(env))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg.AdminEmails) != 2 || cfg.AdminEmails[0] != "maria@example.com" || cfg.AdminEmails[1] != "joao@example.com" {
+		t.Errorf("AdminEmails = %q, want [maria@example.com joao@example.com]", cfg.AdminEmails)
+	}
+}
