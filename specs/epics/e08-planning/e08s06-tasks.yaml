@@ -1,7 +1,7 @@
 story_id: e08s06
 title: "Archive and merge categories"
 spec: e08s06-archive-merge-categories.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: Users merge a category into a same-kind one (accounts, amounts and history move; A distribuir unchanged), archive empty envelopes and restore archived categories.
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
