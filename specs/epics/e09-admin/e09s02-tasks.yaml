@@ -1,7 +1,7 @@
 story_id: e09s02
 title: "Disable, enable and delete users"
 spec: e09s02-disable-delete-users.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: Admins disable (sessions gone, sign-in refused), re-enable and delete users (all module data and keys removed); ADMIN_EMAILS users are protected.
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
