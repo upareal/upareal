@@ -1,7 +1,7 @@
 story_id: e12s01
 title: "Save without losing your place"
 spec: e12s01-keep-place.md
-status: failing
+status: passing
 bcps: 2
 risk: P2
 outcome: Row saves on Orçamento, Revisão and Mapa update the page in place without scrolling; errors still show.
@@ -16,5 +16,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
