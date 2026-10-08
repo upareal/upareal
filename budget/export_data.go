@@ -55,7 +55,9 @@ func (s *Service) ExportUserData(ctx context.Context, userID string) (Export, er
 	if err != nil || dk == nil {
 		return ex, err
 	}
-	fail := func(what string, err error) (Export, error) { return Export{}, fmt.Errorf("budget: export %s: %w", what, err) }
+	fail := func(what string, err error) (Export, error) {
+		return Export{}, fmt.Errorf("budget: export %s: %w", what, err)
+	}
 	groups, err := s.q.ExportGroups(ctx, userID)
 	if err != nil {
 		return fail("groups", err)

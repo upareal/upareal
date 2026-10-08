@@ -1,2 +1,5 @@
-# story: e01s01
+# story: e01s01 e12s01
 version: "2"
+formatters:
+  enable:
+    - gofmt # make preflight fails on unformatted code

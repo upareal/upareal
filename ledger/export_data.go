@@ -79,7 +79,9 @@ func (s *Service) ExportUserData(ctx context.Context, userID string) (Export, er
 	if err != nil {
 		return Export{}, err
 	}
-	fail := func(what string, err error) (Export, error) { return Export{}, fmt.Errorf("ledger: export %s: %w", what, err) }
+	fail := func(what string, err error) (Export, error) {
+		return Export{}, fmt.Errorf("ledger: export %s: %w", what, err)
+	}
 
 	accounts, err := s.q.ExportAccounts(ctx, userID)
 	if err != nil {

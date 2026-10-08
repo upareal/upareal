@@ -66,7 +66,7 @@ func TestAdminUsers_NonAdminGetsPlain404(t *testing.T) {
 // story: e09s02
 func adminAction(t *testing.T, page, action string) []string {
 	t.Helper()
-	return regexp.MustCompile(`action="/admin/usuarios/([0-9a-f-]{36})/` + action + `"`).FindAllString(page, -1)
+	return regexp.MustCompile(`action="/admin/usuarios/([0-9a-f-]{36})/`+action+`"`).FindAllString(page, -1)
 }
 
 func joaoID(t *testing.T, page string) string {

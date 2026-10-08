@@ -29,7 +29,7 @@ type queueView struct {
 
 type queueLineView struct {
 	ID, Link, When, Account, Description, Amount, Conta string
-	Out                                                bool // money left: offer expense accounts
+	Out                                                 bool // money left: offer expense accounts
 }
 
 func importGet(svc *users.Service, ledg *ledger.Service) http.HandlerFunc {

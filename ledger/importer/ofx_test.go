@@ -61,10 +61,10 @@ func TestOFX_RejectsBadInput(t *testing.T) {
 		t.Fatal(err)
 	}
 	for name, in := range map[string]string{
-		"not OFX":           "hello",
-		"no transactions":   strings.ReplaceAll(strings.ReplaceAll(string(good), "<STMTTRN>", "<X>"), "</STMTTRN>", "</X>"),
-		"sub-centavo":       strings.Replace(string(good), "-89.90", "-89.905", 1),
-		"missing FITID":     strings.Replace(string(good), "<FITID>CC001</FITID>", "", 1),
+		"not OFX":         "hello",
+		"no transactions": strings.ReplaceAll(strings.ReplaceAll(string(good), "<STMTTRN>", "<X>"), "</STMTTRN>", "</X>"),
+		"sub-centavo":     strings.Replace(string(good), "-89.90", "-89.905", 1),
+		"missing FITID":   strings.Replace(string(good), "<FITID>CC001</FITID>", "", 1),
 	} {
 		if _, err := importer.ParseOFX(strings.NewReader(in)); err == nil {
 			t.Errorf("%s: expected an error", name)
