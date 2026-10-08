@@ -115,3 +115,19 @@ ON CONFLICT (category_id, month) DO UPDATE SET amount = budget_amount.amount + e
 
 -- name: DeleteCategoryAmounts :exec
 DELETE FROM budget_amount WHERE user_id = ? AND category_id = ?;
+
+-- story: e09s02 (children before parents: foreign keys)
+-- name: DeleteUserAmounts :exec
+DELETE FROM budget_amount WHERE user_id = ?;
+
+-- name: DeleteUserMonths :exec
+DELETE FROM budget_month WHERE user_id = ?;
+
+-- name: DeleteUserCategories :exec
+DELETE FROM budget_category WHERE user_id = ?;
+
+-- name: DeleteUserGroups :exec
+DELETE FROM budget_group WHERE user_id = ?;
+
+-- name: DeleteUserKey :exec
+DELETE FROM budget_user_key WHERE user_id = ?;

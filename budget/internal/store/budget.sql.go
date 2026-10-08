@@ -156,6 +156,52 @@ func (q *Queries) DeleteCategoryAmounts(ctx context.Context, arg DeleteCategoryA
 	return err
 }
 
+const deleteUserAmounts = `-- name: DeleteUserAmounts :exec
+DELETE FROM budget_amount WHERE user_id = ?
+`
+
+// story: e09s02 (children before parents: foreign keys)
+func (q *Queries) DeleteUserAmounts(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserAmounts, userID)
+	return err
+}
+
+const deleteUserCategories = `-- name: DeleteUserCategories :exec
+DELETE FROM budget_category WHERE user_id = ?
+`
+
+func (q *Queries) DeleteUserCategories(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserCategories, userID)
+	return err
+}
+
+const deleteUserGroups = `-- name: DeleteUserGroups :exec
+DELETE FROM budget_group WHERE user_id = ?
+`
+
+func (q *Queries) DeleteUserGroups(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserGroups, userID)
+	return err
+}
+
+const deleteUserKey = `-- name: DeleteUserKey :exec
+DELETE FROM budget_user_key WHERE user_id = ?
+`
+
+func (q *Queries) DeleteUserKey(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserKey, userID)
+	return err
+}
+
+const deleteUserMonths = `-- name: DeleteUserMonths :exec
+DELETE FROM budget_month WHERE user_id = ?
+`
+
+func (q *Queries) DeleteUserMonths(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserMonths, userID)
+	return err
+}
+
 const getArchivedCategory = `-- name: GetArchivedCategory :one
 SELECT c.id, c.group_id FROM budget_category c
 JOIN budget_group g ON g.id = c.group_id AND g.archived_at IS NULL

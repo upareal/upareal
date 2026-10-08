@@ -16,7 +16,7 @@ tasks:
     description: "DeleteUserData in ledger, budget, planning; every table emptied for the user; other users untouched"
     verify: "go test -race ./ledger/... ./budget/... ./planning/... -run TestDeleteUserData"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Privacy"]}
   - id: t3
     description: "web: admin Desativar/Reativar/Excluir (confirm), disabled sign-in message, ID-only logging"

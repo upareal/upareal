@@ -37,6 +37,16 @@ func (q *Queries) DeleteMapping(ctx context.Context, arg DeleteMappingParams) er
 	return err
 }
 
+const deleteUserMappings = `-- name: DeleteUserMappings :exec
+DELETE FROM planning_mapping WHERE user_id = ?
+`
+
+// story: e09s02
+func (q *Queries) DeleteUserMappings(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserMappings, userID)
+	return err
+}
+
 const listMappings = `-- name: ListMappings :many
 SELECT account_id, category_id FROM planning_mapping WHERE user_id = ?
 `

@@ -200,3 +200,22 @@ WHERE t.user_id = sqlc.arg(user_id) AND t.occurred_at >= sqlc.arg(from_at) AND t
   AND EXISTS (SELECT 1 FROM ledger_leg ob JOIN ledger_account oa ON oa.id = ob.account_id
               WHERE ob.transaction_id = t.id AND oa.on_budget = 1)
 GROUP BY l.account_id;
+
+-- story: e09s02 (children before parents: foreign keys)
+-- name: DeleteUserImportLines :exec
+DELETE FROM ledger_import_line WHERE user_id = ?;
+
+-- name: DeleteUserHistory :exec
+DELETE FROM ledger_transaction_history WHERE user_id = ?;
+
+-- name: DeleteUserLegs :exec
+DELETE FROM ledger_leg WHERE transaction_id IN (SELECT id FROM ledger_transaction WHERE user_id = ?);
+
+-- name: DeleteUserTransactions :exec
+DELETE FROM ledger_transaction WHERE user_id = ?;
+
+-- name: DeleteUserAccounts :exec
+DELETE FROM ledger_account WHERE user_id = ?;
+
+-- name: DeleteUserKey :exec
+DELETE FROM ledger_user_key WHERE user_id = ?;

@@ -386,6 +386,61 @@ func (q *Queries) DeleteLegs(ctx context.Context, transactionID string) error {
 	return err
 }
 
+const deleteUserAccounts = `-- name: DeleteUserAccounts :exec
+DELETE FROM ledger_account WHERE user_id = ?
+`
+
+func (q *Queries) DeleteUserAccounts(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserAccounts, userID)
+	return err
+}
+
+const deleteUserHistory = `-- name: DeleteUserHistory :exec
+DELETE FROM ledger_transaction_history WHERE user_id = ?
+`
+
+func (q *Queries) DeleteUserHistory(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserHistory, userID)
+	return err
+}
+
+const deleteUserImportLines = `-- name: DeleteUserImportLines :exec
+DELETE FROM ledger_import_line WHERE user_id = ?
+`
+
+// story: e09s02 (children before parents: foreign keys)
+func (q *Queries) DeleteUserImportLines(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserImportLines, userID)
+	return err
+}
+
+const deleteUserKey = `-- name: DeleteUserKey :exec
+DELETE FROM ledger_user_key WHERE user_id = ?
+`
+
+func (q *Queries) DeleteUserKey(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserKey, userID)
+	return err
+}
+
+const deleteUserLegs = `-- name: DeleteUserLegs :exec
+DELETE FROM ledger_leg WHERE transaction_id IN (SELECT id FROM ledger_transaction WHERE user_id = ?)
+`
+
+func (q *Queries) DeleteUserLegs(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserLegs, userID)
+	return err
+}
+
+const deleteUserTransactions = `-- name: DeleteUserTransactions :exec
+DELETE FROM ledger_transaction WHERE user_id = ?
+`
+
+func (q *Queries) DeleteUserTransactions(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserTransactions, userID)
+	return err
+}
+
 const getAccount = `-- name: GetAccount :one
 SELECT id, type, system_role, archived_at, position FROM ledger_account WHERE id = ? AND user_id = ?
 `

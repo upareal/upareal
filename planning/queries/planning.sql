@@ -17,3 +17,7 @@ WHERE user_id = sqlc.arg(user_id) AND category_id = sqlc.arg(source_id);
 
 -- name: DeleteCategoryMappings :exec
 DELETE FROM planning_mapping WHERE user_id = ? AND category_id = ?;
+
+-- story: e09s02
+-- name: DeleteUserMappings :exec
+DELETE FROM planning_mapping WHERE user_id = ?;
