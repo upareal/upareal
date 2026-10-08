@@ -15,7 +15,7 @@ tasks:
     description: "web: Detalhe técnico on unreadable OFX; JSON 'import failed' log with IDs/format/kind/count only; run() sets slog default"
     verify: "go test -race ./web/... ./cmd/... -run 'TestImportFlow_Failure|TestRun_HandlerLogs'"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Import", "Observability"]}
   - id: t3
     description: "Full local gate green"

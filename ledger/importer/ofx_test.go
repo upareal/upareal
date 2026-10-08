@@ -85,7 +85,7 @@ func TestDetect_ChoosesOFXOrCSVByContent(t *testing.T) {
 		"OFX XML":  {"\n  " + string(xml), "CC001"},
 		"CSV":      {csv, "x"},
 	} {
-		lines, err := importer.Parse(strings.NewReader(tc.in))
+		lines, _, err := importer.Parse(strings.NewReader(tc.in))
 		if err != nil || len(lines) == 0 || lines[0].ImportID != tc.wantID {
 			t.Errorf("%s: Parse = %+v, %v; want first id %q", name, lines, err, tc.wantID)
 		}

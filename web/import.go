@@ -1,12 +1,14 @@
-// story: e07s01 e07s02 e07s04
+// story: e07s01 e07s02 e07s04 BUG-001
 package web
 
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/upareal/upareal/internal/money"
 	"github.com/upareal/upareal/ledger"
@@ -53,8 +55,12 @@ func importPost(svc *users.Service, ledg *ledger.Service, limit *ipLimiter) http
 			return
 		}
 		defer func() { _ = file.Close() }()
-		lines, err := importer.Parse(file) // OFX or CSV, detected by content
+		lines, format, err := importer.Parse(file) // OFX or CSV, detected by content
 		if err != nil {
+			kind, rejected := importFailureKind(err)
+			// IDs and kinds only: parser messages can quote amounts or descriptions.
+			slog.WarnContext(r.Context(), "import failed", "user_id", u.ID, "account_id", id,
+				"format", format, "kind", kind, "rejected_lines", rejected)
 			renderImport(w, r, ledg, u.ID, id, http.StatusBadRequest, parseErrors(err))
 			return
 		}
@@ -168,9 +174,29 @@ func parseErrors(err error) []string {
 	case errors.Is(err, importer.ErrNoLines):
 		return []string{"O arquivo não tem lançamentos."}
 	case errors.Is(err, importer.ErrUnreadableOFX):
-		return []string{"Não foi possível ler o OFX. Baixe o extrato de novo no site do banco."}
+		// The user's own file: showing the parser's message is safe and lets
+		// them (or us) see the cause (BUG-001).
+		detail := strings.TrimPrefix(err.Error(), importer.ErrUnreadableOFX.Error()+": ")
+		return []string{"Não foi possível ler o OFX. Baixe o extrato de novo no site do banco.", "Detalhe técnico: " + detail}
 	}
 	return []string{"Não foi possível ler o arquivo."}
+}
+
+// importFailureKind classifies a parse error for the log, with the number of
+// rejected lines when there are any.
+func importFailureKind(err error) (kind string, rejected int) {
+	var errs importer.Errors
+	switch {
+	case errors.As(err, &errs):
+		return "line_errors", len(errs)
+	case errors.Is(err, importer.ErrTooLarge):
+		return "too_large", 0
+	case errors.Is(err, importer.ErrNoLines):
+		return "no_lines", 0
+	case errors.Is(err, importer.ErrUnreadableOFX):
+		return "unreadable_ofx", 0
+	}
+	return "unreadable", 0
 }
 
 func importFileError(err error) string {

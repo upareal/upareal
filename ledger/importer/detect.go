@@ -1,4 +1,4 @@
-// story: e07s04
+// story: e07s04 BUG-001
 package importer
 
 import (
@@ -11,19 +11,21 @@ const sniffBytes = 4096
 
 // Parse reads a statement in any supported format, detected by content:
 // OFX when it starts with OFXHEADER or has <OFX> near the top, else the
-// generic CSV.
-func Parse(r io.Reader) ([]Line, error) {
+// generic CSV. format ("ofx" or "csv") is set even on error, for logging.
+func Parse(r io.Reader) (lines []Line, format string, err error) {
 	data, err := io.ReadAll(io.LimitReader(r, MaxBytes+1))
 	if err != nil {
-		return nil, fmt.Errorf("importer: read: %w", err)
+		return nil, "", fmt.Errorf("importer: read: %w", err)
 	}
 	if len(data) > MaxBytes {
-		return nil, ErrTooLarge
+		return nil, "", ErrTooLarge
 	}
 	if isOFX(data) {
-		return ParseOFX(bytes.NewReader(data))
+		lines, err = ParseOFX(bytes.NewReader(data))
+		return lines, "ofx", err
 	}
-	return ParseGenericCSV(bytes.NewReader(data))
+	lines, err = ParseGenericCSV(bytes.NewReader(data))
+	return lines, "csv", err
 }
 
 func isOFX(data []byte) bool {

@@ -60,6 +60,7 @@ func main() {
 func run(ctx context.Context, getenv func(string) string, ln net.Listener, logOut io.Writer) error {
 	defer func() { _ = ln.Close() }() // already closed by Shutdown on the normal path
 	logger := slog.New(slog.NewJSONHandler(logOut, nil))
+	slog.SetDefault(logger) // handlers log via slog's default (BUG-001)
 
 	cfg, err := config.Load(getenv)
 	if err != nil {
