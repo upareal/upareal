@@ -9,7 +9,7 @@ tasks:
     description: "importer: tolerate a zeroed DTSERVER (that tag only); fixture with CHECKNUM and [-03:EST]"
     verify: "go test -race ./ledger/importer/... -run TestOFX"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Import"]}
   - id: t2
     description: "web: Detalhe técnico on unreadable OFX; JSON 'import failed' log with IDs/format/kind/count only; run() sets slog default"

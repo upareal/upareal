@@ -1,4 +1,4 @@
-// story: e07s04
+// story: e07s04 BUG-001
 package importer
 
 import (
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -17,6 +18,12 @@ import (
 
 // ErrUnreadableOFX means the file is not an OFX statement ofxgo can read.
 var ErrUnreadableOFX = errors.New("importer: unreadable OFX")
+
+// zeroServerDate matches a zeroed sign-on server time. Bradesco sends
+// <DTSERVER>00000000000000, which ofxgo rejects although upareal never
+// uses that field (BUG-001). Only DTSERVER is tolerated: a zeroed
+// transaction date is still an error.
+var zeroServerDate = regexp.MustCompile(`<DTSERVER>0{8,}`)
 
 // ParseOFX reads OFX 1.x (SGML) and 2.x (XML) bank and credit card
 // statements. Non-UTF-8 bytes are converted from Windows-1252 first (ofxgo
@@ -35,6 +42,7 @@ func ParseOFX(r io.Reader) ([]Line, error) {
 			return nil, fmt.Errorf("%w: charset: %v", ErrUnreadableOFX, err)
 		}
 	}
+	data = zeroServerDate.ReplaceAll(data, []byte("<DTSERVER>19700101000000"))
 	resp, err := ofxgo.ParseResponse(bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrUnreadableOFX, err)
