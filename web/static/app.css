@@ -102,3 +102,7 @@ nav.months { display: flex; justify-content: space-between; gap: 0.5rem; margin:
 .hint { padding: 0.5rem 0.75rem; background: #E6EFF7; border-left: 4px solid var(--azul-oceano); }
 .split-line { display: flex; gap: 0.5rem; margin: 0.25rem 0; }
 .split-line select { flex: 2; } .split-line input { flex: 1; }
+
+/* story: e13s01 */
+dl.stats { display: grid; grid-template-columns: 1fr auto; gap: 0.25rem 1rem; margin: 0; }
+dl.stats dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }

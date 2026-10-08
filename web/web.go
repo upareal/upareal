@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02 e05s03 e06s01 e06s02 e06s03 e06s04 e06s05 e07s01 e07s02 e07s03 e08s01 e08s02 e08s06 e09s01 e09s02 e10s01 e10s02
+// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02 e05s03 e06s01 e06s02 e06s03 e06s04 e06s05 e07s01 e07s02 e07s03 e08s01 e08s02 e08s06 e09s01 e09s02 e10s01 e10s02 e13s01
 
 // Package web renders all HTML pages and HTMX fragments and wires the HTTP routes.
 package web
@@ -117,6 +117,7 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("POST /contas/{id}/excluir", accountAction(d.Users, d.Ledger, func(r *http.Request, userID, id string) error {
 		return d.Ledger.DeleteAccount(r.Context(), userID, id)
 	}))
+	mux.HandleFunc("GET /estatisticas", publicStats(d))
 	mux.Handle("GET /privacidade", templ.Handler(privacyPage()))
 	mux.Handle("GET /termos", templ.Handler(termsPage()))
 	mux.HandleFunc("GET /termos/aceitar", acceptTermsForm(d.Users))

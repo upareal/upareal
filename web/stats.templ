@@ -1,0 +1,26 @@
+// story: e13s01
+package web
+
+templ statsPage(v statsView) {
+	@layout("Estatísticas — upareal") {
+		<p><a href="/">← Início</a></p>
+		<h1>Estatísticas</h1>
+		<p class="muted">Números agregados de todos os usuários do upareal. Nenhum dado individual é mostrado.</p>
+		<section class="group">
+			<h2>Uso</h2>
+			<dl class="stats">
+				<dt>Usuários cadastrados</dt><dd>{ v.Users }</dd>
+				<dt>Contas criadas</dt><dd>{ v.Accounts }</dd>
+				<dt>Lançamentos registrados</dt><dd>{ v.Transactions }</dd>
+				<dt>Linhas de extrato importadas</dt><dd>{ v.ImportedLines }</dd>
+				<dt>Categorias em uso</dt><dd>{ v.Categories }</dd>
+			</dl>
+		</section>
+		<section class="group">
+			<h2>Orçamento — { v.Month }</h2>
+			<dl class="stats">
+				<dt>Planejado neste mês</dt><dd>{ v.Planned }</dd>
+			</dl>
+		</section>
+	}
+}

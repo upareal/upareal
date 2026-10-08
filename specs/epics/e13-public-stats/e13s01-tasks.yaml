@@ -16,7 +16,7 @@ tasks:
     description: "web: public /estatisticas page (pt-BR numbers), footer link"
     verify: "go test -race ./web/... -run TestPublicStats"
     risk: P2
-    status: failing
+    status: passing
     allure: {severity: normal, categories: ["UI"]}
   - id: t3
     description: "Full local gate green"
