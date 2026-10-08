@@ -10,7 +10,7 @@ tasks:
     description: "config: optional ADMIN_EMAILS, trimmed and lowercased"
     verify: "go test -race ./internal/config/... -run TestLoad"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Config"]}
   - id: t2
     description: "users: AdminEmails option, User.Admin, ListUsers with last activity"

@@ -1,4 +1,4 @@
-// story: e01s01 e03s01
+// story: e01s01 e03s01 e09s01
 
 // Package config reads the app configuration from environment variables once at startup.
 package config
@@ -16,12 +16,13 @@ const defaultOIDCIssuerURL = "https://accounts.google.com"
 
 // Config is the validated app configuration.
 type Config struct {
-	DBPath             string // DB_PATH: SQLite file path
-	MasterKey          []byte // MASTER_KEY: base64 of 32 bytes; wraps per-user data keys
-	GoogleClientID     string // GOOGLE_CLIENT_ID
-	GoogleClientSecret string // GOOGLE_CLIENT_SECRET
-	BaseURL            string // BASE_URL: public origin, e.g. http://localhost:8080
-	OIDCIssuerURL      string // OIDC_ISSUER_URL: optional; Google unless overridden (tests)
+	DBPath             string   // DB_PATH: SQLite file path
+	MasterKey          []byte   // MASTER_KEY: base64 of 32 bytes; wraps per-user data keys
+	GoogleClientID     string   // GOOGLE_CLIENT_ID
+	GoogleClientSecret string   // GOOGLE_CLIENT_SECRET
+	BaseURL            string   // BASE_URL: public origin, e.g. http://localhost:8080
+	OIDCIssuerURL      string   // OIDC_ISSUER_URL: optional; Google unless overridden (tests)
+	AdminEmails        []string // ADMIN_EMAILS: optional, comma-separated; trimmed, lowercased
 }
 
 // Load reads configuration through getenv (os.Getenv in production) and fails
@@ -36,6 +37,11 @@ func Load(getenv func(string) string) (Config, error) {
 		GoogleClientSecret: getenv("GOOGLE_CLIENT_SECRET"),
 		BaseURL:            getenv("BASE_URL"),
 		OIDCIssuerURL:      getenv("OIDC_ISSUER_URL"),
+	}
+	for _, e := range strings.Split(getenv("ADMIN_EMAILS"), ",") {
+		if e = strings.ToLower(strings.TrimSpace(e)); e != "" {
+			cfg.AdminEmails = append(cfg.AdminEmails, e)
+		}
 	}
 	if cfg.OIDCIssuerURL == "" {
 		cfg.OIDCIssuerURL = defaultOIDCIssuerURL
