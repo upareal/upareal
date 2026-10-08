@@ -118,9 +118,9 @@ Feature: Archive and merge categories
 ## 19. Verification Script (Step-by-Step)
 
 1. Map an expense account (e.g. Netflix) to **Streaming** (create it if needed) and set Streaming to 50,00 this month. Note A distribuir.
-2. Open Streaming in **Categorias**, choose **Juntar com → Assinaturas**. Assinaturas now shows the sum, Netflix maps to Assinaturas in **Mapa**, and A distribuir is unchanged.
-3. Set **Pet** to 20,00 this month and click **Arquivar**. It's refused. Set Pet to 0,00 and archive it. It moves to **Arquivadas**.
-4. Click **Restaurar** on Pet. It's back in its group.
+2. Open Streaming in **Categorias**, choose **Juntar com → Outras assinaturas**. Outras assinaturas now shows the sum, Netflix maps to it in **Mapa**, and A distribuir is unchanged.
+3. Set **Hobbies** to 20,00 this month and click **Arquivar**. It's refused. Set Pet to 0,00 and archive it. It moves to **Arquivadas**.
+4. Click **Restaurar** on Hobbies. It's back in its group.
 5. Run `make preflight`. It ends green.
 
 ## 20. Traceability
