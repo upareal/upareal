@@ -164,6 +164,52 @@ func (q *Queries) GetUserBySubIdx(ctx context.Context, subIdx []byte) (UsersUser
 	return i, err
 }
 
+const listUsers = `-- name: ListUsers :many
+SELECT u.id, u.sub_idx, u.data_key, u.email, u.name, u.created_at, u.terms_version, u.terms_accepted_at,
+       CAST(COALESCE((SELECT MAX(s.last_seen_at) FROM users_session s WHERE s.user_id = u.id), '') AS TEXT) AS last_seen_at
+FROM users_user u
+ORDER BY u.created_at, u.id
+`
+
+type ListUsersRow struct {
+	UsersUser  UsersUser
+	LastSeenAt string
+}
+
+// story: e09s01
+func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
+	rows, err := q.db.QueryContext(ctx, listUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListUsersRow
+	for rows.Next() {
+		var i ListUsersRow
+		if err := rows.Scan(
+			&i.UsersUser.ID,
+			&i.UsersUser.SubIdx,
+			&i.UsersUser.DataKey,
+			&i.UsersUser.Email,
+			&i.UsersUser.Name,
+			&i.UsersUser.CreatedAt,
+			&i.UsersUser.TermsVersion,
+			&i.UsersUser.TermsAcceptedAt,
+			&i.LastSeenAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const touchSession = `-- name: TouchSession :exec
 UPDATE users_session SET last_seen_at = ? WHERE token_hash = ?
 `

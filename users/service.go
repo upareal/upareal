@@ -39,20 +39,26 @@ type User struct {
 	Name         string
 	CreatedAt    time.Time
 	TermsVersion string // latest accepted terms version; "" if never accepted
+	Admin        bool   // email is in ADMIN_EMAILS (e09s01); never stored
 }
 
 // Service owns user records and sessions.
 type Service struct {
-	q   *store.Queries
-	kr  *vault.Keyring
-	now func() time.Time
+	q      *store.Queries
+	kr     *vault.Keyring
+	now    func() time.Time
+	admins map[string]bool // normalized ADMIN_EMAILS
 }
 
 // NewService returns a users service over a migrated database.
 //
 //	svc := users.NewService(conn, keyring)
-func NewService(conn *sql.DB, kr *vault.Keyring) *Service {
-	return &Service{q: store.New(conn), kr: kr, now: time.Now}
+func NewService(conn *sql.DB, kr *vault.Keyring, opts ...Option) *Service {
+	s := &Service{q: store.New(conn), kr: kr, now: time.Now, admins: map[string]bool{}}
+	for _, o := range opts {
+		o(s)
+	}
+	return s
 }
 
 // SignIn returns the user for id.Subject, creating it on first sign-in and
@@ -99,7 +105,7 @@ func (s *Service) createUser(ctx context.Context, subIdx []byte, id Identity) (U
 	if err != nil {
 		return User{}, fmt.Errorf("users: create user: %w", err)
 	}
-	return User{ID: userID.String(), Email: id.Email, Name: id.Name, CreatedAt: created}, nil
+	return User{ID: userID.String(), Email: id.Email, Name: id.Name, CreatedAt: created, Admin: s.admins[normalizeEmail(id.Email)]}, nil
 }
 
 func (s *Service) refreshIdentity(ctx context.Context, row store.UsersUser, id Identity) (User, error) {
@@ -117,7 +123,7 @@ func (s *Service) refreshIdentity(ctx context.Context, row store.UsersUser, id I
 	if err := s.q.UpdateUserIdentity(ctx, store.UpdateUserIdentityParams{Email: email, Name: name, ID: row.ID}); err != nil {
 		return User{}, fmt.Errorf("users: update identity: %w", err)
 	}
-	u.Email, u.Name = id.Email, id.Name
+	u.Email, u.Name, u.Admin = id.Email, id.Name, s.admins[normalizeEmail(id.Email)]
 	return u, nil
 }
 
@@ -139,7 +145,8 @@ func (s *Service) decrypt(row store.UsersUser) (User, *vault.DataKey, error) {
 	if err != nil {
 		return User{}, nil, fmt.Errorf("users: user %s created_at %q: %w", row.ID, row.CreatedAt, err)
 	}
-	return User{ID: row.ID, Email: email, Name: name, CreatedAt: created, TermsVersion: row.TermsVersion.String}, dk, nil
+	return User{ID: row.ID, Email: email, Name: name, CreatedAt: created, TermsVersion: row.TermsVersion.String,
+		Admin: s.admins[normalizeEmail(email)]}, dk, nil
 }
 
 func sealIdentity(dk *vault.DataKey, id Identity) (email, name []byte, err error) {
