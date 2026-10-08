@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: survey-context
-  note: e01-e10, e12, e13 done (e07s05 blocked, e11 postponed); pick from STATUS_LATEST open items
+  next_skill: develop-tdd
+  note: BUG-001 planned (3 tasks)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -27,10 +27,10 @@ pending:
   crypto-shredding needs keys stored outside the backup (or short retention). Decide in e11.'
 active_epic: null
 git:
-  branch: main
+  branch: fix/bradesco-ofx-dtserver
   worktree: null
-  base: main@3354344
-active_story: null
+  base: main@aa29345
+active_story: BUG-001
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'

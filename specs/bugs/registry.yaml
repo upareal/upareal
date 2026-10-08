@@ -1,0 +1,7 @@
+# Bug registry. Status: open | fixing | fixed | verified
+- id: BUG-001
+  title: Bradesco OFX rejected (zeroed DTSERVER); import failures unexplained and unlogged
+  severity: high
+  status: fixing
+  found: 2026-10-08
+  doc: specs/bugs/BUG-001-bradesco-ofx-dtserver.md

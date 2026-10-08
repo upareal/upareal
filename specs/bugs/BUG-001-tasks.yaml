@@ -1,0 +1,25 @@
+story_id: BUG-001
+title: "Bradesco OFX rejected: zeroed DTSERVER"
+spec: BUG-001-bradesco-ofx-dtserver.md
+status: failing
+risk: P0
+outcome: Bradesco OFX imports; import failures show the technical cause to the user and are logged (IDs and kinds only) in the JSON log.
+tasks:
+  - id: t1
+    description: "importer: tolerate a zeroed DTSERVER (that tag only); fixture with CHECKNUM and [-03:EST]"
+    verify: "go test -race ./ledger/importer/... -run TestOFX"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Import"]}
+  - id: t2
+    description: "web: Detalhe técnico on unreadable OFX; JSON 'import failed' log with IDs/format/kind/count only; run() sets slog default"
+    verify: "go test -race ./web/... ./cmd/... -run 'TestImportFlow_Failure|TestRun_HandlerLogs'"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Import", "Observability"]}
+  - id: t3
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
