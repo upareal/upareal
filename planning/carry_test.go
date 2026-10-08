@@ -1,4 +1,4 @@
-// story: e08s03 e08s04
+// story: e08s03 e08s04 e08s05
 package planning_test
 
 import (
@@ -77,6 +77,10 @@ func TestCarry_IdentityHoldsEveryMonth(t *testing.T) {
 	f.post(t, nubank.ID, mb.shell.ID, 4500, jan10)    // on the card
 	f.post(t, mb.itau.ID, mb.padaria.ID, 1500, jan10) // Sem categoria
 	f.post(t, mb.itau.ID, mb.shell.ID, 9000, jan10.AddDate(0, 1, 0))
+	xp := f.offBudget(t, "Investimento XP", 500000) // e08s05: off-budget life must not break the identity
+	f.transfer(t, mb.itau.ID, xp.ID, 100000)
+	f.transfer(t, xp.ID, mb.itau.ID, 30000)
+	f.post(t, xp.ID, mb.salario.ID, 4200, jan10)
 	if _, err := f.ledg.Import(ctx, userA, mb.itau.ID, []importer.Line{{ImportID: "q", At: jan10.AddDate(0, 1, 0), Description: "PIX", Amount: -3000}}); err != nil {
 		t.Fatal(err)
 	}
