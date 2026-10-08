@@ -45,5 +45,5 @@ e11s01: deferred
 e11s02: deferred
 e11s03: deferred
 e11: deferred
-e12s01: in_review
-e12: todo
+e12s01: done
+e12: done
