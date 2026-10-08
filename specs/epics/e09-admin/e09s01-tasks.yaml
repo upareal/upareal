@@ -1,14 +1,32 @@
 story_id: e09s01
-title: Admin lists users
-status: todo
+title: "Admin lists users"
+spec: e09s01-admin-lists-users.md
+status: failing
 bcps: 3
-outcome: Users in ADMIN_EMAILS see a user list (email, created, last seen, status) and nothing financial.
+risk: P0
+outcome: Admins (ADMIN_EMAILS) list users with name, email, sign-up and last access, never financial data; non-admins get 404.
 tasks:
-- id: t1
-  description: Admin role from ADMIN_EMAILS on each sign-in; admin-only routes
-  verify: go test -race ./users/... ./web/... -run TestAdminAccess
-  status: todo
-- id: t2
-  description: User list page
-  verify: go test -race ./web/... -run TestAdminUserList
-  status: todo
+  - id: t1
+    description: "config: optional ADMIN_EMAILS, trimmed and lowercased"
+    verify: "go test -race ./internal/config/... -run TestLoad"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Config"]}
+  - id: t2
+    description: "users: AdminEmails option, User.Admin, ListUsers with last activity"
+    verify: "go test -race ./users/... -run 'TestAdmin|TestListUsers'"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Users", "Security"]}
+  - id: t3
+    description: "web: /admin/usuarios admin-only (404 otherwise), Admin nav link; main wires config"
+    verify: "go test -race ./web/... -run TestAdminUsers"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["UI", "Security"]}
+  - id: t4
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
