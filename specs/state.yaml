@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e10s01 all tasks passing; awaiting user UAT (spec §19)
+  next_skill: plan-work
+  note: e10s01 done; plan e10s02 (delete my account)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -27,7 +27,7 @@ git:
   branch: feat/e10-data-rights
   worktree: null
   base: main@4da595c
-active_story: e10s01
+active_story: e10s02
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'
