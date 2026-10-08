@@ -57,6 +57,7 @@ epics:
   bcps: 8
 - id: e11
   slug: production
+  # Postponed by the user on 2026-10-07: consolidate e01-e10 first. See specs/STATUS_LATEST.md.
   path: specs/epics/e11-production
   wsjf_rank: 11
   bcps: 16

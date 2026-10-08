@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
   next_skill: verify-work
-  note: e10s02 all tasks passing; awaiting user UAT (spec §19); then close e10
+  note: e10 merged (749ae74); e11 postponed by the user; consolidation docs on docs/consolidation; e10s02 UAT confirmation pending
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -26,9 +26,9 @@ pending:
   crypto-shredding needs keys stored outside the backup (or short retention). Decide in e11.'
 active_epic: e10
 git:
-  branch: feat/e10-data-rights
+  branch: docs/consolidation
   worktree: null
-  base: main@4da595c
+  base: main@749ae74
 active_story: e10s02
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'

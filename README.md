@@ -6,17 +6,17 @@
 
 > Private personal budgeting for Brazilians: double-entry bookkeeping plus envelope budgeting, in a responsive web app.
 
-upareal tracks every real you own or owe with double-entry bookkeeping. Every transaction has two or more legs that sum to zero, written as signed amounts instead of debits and credits. Monthly budgets use the envelope method: every real of income is assigned to a category, leftovers carry over, and overspending reduces next month.
+upareal tracks every real you own or owe with double-entry bookkeeping. Every transaction has two or more legs that sum to zero, written as signed amounts instead of debits and credits. Monthly budgets use the envelope method: every real of income is assigned to a category, and leftovers and overspending carry over in each category.
 
 It is built for individuals in Brazil: BRL only, pt-BR interface, Google sign-in, and bank statement imports. Financial data is private by design. Names and descriptions are encrypted per user, so a leaked database or backup reveals no readable personal data.
 
-> **Status: in development.** Sign-in, sessions and encryption work; budgeting is being built. Decisions live in [`specs/planning-context.yaml`](specs/planning-context.yaml).
+> **Status: feature-complete for local use; not yet deployed.** Production setup (HTTPS, SSM secrets, backups, EC2) is postponed. See [`specs/STATUS_LATEST.md`](specs/STATUS_LATEST.md) for what is built and what is open. Decisions live in [`specs/planning-context.yaml`](specs/planning-context.yaml).
 
 ## Features
 
 - **Ledger** — typed accounts (asset, liability, income, expense, equity), split transactions and transfers. Unbalanced transactions are never saved.
-- **Envelope budgeting** — assign income to categories, carry leftovers, YNAB-style credit card payment envelopes.
-- **Bank imports** — per-bank parsers plus a generic CSV format. A review queue matches transfers and skips duplicates.
+- **Envelope budgeting** — map accounts to categories, assign income, carry leftovers and overspending, see what each credit card bill needs, and keep off-budget accounts (investments) out of the plan.
+- **Bank imports** — OFX (1.x and 2.x) and a generic CSV format, detected by content. A review queue categorizes lines, matches transfers and skips duplicates. Bank-specific parsers come later.
 - **Privacy** — field-level AES-256-GCM encryption with per-user keys, plus self-service data export and account deletion (LGPD).
 - **Mobile-friendly** — server-rendered HTML with templ and HTMX. No native app needed.
 - **Admin** — admins from `ADMIN_EMAILS` can list, disable and delete users. They cannot see financial data.
@@ -55,7 +55,7 @@ docker compose up --build    # or run in a container
 
 ## Configuration
 
-All configuration comes from environment variables. Secrets are read from AWS SSM Parameter Store when the `*_SSM_PARAM` variable is set, otherwise from the plain variable. Never put secrets in a committed file.
+All configuration comes from environment variables exported in your shell. Never put secrets in a committed file. Reading secrets from AWS SSM Parameter Store is planned for the production epic and is not implemented yet.
 
 | Variable | Secret | Description |
 |----------|--------|-------------|
@@ -63,8 +63,8 @@ All configuration comes from environment variables. Secrets are read from AWS SS
 | `DB_PATH` | No | SQLite file path |
 | `ADMIN_EMAILS` | No | Comma-separated admin emails |
 | `GOOGLE_CLIENT_ID` | No | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` / `GOOGLE_CLIENT_SECRET_SSM_PARAM` | Yes | Google OAuth client secret |
-| `MASTER_KEY` / `MASTER_KEY_SSM_PARAM` | Yes | 32-byte key that wraps per-user data keys |
+| `GOOGLE_CLIENT_SECRET` | Yes | Google OAuth client secret |
+| `MASTER_KEY` | Yes | Base64 of 32 bytes; wraps per-user data keys (`openssl rand -base64 32`) |
 | `OIDC_ISSUER_URL` | No | OpenID issuer; defaults to `https://accounts.google.com` (tests override it) |
 
 > **Back up the master key offline.** Losing it makes all user data, including backups, unreadable.
@@ -77,9 +77,9 @@ golangci-lint run      # lint
 make preflight         # gen + stale-code check + lint + test + build; must pass before merge
 ```
 
-## Deployment
+## Deployment (planned, not built)
 
-One Docker Compose stack on a single EC2 instance:
+The production epic is postponed. The planned setup is one Docker Compose stack on a single EC2 instance:
 
 - **Caddy** terminates TLS with automatic Let's Encrypt certificates.
 - **The app** runs under `litestream replicate -exec`, streaming SQLite changes to S3. It restores automatically when the volume is empty.
