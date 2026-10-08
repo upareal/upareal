@@ -104,6 +104,15 @@ func (q *Queries) DeleteSession(ctx context.Context, tokenHash []byte) error {
 	return err
 }
 
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM users_user WHERE id = ?
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteUser, id)
+	return err
+}
+
 const deleteUserSessions = `-- name: DeleteUserSessions :exec
 DELETE FROM users_session WHERE user_id = ?
 `
@@ -114,7 +123,7 @@ func (q *Queries) DeleteUserSessions(ctx context.Context, userID string) error {
 }
 
 const getSessionWithUser = `-- name: GetSessionWithUser :one
-SELECT s.token_hash, s.user_id, s.created_at, s.last_seen_at, u.id, u.sub_idx, u.data_key, u.email, u.name, u.created_at, u.terms_version, u.terms_accepted_at FROM users_session s
+SELECT s.token_hash, s.user_id, s.created_at, s.last_seen_at, u.id, u.sub_idx, u.data_key, u.email, u.name, u.created_at, u.terms_version, u.terms_accepted_at, u.disabled_at FROM users_session s
 JOIN users_user u ON u.id = s.user_id
 WHERE s.token_hash = ?
 `
@@ -140,12 +149,35 @@ func (q *Queries) GetSessionWithUser(ctx context.Context, tokenHash []byte) (Get
 		&i.UsersUser.CreatedAt,
 		&i.UsersUser.TermsVersion,
 		&i.UsersUser.TermsAcceptedAt,
+		&i.UsersUser.DisabledAt,
+	)
+	return i, err
+}
+
+const getUser = `-- name: GetUser :one
+SELECT id, sub_idx, data_key, email, name, created_at, terms_version, terms_accepted_at, disabled_at FROM users_user WHERE id = ?
+`
+
+// story: e09s02
+func (q *Queries) GetUser(ctx context.Context, id string) (UsersUser, error) {
+	row := q.db.QueryRowContext(ctx, getUser, id)
+	var i UsersUser
+	err := row.Scan(
+		&i.ID,
+		&i.SubIdx,
+		&i.DataKey,
+		&i.Email,
+		&i.Name,
+		&i.CreatedAt,
+		&i.TermsVersion,
+		&i.TermsAcceptedAt,
+		&i.DisabledAt,
 	)
 	return i, err
 }
 
 const getUserBySubIdx = `-- name: GetUserBySubIdx :one
-SELECT id, sub_idx, data_key, email, name, created_at, terms_version, terms_accepted_at FROM users_user WHERE sub_idx = ?
+SELECT id, sub_idx, data_key, email, name, created_at, terms_version, terms_accepted_at, disabled_at FROM users_user WHERE sub_idx = ?
 `
 
 func (q *Queries) GetUserBySubIdx(ctx context.Context, subIdx []byte) (UsersUser, error) {
@@ -160,12 +192,13 @@ func (q *Queries) GetUserBySubIdx(ctx context.Context, subIdx []byte) (UsersUser
 		&i.CreatedAt,
 		&i.TermsVersion,
 		&i.TermsAcceptedAt,
+		&i.DisabledAt,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT u.id, u.sub_idx, u.data_key, u.email, u.name, u.created_at, u.terms_version, u.terms_accepted_at,
+SELECT u.id, u.sub_idx, u.data_key, u.email, u.name, u.created_at, u.terms_version, u.terms_accepted_at, u.disabled_at,
        CAST(COALESCE((SELECT MAX(s.last_seen_at) FROM users_session s WHERE s.user_id = u.id), '') AS TEXT) AS last_seen_at
 FROM users_user u
 ORDER BY u.created_at, u.id
@@ -195,6 +228,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 			&i.UsersUser.CreatedAt,
 			&i.UsersUser.TermsVersion,
 			&i.UsersUser.TermsAcceptedAt,
+			&i.UsersUser.DisabledAt,
 			&i.LastSeenAt,
 		); err != nil {
 			return nil, err
@@ -208,6 +242,20 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const setUserDisabled = `-- name: SetUserDisabled :exec
+UPDATE users_user SET disabled_at = ? WHERE id = ?
+`
+
+type SetUserDisabledParams struct {
+	DisabledAt sql.NullString
+	ID         string
+}
+
+func (q *Queries) SetUserDisabled(ctx context.Context, arg SetUserDisabledParams) error {
+	_, err := q.db.ExecContext(ctx, setUserDisabled, arg.DisabledAt, arg.ID)
+	return err
 }
 
 const touchSession = `-- name: TouchSession :exec

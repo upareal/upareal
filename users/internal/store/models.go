@@ -24,4 +24,5 @@ type UsersUser struct {
 	CreatedAt       string
 	TermsVersion    sql.NullString
 	TermsAcceptedAt sql.NullString
+	DisabledAt      sql.NullString
 }

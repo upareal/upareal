@@ -34,6 +34,7 @@ type UserSummary struct {
 	CreatedAt       time.Time
 	LastSeenAt      time.Time // latest session activity; zero if none
 	Admin           bool
+	Disabled        bool // e09s02
 }
 
 // ListUsers returns every user, oldest first, for the admin page.
@@ -48,7 +49,7 @@ func (s *Service) ListUsers(ctx context.Context) ([]UserSummary, error) {
 		if err != nil {
 			return nil, err
 		}
-		sum := UserSummary{ID: u.ID, Name: u.Name, Email: u.Email, CreatedAt: u.CreatedAt, Admin: u.Admin}
+		sum := UserSummary{ID: u.ID, Name: u.Name, Email: u.Email, CreatedAt: u.CreatedAt, Admin: u.Admin, Disabled: r.UsersUser.DisabledAt.Valid}
 		if r.LastSeenAt != "" {
 			if sum.LastSeenAt, err = time.Parse(time.RFC3339, r.LastSeenAt); err != nil {
 				return nil, fmt.Errorf("users: user %s last_seen_at: %w", u.ID, err)

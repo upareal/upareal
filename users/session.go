@@ -70,7 +70,7 @@ func (s *Service) UserBySession(ctx context.Context, token string) (User, error)
 		return User{}, fmt.Errorf("users: session timestamps: %w", err)
 	}
 	now := s.now().UTC()
-	if now.Sub(lastSeen) > sessionIdleLimit || now.Sub(created) > sessionMaxAge {
+	if row.UsersUser.DisabledAt.Valid || now.Sub(lastSeen) > sessionIdleLimit || now.Sub(created) > sessionMaxAge { // disabled: e09s02
 		if err := s.q.DeleteSession(ctx, hash); err != nil {
 			return User{}, fmt.Errorf("users: delete expired session: %w", err)
 		}

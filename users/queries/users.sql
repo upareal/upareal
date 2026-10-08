@@ -43,3 +43,13 @@ SELECT sqlc.embed(u),
        CAST(COALESCE((SELECT MAX(s.last_seen_at) FROM users_session s WHERE s.user_id = u.id), '') AS TEXT) AS last_seen_at
 FROM users_user u
 ORDER BY u.created_at, u.id;
+
+-- story: e09s02
+-- name: GetUser :one
+SELECT * FROM users_user WHERE id = ?;
+
+-- name: SetUserDisabled :exec
+UPDATE users_user SET disabled_at = ? WHERE id = ?;
+
+-- name: DeleteUser :exec
+DELETE FROM users_user WHERE id = ?;

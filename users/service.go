@@ -78,6 +78,8 @@ func (s *Service) SignIn(ctx context.Context, id Identity) (User, error) {
 		return s.createUser(ctx, subIdx, id)
 	case err != nil:
 		return User{}, fmt.Errorf("users: look up by sub: %w", err)
+	case row.DisabledAt.Valid: // e09s02
+		return User{}, ErrDisabled
 	}
 	return s.refreshIdentity(ctx, row, id)
 }
