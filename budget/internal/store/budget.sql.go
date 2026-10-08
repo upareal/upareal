@@ -142,6 +142,43 @@ func (q *Queries) CreateUserKey(ctx context.Context, arg CreateUserKeyParams) er
 	return err
 }
 
+const deleteCategoryAmounts = `-- name: DeleteCategoryAmounts :exec
+DELETE FROM budget_amount WHERE user_id = ? AND category_id = ?
+`
+
+type DeleteCategoryAmountsParams struct {
+	UserID     string
+	CategoryID string
+}
+
+func (q *Queries) DeleteCategoryAmounts(ctx context.Context, arg DeleteCategoryAmountsParams) error {
+	_, err := q.db.ExecContext(ctx, deleteCategoryAmounts, arg.UserID, arg.CategoryID)
+	return err
+}
+
+const getArchivedCategory = `-- name: GetArchivedCategory :one
+SELECT c.id, c.group_id FROM budget_category c
+JOIN budget_group g ON g.id = c.group_id AND g.archived_at IS NULL
+WHERE c.id = ? AND c.user_id = ? AND c.archived_at IS NOT NULL
+`
+
+type GetArchivedCategoryParams struct {
+	ID     string
+	UserID string
+}
+
+type GetArchivedCategoryRow struct {
+	ID      string
+	GroupID string
+}
+
+func (q *Queries) GetArchivedCategory(ctx context.Context, arg GetArchivedCategoryParams) (GetArchivedCategoryRow, error) {
+	row := q.db.QueryRowContext(ctx, getArchivedCategory, arg.ID, arg.UserID)
+	var i GetArchivedCategoryRow
+	err := row.Scan(&i.ID, &i.GroupID)
+	return i, err
+}
+
 const getCategory = `-- name: GetCategory :one
 SELECT c.id, c.group_id, c.position, g.kind FROM budget_category c
 JOIN budget_group g ON g.id = c.group_id
@@ -270,6 +307,38 @@ func (q *Queries) ListActiveCategories(ctx context.Context, userID string) ([]Li
 	return items, nil
 }
 
+const listArchivedCategories = `-- name: ListArchivedCategories :many
+SELECT id, name FROM budget_category WHERE user_id = ? AND archived_at IS NOT NULL ORDER BY archived_at DESC, id
+`
+
+type ListArchivedCategoriesRow struct {
+	ID   string
+	Name []byte
+}
+
+func (q *Queries) ListArchivedCategories(ctx context.Context, userID string) ([]ListArchivedCategoriesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listArchivedCategories, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListArchivedCategoriesRow
+	for rows.Next() {
+		var i ListArchivedCategoriesRow
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const markMonthOpened = `-- name: MarkMonthOpened :exec
 INSERT INTO budget_month (user_id, month, opened_at) VALUES (?, ?, ?)
 `
@@ -282,6 +351,24 @@ type MarkMonthOpenedParams struct {
 
 func (q *Queries) MarkMonthOpened(ctx context.Context, arg MarkMonthOpenedParams) error {
 	_, err := q.db.ExecContext(ctx, markMonthOpened, arg.UserID, arg.Month, arg.OpenedAt)
+	return err
+}
+
+const mergeAmounts = `-- name: MergeAmounts :exec
+INSERT INTO budget_amount (user_id, category_id, month, amount)
+SELECT user_id, ?1, month, amount FROM budget_amount
+WHERE budget_amount.user_id = ?2 AND budget_amount.category_id = ?3
+ON CONFLICT (category_id, month) DO UPDATE SET amount = budget_amount.amount + excluded.amount
+`
+
+type MergeAmountsParams struct {
+	TargetID string
+	UserID   string
+	SourceID string
+}
+
+func (q *Queries) MergeAmounts(ctx context.Context, arg MergeAmountsParams) error {
+	_, err := q.db.ExecContext(ctx, mergeAmounts, arg.TargetID, arg.UserID, arg.SourceID)
 	return err
 }
 
@@ -482,6 +569,22 @@ type RenameGroupParams struct {
 
 func (q *Queries) RenameGroup(ctx context.Context, arg RenameGroupParams) error {
 	_, err := q.db.ExecContext(ctx, renameGroup, arg.Name, arg.ID, arg.UserID)
+	return err
+}
+
+const setCategoryArchived = `-- name: SetCategoryArchived :exec
+UPDATE budget_category SET archived_at = ? WHERE id = ? AND user_id = ?
+`
+
+type SetCategoryArchivedParams struct {
+	ArchivedAt sql.NullString
+	ID         string
+	UserID     string
+}
+
+// story: e08s06
+func (q *Queries) SetCategoryArchived(ctx context.Context, arg SetCategoryArchivedParams) error {
+	_, err := q.db.ExecContext(ctx, setCategoryArchived, arg.ArchivedAt, arg.ID, arg.UserID)
 	return err
 }
 

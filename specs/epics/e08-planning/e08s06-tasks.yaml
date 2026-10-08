@@ -10,7 +10,7 @@ tasks:
     description: "budget: ArchiveCategory, RestoreCategory, ArchivedCategories, MergeCategory (amounts summed per month); isolation"
     verify: "go test -race ./budget/... -run 'TestArchiveCategory|TestMergeCategory'"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Budget"]}
   - id: t2
     description: "planning: ArchiveCategory (empty-envelope guard, drop mappings), MergeCategory (move mappings, budget merge); identity preserved"

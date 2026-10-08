@@ -18,7 +18,7 @@ const maxName = 100
 var (
 	ErrInvalidName  = errors.New("budget: name must have 1 to 100 characters")
 	ErrInvalidKind  = errors.New("budget: kind must be expense or income")
-	ErrKindMismatch = errors.New("budget: a category can only move to a group of the same kind") // B2
+	ErrKindMismatch = errors.New("budget: expense and income never mix") // B2
 	ErrNotFound     = errors.New("budget: not found")
 )
 

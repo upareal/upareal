@@ -4,7 +4,7 @@
 
 ## 1. Business narrative
 
-Budgets change. "Streaming" and "Assinaturas" become one category. "Pet" isn't needed any more. The user **merges** a category into another: its accounts, its planned amounts and its history move over, and nothing is lost. Or the user **archives** a category once its envelope is empty, and can **restore** it later.
+Budgets change. "Streaming" and "Assinaturas" become one category. "Hobbies" isn't needed any more. The user **merges** a category into another: its accounts, its planned amounts and its history move over, and nothing is lost. Or the user **archives** a category once its envelope is empty, and can **restore** it later.
 
 ## 2. Actors
 
@@ -105,8 +105,8 @@ Feature: Archive and merge categories
     And A distribuir is unchanged in every month
 
   Scenario: Archive guard
-    Given Pet has Disponível R$ 20,00
-    When the user archives Pet
+    Given Hobbies has Disponível R$ 20,00
+    When the user archives Hobbies
     Then it is refused until Disponível is zero
 ```
 
@@ -119,7 +119,7 @@ Feature: Archive and merge categories
 
 1. Map an expense account (e.g. Netflix) to **Streaming** (create it if needed) and set Streaming to 50,00 this month. Note A distribuir.
 2. Open Streaming in **Categorias**, choose **Juntar com → Outras assinaturas**. Outras assinaturas now shows the sum, Netflix maps to it in **Mapa**, and A distribuir is unchanged.
-3. Set **Hobbies** to 20,00 this month and click **Arquivar**. It's refused. Set Pet to 0,00 and archive it. It moves to **Arquivadas**.
+3. Set **Hobbies** to 20,00 this month and click **Arquivar**. It's refused. Set Hobbies to 0,00 and archive it. It moves to **Arquivadas**.
 4. Click **Restaurar** on Hobbies. It's back in its group.
 5. Run `make preflight`. It ends green.
 

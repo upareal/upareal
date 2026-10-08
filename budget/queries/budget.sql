@@ -94,3 +94,24 @@ SELECT category_id, amount FROM budget_amount WHERE user_id = ? AND month = ?;
 -- name: AmountsBefore :many
 SELECT category_id, CAST(SUM(amount) AS INTEGER) AS amount FROM budget_amount
 WHERE user_id = ? AND month < ? GROUP BY category_id;
+
+-- story: e08s06
+-- name: SetCategoryArchived :exec
+UPDATE budget_category SET archived_at = ? WHERE id = ? AND user_id = ?;
+
+-- name: GetArchivedCategory :one
+SELECT c.id, c.group_id FROM budget_category c
+JOIN budget_group g ON g.id = c.group_id AND g.archived_at IS NULL
+WHERE c.id = ? AND c.user_id = ? AND c.archived_at IS NOT NULL;
+
+-- name: ListArchivedCategories :many
+SELECT id, name FROM budget_category WHERE user_id = ? AND archived_at IS NOT NULL ORDER BY archived_at DESC, id;
+
+-- name: MergeAmounts :exec
+INSERT INTO budget_amount (user_id, category_id, month, amount)
+SELECT user_id, sqlc.arg(target_id), month, amount FROM budget_amount
+WHERE budget_amount.user_id = sqlc.arg(user_id) AND budget_amount.category_id = sqlc.arg(source_id)
+ON CONFLICT (category_id, month) DO UPDATE SET amount = budget_amount.amount + excluded.amount;
+
+-- name: DeleteCategoryAmounts :exec
+DELETE FROM budget_amount WHERE user_id = ? AND category_id = ?;
