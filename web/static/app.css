@@ -1,13 +1,51 @@
-/* story: e01s01 — mobile-first base styles */
+/* story: e01s01 e12s02 — mobile-first base styles */
 *, *::before, *::after { box-sizing: border-box; }
+
+/* e12s02 palette. Pastels are surfaces and borders under dark text; text
+   accents use darker shades of the same hues (contrast >= 4.5 on areia). */
+:root {
+  --verde-folha: #6C9A74;
+  --verde-claro: #DDEADE;
+  --azul-oceano: #8FB7D8;
+  --manga: #E9C77B;
+  --areia: #F4F0E6;
+  --terracota: #D08C73;
+  --texto: #1a1a1a;
+  --verde-texto: #3F6B48;     /* links: 5.4:1 on areia */
+  --terracota-texto: #9A4A32; /* errors, negatives: 5.4:1 on areia */
+  --superficie: #FFFDF8;
+}
 
 body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
-  color: #1a1a1a;
-  background: #fafafa;
+  color: var(--texto);
+  background: var(--areia);
 }
+
+a { color: var(--verde-texto); }
+h1 { border-bottom: 3px solid var(--verde-folha); padding-bottom: 0.25rem; }
+h2 { font-size: 1.2rem; }
+button {
+  font: inherit;
+  padding: 0.3rem 0.8rem;
+  color: var(--texto);
+  background: var(--verde-claro);
+  border: 1px solid var(--verde-folha);
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+button:hover { background: var(--verde-folha); }
+input, select {
+  font: inherit;
+  padding: 0.25rem 0.4rem;
+  background: var(--superficie);
+  border: 1px solid #c9c2b2;
+  border-radius: 0.3rem;
+}
+input:focus, select:focus, button:focus-visible { outline: 2px solid var(--azul-oceano); outline-offset: 1px; }
+nav a { font-weight: 600; }
 
 main {
   max-width: 48rem;
@@ -26,26 +64,30 @@ footer {
   max-width: 48rem;
   margin: 2rem auto 0;
   padding: 1rem;
-  border-top: 1px solid #ddd;
+  border-top: 2px solid var(--verde-claro);
   font-size: 0.875rem;
 }
-footer a { margin-right: 1rem; color: #555; }
+footer a { margin-right: 1rem; }
 .provisional {
   padding: 0.5rem 0.75rem;
-  background: #fff4cc;
-  border: 1px solid #e6c200;
+  background: #F8EBCB;
+  border: 1px solid var(--manga);
 }
-.error { color: #b00020; font-weight: 600; }
+.error { color: var(--terracota-texto); font-weight: 600; }
+p.error { padding: 0.5rem 0.75rem; background: #F6E3DB; border-left: 4px solid var(--terracota); }
 label { display: block; margin: 1rem 0; }
 
 /* story: e04s02 */
-.tag { font-size: 0.75rem; padding: 0 0.4rem; margin-left: 0.4rem; border: 1px solid #bbb; border-radius: 0.5rem; }
+.tag { font-size: 0.75rem; padding: 0 0.4rem; margin-left: 0.4rem; background: var(--verde-claro); border: 1px solid var(--verde-folha); border-radius: 0.5rem; }
 .balance { float: right; font-variant-numeric: tabular-nums; }
-.muted { color: #777; }
-.negative { color: #b00020; font-weight: 600; }
+.muted { color: #5f5a50; }
+.negative { color: var(--terracota-texto); font-weight: 600; }
+.totals { padding: 0.5rem 0.75rem; background: #F8EBCB; border-left: 4px solid var(--manga); }
+section.group { margin: 1rem 0; padding: 0.25rem 0.75rem 0.5rem; background: var(--superficie); border: 1px solid var(--verde-claro); border-radius: 0.5rem; }
+section.group > h2 { margin: 0 -0.75rem 0.5rem; padding: 0.4rem 0.75rem; background: var(--verde-claro); border-radius: 0.5rem 0.5rem 0 0; }
 form.inline { display: flex; gap: 0.5rem; align-items: end; flex-wrap: wrap; margin: 0.25rem 0 0.75rem; }
 form.inline label { margin: 0; }
-section.accounts li { padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+section.accounts li { padding: 0.5rem 0; border-bottom: 1px solid var(--verde-claro); }
 
 /* story: e04s03 */
 form.move { display: inline; margin-left: 0.25rem; }
@@ -53,9 +95,10 @@ form.move button { padding: 0 0.5rem; }
 
 /* story: e06s01 */
 table.register { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-table.register th, table.register td { padding: 0.35rem 0.25rem; border-bottom: 1px solid #eee; text-align: left; }
+table.register th, table.register td { padding: 0.35rem 0.25rem; border-bottom: 1px solid var(--verde-claro); text-align: left; }
+table th { background: var(--verde-claro); }
 table.register td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 nav.months { display: flex; justify-content: space-between; gap: 0.5rem; margin: 0.5rem 0 1rem; }
-.hint { padding: 0.5rem 0.75rem; background: #eef5ff; border: 1px solid #9cc0f0; }
+.hint { padding: 0.5rem 0.75rem; background: #E6EFF7; border-left: 4px solid var(--azul-oceano); }
 .split-line { display: flex; gap: 0.5rem; margin: 0.25rem 0; }
 .split-line select { flex: 2; } .split-line input { flex: 1; }

@@ -1,0 +1,14 @@
+story_id: e12s02
+title: "A little color"
+spec: e12s02-colors.md
+status: passing
+bcps: 1
+risk: P3
+outcome: The UI uses the user's soft palette through CSS variables; all text stays at WCAG AA contrast.
+tasks:
+  - id: t1
+    description: "app.css: palette variables, backgrounds, cards, bands, buttons; text accents in darker shades (>= 4.5:1)"
+    verify: "make preflight"
+    risk: P3
+    status: passing
+    allure: {severity: minor, categories: ["UI"]}

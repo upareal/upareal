@@ -65,4 +65,4 @@ epics:
   slug: ux
   path: specs/epics/e12-ux
   wsjf_rank: 12
-  bcps: 2
+  bcps: 3

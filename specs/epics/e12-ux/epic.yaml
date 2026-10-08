@@ -8,4 +8,8 @@ stories:
   title: Save without losing your place
   bcps: 2
   delta: ADDED
-bcps_total: 2
+- id: e12s02
+  title: A little color
+  bcps: 1
+  delta: ADDED
+bcps_total: 3
