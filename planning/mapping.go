@@ -1,4 +1,4 @@
-// story: e08s01
+// story: e08s01 e08s05
 package planning
 
 import (
@@ -16,7 +16,7 @@ import (
 // Errors for rejected mappings.
 var (
 	ErrNotFound     = errors.New("planning: account or category not found")
-	ErrNotMappable  = errors.New("planning: only the user's income and expense accounts can be mapped")
+	ErrNotMappable  = errors.New("planning: only the user's income, expense and off-budget accounts can be mapped")
 	ErrKindMismatch = errors.New("planning: an account maps only to a category of the same kind") // P2
 )
 
@@ -50,7 +50,7 @@ func (s *Service) SetMapping(ctx context.Context, userID, accountID, categoryID 
 	if err != nil {
 		return err
 	}
-	if kind != acc.Type {
+	if kind != categoryKind(acc) {
 		return ErrKindMismatch
 	}
 	return s.q.UpsertMapping(ctx, store.UpsertMappingParams{
@@ -68,7 +68,7 @@ func (s *Service) mappableAccount(ctx context.Context, userID, accountID string)
 		if a.ID != accountID {
 			continue
 		}
-		if a.SystemRole != "" || (a.Type != "income" && a.Type != "expense") {
+		if a.SystemRole != "" || categoryKind(a) == "" {
 			return ledger.Account{}, ErrNotMappable
 		}
 		return a, nil
@@ -129,14 +129,27 @@ func (s *Service) Mappings(ctx context.Context, userID string) ([]Mapping, error
 	}
 	var out []Mapping
 	for _, a := range accounts {
-		if a.SystemRole != "" || (a.Type != "income" && a.Type != "expense") {
+		if a.SystemRole != "" || categoryKind(a) == "" {
 			continue
 		}
 		m := Mapping{Account: a}
-		if c, ok := cats[mapped[a.ID]]; ok && c.kind == a.Type {
+		if c, ok := cats[mapped[a.ID]]; ok && c.kind == categoryKind(a) {
 			m.CategoryID, m.CategoryName, m.GroupName = mapped[a.ID], c.name, c.group
 		}
 		out = append(out, m)
 	}
 	return out, nil
+}
+
+// categoryKind is the kind of category an account maps to (P2): income and
+// expense accounts to their own kind, off-budget asset/liability accounts to
+// expense (money sent there leaves the budget); "" when not mappable.
+func categoryKind(a ledger.Account) string {
+	switch {
+	case a.Type == "income" || a.Type == "expense":
+		return a.Type
+	case (a.Type == "asset" || a.Type == "liability") && !a.OnBudget:
+		return "expense"
+	}
+	return ""
 }

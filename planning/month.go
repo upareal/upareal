@@ -1,4 +1,4 @@
-// story: e08s02 e08s03 e08s04
+// story: e08s02 e08s03 e08s04 e08s05
 package planning
 
 import (
@@ -45,8 +45,7 @@ type CardPlan struct {
 type tally struct {
 	byCategory                      map[string]int64 // expense: spent; income: received
 	unmappedSpent, unmappedReceived int64
-	moneyIn                         int64 // income + equity (Saldo inicial) inflows
-	activity                        map[string]int64
+	moneyIn                         int64 // income + equity (Saldo inicial) + off-budget inflows
 }
 
 // Month computes userID's plan for m from budget amounts, mappings and
@@ -70,9 +69,9 @@ func (s *Service) Month(ctx context.Context, userID string, m budget.Month) (Mon
 	if err != nil {
 		return MonthPlan{}, err
 	}
-	types := make(map[string]string, len(accounts))
+	byID := make(map[string]ledger.Account, len(accounts))
 	for _, a := range accounts {
-		types[a.ID] = a.Type
+		byID[a.ID] = a
 	}
 	kinds := map[string]string{}
 	for _, g := range groups {
@@ -80,17 +79,21 @@ func (s *Service) Month(ctx context.Context, userID string, m budget.Month) (Mon
 			kinds[c.ID] = g.Kind
 		}
 	}
-	mapped, err := s.validMappings(ctx, userID, kinds, types)
+	mapped, err := s.validMappings(ctx, userID, kinds, byID)
 	if err != nil {
 		return MonthPlan{}, err
 	}
-	now, err := s.tally(ctx, userID, types, mapped, m.Start(), m.Next().Start())
+	now, err := s.tally(ctx, userID, byID, mapped, m.Start(), m.Next().Start())
 	if err != nil {
 		return MonthPlan{}, err
 	}
-	past, err := s.tally(ctx, userID, types, mapped, time.Time{}, m.Start())
+	past, err := s.tally(ctx, userID, byID, mapped, time.Time{}, m.Start())
 	if err != nil {
 		return MonthPlan{}, err
+	}
+	balances, err := s.ledg.Activity(ctx, userID, time.Time{}, m.Next().Start())
+	if err != nil {
+		return MonthPlan{}, fmt.Errorf("planning: balances: %w", err)
 	}
 
 	p := MonthPlan{Categories: map[string]CategoryPlan{}, UnmappedSpent: now.unmappedSpent, UnmappedReceived: now.unmappedReceived}
@@ -108,18 +111,18 @@ func (s *Service) Month(ctx context.Context, userID string, m budget.Month) (Mon
 	}
 	p.Received = past.moneyIn + now.moneyIn
 	p.ToBeAssigned = p.Received - p.Assigned - past.unmappedSpent - now.unmappedSpent
-	p.addCards(accounts, past.activity, now.activity)
+	p.addCards(accounts, balances)
 	return p, nil
 }
 
 // addCards fills Cards, Cash and Uncovered from end-of-month balances.
-func (p *MonthPlan) addCards(accounts []ledger.Account, past, now map[string]int64) {
+func (p *MonthPlan) addCards(accounts []ledger.Account, balances map[string]int64) {
 	var due int64
 	for _, a := range accounts {
 		if (a.Type != "asset" && a.Type != "liability") || !a.OnBudget {
 			continue
 		}
-		balance := past[a.ID] + now[a.ID]
+		balance := balances[a.ID]
 		if a.IsCard && balance < 0 {
 			p.Cards = append(p.Cards, CardPlan{AccountID: a.ID, Name: a.Name, Due: -balance})
 			due -= balance
@@ -136,46 +139,53 @@ func (p *MonthPlan) addCards(accounts []ledger.Account, past, now map[string]int
 
 // validMappings returns account → category for mappings whose category is
 // active and of the account's kind; stale ones are ignored (X1).
-func (s *Service) validMappings(ctx context.Context, userID string, kinds, types map[string]string) (map[string]string, error) {
+func (s *Service) validMappings(ctx context.Context, userID string, kinds map[string]string, accounts map[string]ledger.Account) (map[string]string, error) {
 	rows, err := s.q.ListMappings(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("planning: mappings: %w", err)
 	}
 	mapped := map[string]string{}
 	for _, r := range rows {
-		if kinds[r.CategoryID] == types[r.AccountID] {
+		if a, ok := accounts[r.AccountID]; ok && kinds[r.CategoryID] == categoryKind(a) {
 			mapped[r.AccountID] = r.CategoryID
 		}
 	}
 	return mapped, nil
 }
 
-// tally groups the activity in [from, to) by envelope. Signs: expense
-// activity is debit-positive (spent); income and equity are negated (money in).
-func (s *Service) tally(ctx context.Context, userID string, types, mapped map[string]string, from, to time.Time) (tally, error) {
-	activity, err := s.ledg.Activity(ctx, userID, from, to)
+// tally groups the money crossing the budget boundary in [from, to) by
+// envelope (e08s05). Expense: debit-positive spending; income and equity:
+// money in; off-budget accounts: debits are spending, credits money in.
+func (s *Service) tally(ctx context.Context, userID string, accounts map[string]ledger.Account, mapped map[string]string, from, to time.Time) (tally, error) {
+	flows, err := s.ledg.BudgetFlows(ctx, userID, from, to)
 	if err != nil {
-		return tally{}, fmt.Errorf("planning: activity: %w", err)
+		return tally{}, fmt.Errorf("planning: budget flows: %w", err)
 	}
-	t := tally{byCategory: map[string]int64{}, activity: activity}
-	for accountID, amount := range activity {
-		catID, ok := mapped[accountID]
-		switch types[accountID] {
+	t := tally{byCategory: map[string]int64{}}
+	spend := func(accountID string, amount int64) {
+		if catID, ok := mapped[accountID]; ok {
+			t.byCategory[catID] += amount
+		} else {
+			t.unmappedSpent += amount
+		}
+	}
+	for accountID, f := range flows {
+		net := f.Debit + f.Credit
+		switch accounts[accountID].Type {
 		case "equity":
-			t.moneyIn -= amount
+			t.moneyIn -= net
 		case "income":
-			t.moneyIn -= amount
-			if ok {
-				t.byCategory[catID] -= amount
+			t.moneyIn -= net
+			if catID, ok := mapped[accountID]; ok {
+				t.byCategory[catID] -= net
 			} else {
-				t.unmappedReceived -= amount
+				t.unmappedReceived -= net
 			}
 		case "expense":
-			if ok {
-				t.byCategory[catID] += amount
-			} else {
-				t.unmappedSpent += amount
-			}
+			spend(accountID, net)
+		case "asset", "liability": // off-budget (on-budget legs are never flows)
+			spend(accountID, f.Debit)
+			t.moneyIn -= f.Credit
 		}
 	}
 	return t, nil
