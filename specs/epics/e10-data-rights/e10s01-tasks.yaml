@@ -10,7 +10,7 @@ tasks:
     description: "ledger.ExportUserData: accounts, transactions+legs (incl. deleted), history, import lines; completeness over every ledger_ table; isolation"
     verify: "go test -race ./ledger/... -run TestExportUserData"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Privacy"]}
   - id: t2
     description: "users, budget, planning ExportUserData; completeness; isolation"

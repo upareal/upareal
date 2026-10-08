@@ -219,3 +219,25 @@ DELETE FROM ledger_account WHERE user_id = ?;
 
 -- name: DeleteUserKey :exec
 DELETE FROM ledger_user_key WHERE user_id = ?;
+
+-- story: e10s01 (export: every row of the user, including archived and deleted)
+-- name: ExportAccounts :many
+SELECT id, type, name, position, system_role, on_budget, is_card, archived_at, created_at
+FROM ledger_account WHERE user_id = ? ORDER BY created_at, id;
+
+-- name: ExportTransactions :many
+SELECT id, occurred_at, description, created_at, deleted_at
+FROM ledger_transaction WHERE user_id = ? ORDER BY occurred_at, created_at, id;
+
+-- name: ExportLegs :many
+SELECT l.transaction_id, l.account_id, l.amount FROM ledger_leg l
+JOIN ledger_transaction t ON t.id = l.transaction_id
+WHERE t.user_id = ? ORDER BY l.transaction_id, l.id;
+
+-- name: ExportHistory :many
+SELECT id, transaction_id, action, changed_at, snapshot
+FROM ledger_transaction_history WHERE user_id = ? ORDER BY changed_at, id;
+
+-- name: ExportImportLines :many
+SELECT id, account_id, transaction_id, raw, created_at
+FROM ledger_import_line WHERE user_id = ? ORDER BY created_at, id;

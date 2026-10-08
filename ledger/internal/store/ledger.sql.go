@@ -441,6 +441,218 @@ func (q *Queries) DeleteUserTransactions(ctx context.Context, userID string) err
 	return err
 }
 
+const exportAccounts = `-- name: ExportAccounts :many
+SELECT id, type, name, position, system_role, on_budget, is_card, archived_at, created_at
+FROM ledger_account WHERE user_id = ? ORDER BY created_at, id
+`
+
+type ExportAccountsRow struct {
+	ID         string
+	Type       string
+	Name       []byte
+	Position   int64
+	SystemRole sql.NullString
+	OnBudget   int64
+	IsCard     int64
+	ArchivedAt sql.NullString
+	CreatedAt  string
+}
+
+// story: e10s01 (export: every row of the user, including archived and deleted)
+func (q *Queries) ExportAccounts(ctx context.Context, userID string) ([]ExportAccountsRow, error) {
+	rows, err := q.db.QueryContext(ctx, exportAccounts, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ExportAccountsRow
+	for rows.Next() {
+		var i ExportAccountsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Type,
+			&i.Name,
+			&i.Position,
+			&i.SystemRole,
+			&i.OnBudget,
+			&i.IsCard,
+			&i.ArchivedAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const exportHistory = `-- name: ExportHistory :many
+SELECT id, transaction_id, action, changed_at, snapshot
+FROM ledger_transaction_history WHERE user_id = ? ORDER BY changed_at, id
+`
+
+type ExportHistoryRow struct {
+	ID            string
+	TransactionID string
+	Action        string
+	ChangedAt     string
+	Snapshot      []byte
+}
+
+func (q *Queries) ExportHistory(ctx context.Context, userID string) ([]ExportHistoryRow, error) {
+	rows, err := q.db.QueryContext(ctx, exportHistory, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ExportHistoryRow
+	for rows.Next() {
+		var i ExportHistoryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.TransactionID,
+			&i.Action,
+			&i.ChangedAt,
+			&i.Snapshot,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const exportImportLines = `-- name: ExportImportLines :many
+SELECT id, account_id, transaction_id, raw, created_at
+FROM ledger_import_line WHERE user_id = ? ORDER BY created_at, id
+`
+
+type ExportImportLinesRow struct {
+	ID            string
+	AccountID     string
+	TransactionID string
+	Raw           []byte
+	CreatedAt     string
+}
+
+func (q *Queries) ExportImportLines(ctx context.Context, userID string) ([]ExportImportLinesRow, error) {
+	rows, err := q.db.QueryContext(ctx, exportImportLines, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ExportImportLinesRow
+	for rows.Next() {
+		var i ExportImportLinesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.AccountID,
+			&i.TransactionID,
+			&i.Raw,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const exportLegs = `-- name: ExportLegs :many
+SELECT l.transaction_id, l.account_id, l.amount FROM ledger_leg l
+JOIN ledger_transaction t ON t.id = l.transaction_id
+WHERE t.user_id = ? ORDER BY l.transaction_id, l.id
+`
+
+type ExportLegsRow struct {
+	TransactionID string
+	AccountID     string
+	Amount        int64
+}
+
+func (q *Queries) ExportLegs(ctx context.Context, userID string) ([]ExportLegsRow, error) {
+	rows, err := q.db.QueryContext(ctx, exportLegs, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ExportLegsRow
+	for rows.Next() {
+		var i ExportLegsRow
+		if err := rows.Scan(&i.TransactionID, &i.AccountID, &i.Amount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const exportTransactions = `-- name: ExportTransactions :many
+SELECT id, occurred_at, description, created_at, deleted_at
+FROM ledger_transaction WHERE user_id = ? ORDER BY occurred_at, created_at, id
+`
+
+type ExportTransactionsRow struct {
+	ID          string
+	OccurredAt  string
+	Description []byte
+	CreatedAt   string
+	DeletedAt   sql.NullString
+}
+
+func (q *Queries) ExportTransactions(ctx context.Context, userID string) ([]ExportTransactionsRow, error) {
+	rows, err := q.db.QueryContext(ctx, exportTransactions, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ExportTransactionsRow
+	for rows.Next() {
+		var i ExportTransactionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OccurredAt,
+			&i.Description,
+			&i.CreatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAccount = `-- name: GetAccount :one
 SELECT id, type, system_role, archived_at, position FROM ledger_account WHERE id = ? AND user_id = ?
 `
