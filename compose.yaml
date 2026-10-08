@@ -13,6 +13,7 @@ services:
       MASTER_KEY: ${MASTER_KEY:?export MASTER_KEY (base64 of 32 bytes) in your shell}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?export GOOGLE_CLIENT_ID in your shell}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?export GOOGLE_CLIENT_SECRET in your shell}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
     volumes:
       - upareal-data:/data
     healthcheck:
