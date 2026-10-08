@@ -1,0 +1,18 @@
+// story: e10s01
+package web
+
+templ myDataTemplate() {
+	@layout("Meus dados — upareal") {
+		<p><a href="/">← Início</a></p>
+		<h1>Meus dados</h1>
+		<p>Você pode baixar tudo o que o upareal guarda sobre você, em um arquivo JSON legível por outros programas (LGPD, art. 18):</p>
+		<ul>
+			<li>seu nome, e-mail e aceite dos termos;</li>
+			<li>contas, lançamentos (inclusive apagados), histórico de edições e linhas importadas;</li>
+			<li>grupos, categorias e valores planejados por mês;</li>
+			<li>as ligações entre contas e categorias.</li>
+		</ul>
+		<p class="muted">Valores em centavos; datas em UTC. O arquivo tem dados sensíveis: guarde-o em lugar seguro.</p>
+		<p><a href="/conta/dados/exportar" download>Baixar meus dados</a></p>
+	}
+}

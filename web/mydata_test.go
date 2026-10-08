@@ -38,7 +38,7 @@ func TestMyData_DownloadEverythingOfMineOnly(t *testing.T) {
 			t.Errorf("export has no %q", key)
 		}
 	}
-	for _, want := range []string{"maria@example.com", "Itaú da Maria", `"amount_centavos":123456`, "Combustível"} {
+	for _, want := range []string{"maria@example.com", "Itaú da Maria", `"amount_centavos": 123456`, "Combustível"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("export missing %s", want)
 		}
