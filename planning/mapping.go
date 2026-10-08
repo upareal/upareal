@@ -95,6 +95,7 @@ func (s *Service) categoryKind(ctx context.Context, userID, categoryID string) (
 // Mapping is one mappable account and its category ("" = Sem categoria).
 type Mapping struct {
 	Account      ledger.Account
+	Kind         string // category kind it maps to: income or expense
 	CategoryID   string
 	CategoryName string
 	GroupName    string
@@ -132,7 +133,7 @@ func (s *Service) Mappings(ctx context.Context, userID string) ([]Mapping, error
 		if a.SystemRole != "" || categoryKind(a) == "" {
 			continue
 		}
-		m := Mapping{Account: a}
+		m := Mapping{Account: a, Kind: categoryKind(a)}
 		if c, ok := cats[mapped[a.ID]]; ok && c.kind == categoryKind(a) {
 			m.CategoryID, m.CategoryName, m.GroupName = mapped[a.ID], c.name, c.group
 		}

@@ -1,4 +1,4 @@
-// story: e08s01
+// story: e08s01 e08s05
 package web
 
 import (
@@ -35,7 +35,7 @@ func mappingPost(svc *users.Service, plan *planning.Service, bud *budget.Service
 		case err == nil:
 			http.Redirect(w, r, "/planejamento/mapa", http.StatusSeeOther)
 		case errors.Is(err, planning.ErrKindMismatch):
-			renderMapping(w, r, plan, bud, u.ID, http.StatusBadRequest, "A conta só pode ir para uma categoria do mesmo tipo (despesa ou receita).")
+			renderMapping(w, r, plan, bud, u.ID, http.StatusBadRequest, "A conta só pode ir para uma categoria do mesmo tipo: receitas em receitas; despesas e contas fora do orçamento em despesas.")
 		case errors.Is(err, planning.ErrNotMappable), errors.Is(err, planning.ErrNotFound):
 			renderMapping(w, r, plan, bud, u.ID, http.StatusNotFound, "Conta ou categoria não encontrada.")
 		default:
@@ -65,8 +65,8 @@ func renderMapping(w http.ResponseWriter, r *http.Request, plan *planning.Servic
 		if m.CategoryID == "" {
 			unmapped++
 		}
-		v.Rows = append(v.Rows, mappingRowView{AccountID: m.Account.ID, Name: m.Account.Name, Kind: m.Account.Type,
-			CategoryID: m.CategoryID, Groups: byKind[m.Account.Type]})
+		v.Rows = append(v.Rows, mappingRowView{AccountID: m.Account.ID, Name: m.Account.Name, Kind: m.Kind,
+			CategoryID: m.CategoryID, Groups: byKind[m.Kind]})
 	}
 	v.Unmapped = fmt.Sprintf("%d sem categoria", unmapped)
 	renderHTML(w, r, status, mappingPage(v))

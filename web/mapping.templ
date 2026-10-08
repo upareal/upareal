@@ -1,4 +1,4 @@
-// story: e08s01
+// story: e08s01 e08s05
 package web
 
 templ mappingPage(v mappingView) {
@@ -6,6 +6,7 @@ templ mappingPage(v mappingView) {
 		<p><a href="/">← Início</a></p>
 		<h1>Mapa de categorias</h1>
 		<p>Ligue cada conta de despesa ou receita a uma categoria do orçamento. Várias contas podem ir para a mesma categoria.</p>
+		<p class="muted">Contas fora do orçamento (investimentos, por exemplo) também aparecem: o dinheiro enviado a elas conta como gasto na categoria escolhida, e o que volta delas fica para distribuir.</p>
 		<p class="totals">{ v.Unmapped }</p>
 		if v.Error != "" {
 			<p class="error" role="alert">{ v.Error }</p>
