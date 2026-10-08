@@ -1,10 +1,11 @@
-// story: e09s02
+// story: e09s02 e13s01
 
 // Package dbtest holds database helpers shared by module tests.
 package dbtest
 
 import (
 	"database/sql"
+	"reflect"
 	"testing"
 )
 
@@ -50,6 +51,21 @@ func AssertGone(t testing.TB, conn *sql.DB, prefix, userID string) {
 	for table, n := range UserRows(t, conn, prefix, userID) {
 		if n != 0 {
 			t.Errorf("%s still has %d rows of the deleted user", table, n)
+		}
+	}
+}
+
+// AssertNumbersOnly fails unless every field of the struct v is an int64:
+// public aggregates must never carry rows, IDs or text (e13s01).
+func AssertNumbersOnly(t testing.TB, v any) {
+	t.Helper()
+	rv := reflect.ValueOf(v)
+	if rv.Kind() != reflect.Struct {
+		t.Fatalf("%T is not a struct", v)
+	}
+	for i := range rv.NumField() {
+		if f := rv.Type().Field(i); f.Type.Kind() != reflect.Int64 {
+			t.Errorf("%T.%s is %s; public stats must be int64 only", v, f.Name, f.Type)
 		}
 	}
 }
