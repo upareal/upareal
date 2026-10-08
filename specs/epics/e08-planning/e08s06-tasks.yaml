@@ -1,14 +1,32 @@
 story_id: e08s06
-title: Archive and merge categories
-status: todo
+title: "Archive and merge categories"
+spec: e08s06-archive-merge-categories.md
+status: failing
 bcps: 5
-outcome: A category with a zero envelope can be archived/restored; merging moves its amounts and mappings to another category.
+risk: P0
+outcome: Users merge a category into a same-kind one (accounts, amounts and history move; A distribuir unchanged), archive empty envelopes and restore archived categories.
 tasks:
-- id: t1
-  description: Archive only when planning envelope available is zero
-  verify: go test -race ./web/... -run TestArchiveCategory
-  status: todo
-- id: t2
-  description: Merge moves budget amounts and planning mappings, then archives
-  verify: go test -race ./budget/... ./planning/... -run TestMergeCategory
-  status: todo
+  - id: t1
+    description: "budget: ArchiveCategory, RestoreCategory, ArchivedCategories, MergeCategory (amounts summed per month); isolation"
+    verify: "go test -race ./budget/... -run 'TestArchiveCategory|TestMergeCategory'"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Budget"]}
+  - id: t2
+    description: "planning: ArchiveCategory (empty-envelope guard, drop mappings), MergeCategory (move mappings, budget merge); identity preserved"
+    verify: "go test -race ./planning/... -run 'TestArchive|TestMerge'"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Planning"]}
+  - id: t3
+    description: "Web: Arquivar, Juntar com, Arquivadas list with Restaurar"
+    verify: "go test -race ./web/... -run TestArchiveMergeCategories"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "integration"]}
+  - id: t4
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}

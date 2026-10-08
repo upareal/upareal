@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: plan-work
-  note: e08s05 done; plan e08s06 (archive and merge categories)
+  next_skill: develop-tdd
+  note: e08s06 planned (4 tasks); planning orchestrates archive/merge
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
