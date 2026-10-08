@@ -1,7 +1,8 @@
-// story: e07s04
+// story: e07s04 BUG-001
 package importer_test
 
 import (
+	"errors"
 	"os"
 	"strings"
 	"testing"
@@ -88,5 +89,34 @@ func TestDetect_ChoosesOFXOrCSVByContent(t *testing.T) {
 		if err != nil || len(lines) == 0 || lines[0].ImportID != tc.wantID {
 			t.Errorf("%s: Parse = %+v, %v; want first id %q", name, lines, err, tc.wantID)
 		}
+	}
+}
+
+// story: BUG-001 — Bradesco sends <DTSERVER>00000000000000, which ofxgo
+// rejects; the server time is unused, so it must not block the import.
+func TestOFX_BradescoZeroedServerDate(t *testing.T) {
+	lines := parseFixture(t, "bradesco_dtserver_zero.ofx")
+	if len(lines) != 2 {
+		t.Fatalf("lines = %+v, want 2", lines)
+	}
+	if lines[0].ImportID != "B0001" || lines[0].Amount != -4590 || lines[0].Description != "PAGTO ELETRON COBRANCA PADARIA SÃO JOÃO" {
+		t.Errorf("first = %+v; want B0001, -4590, MEMO as description with accents", lines[0])
+	}
+	// [-03:EST]: the label is wrong but the offset is São Paulo's.
+	if !lines[0].At.Equal(time.Date(2026, 7, 10, 0, 0, 0, 0, saoPaulo)) || lines[1].Amount != 120000 {
+		t.Errorf("first at %s, second %+v; want 10/07 00:00 São Paulo and +120000", lines[0].At, lines[1])
+	}
+}
+
+// story: BUG-001 — only the unused server time is tolerated; a zeroed
+// transaction date is a real error.
+func TestOFX_ZeroedPostedDateIsStillRejected(t *testing.T) {
+	data, err := os.ReadFile("testdata/bradesco_dtserver_zero.ofx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	bad := strings.Replace(string(data), "<DTPOSTED>20260710000000[-03:EST]", "<DTPOSTED>00000000000000", 1)
+	if _, err := importer.ParseOFX(strings.NewReader(bad)); !errors.Is(err, importer.ErrUnreadableOFX) {
+		t.Errorf("zeroed DTPOSTED = %v, want ErrUnreadableOFX", err)
 	}
 }
