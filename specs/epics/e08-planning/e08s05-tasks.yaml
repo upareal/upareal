@@ -1,7 +1,7 @@
 story_id: e08s05
 title: "Off-budget accounts in planning"
 spec: e08s05-off-budget.md
-status: failing
+status: passing
 bcps: 3
 risk: P0
 outcome: Only flows across the budget boundary count; off-budget accounts map to expense categories, outflows to them are spent, inflows from them are money to assign; identity holds with off-budget accounts.
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
