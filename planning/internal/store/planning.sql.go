@@ -47,6 +47,40 @@ func (q *Queries) DeleteUserMappings(ctx context.Context, userID string) error {
 	return err
 }
 
+const exportMappings = `-- name: ExportMappings :many
+SELECT account_id, category_id, updated_at FROM planning_mapping WHERE user_id = ? ORDER BY account_id
+`
+
+type ExportMappingsRow struct {
+	AccountID  string
+	CategoryID string
+	UpdatedAt  string
+}
+
+// story: e10s01
+func (q *Queries) ExportMappings(ctx context.Context, userID string) ([]ExportMappingsRow, error) {
+	rows, err := q.db.QueryContext(ctx, exportMappings, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ExportMappingsRow
+	for rows.Next() {
+		var i ExportMappingsRow
+		if err := rows.Scan(&i.AccountID, &i.CategoryID, &i.UpdatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMappings = `-- name: ListMappings :many
 SELECT account_id, category_id FROM planning_mapping WHERE user_id = ?
 `

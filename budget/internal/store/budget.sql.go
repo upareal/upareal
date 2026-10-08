@@ -202,6 +202,158 @@ func (q *Queries) DeleteUserMonths(ctx context.Context, userID string) error {
 	return err
 }
 
+const exportAmounts = `-- name: ExportAmounts :many
+SELECT category_id, month, amount FROM budget_amount WHERE user_id = ? ORDER BY month, category_id
+`
+
+type ExportAmountsRow struct {
+	CategoryID string
+	Month      string
+	Amount     int64
+}
+
+func (q *Queries) ExportAmounts(ctx context.Context, userID string) ([]ExportAmountsRow, error) {
+	rows, err := q.db.QueryContext(ctx, exportAmounts, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ExportAmountsRow
+	for rows.Next() {
+		var i ExportAmountsRow
+		if err := rows.Scan(&i.CategoryID, &i.Month, &i.Amount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const exportCategories = `-- name: ExportCategories :many
+SELECT id, group_id, name, position, archived_at, created_at FROM budget_category WHERE user_id = ? ORDER BY group_id, position, id
+`
+
+type ExportCategoriesRow struct {
+	ID         string
+	GroupID    string
+	Name       []byte
+	Position   int64
+	ArchivedAt sql.NullString
+	CreatedAt  string
+}
+
+func (q *Queries) ExportCategories(ctx context.Context, userID string) ([]ExportCategoriesRow, error) {
+	rows, err := q.db.QueryContext(ctx, exportCategories, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ExportCategoriesRow
+	for rows.Next() {
+		var i ExportCategoriesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.GroupID,
+			&i.Name,
+			&i.Position,
+			&i.ArchivedAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const exportGroups = `-- name: ExportGroups :many
+SELECT id, kind, name, position, archived_at, created_at FROM budget_group WHERE user_id = ? ORDER BY position, id
+`
+
+type ExportGroupsRow struct {
+	ID         string
+	Kind       string
+	Name       []byte
+	Position   int64
+	ArchivedAt sql.NullString
+	CreatedAt  string
+}
+
+// story: e10s01 (export: every row of the user, archived included)
+func (q *Queries) ExportGroups(ctx context.Context, userID string) ([]ExportGroupsRow, error) {
+	rows, err := q.db.QueryContext(ctx, exportGroups, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ExportGroupsRow
+	for rows.Next() {
+		var i ExportGroupsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Kind,
+			&i.Name,
+			&i.Position,
+			&i.ArchivedAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const exportMonths = `-- name: ExportMonths :many
+SELECT month, opened_at FROM budget_month WHERE user_id = ? ORDER BY month
+`
+
+type ExportMonthsRow struct {
+	Month    string
+	OpenedAt string
+}
+
+func (q *Queries) ExportMonths(ctx context.Context, userID string) ([]ExportMonthsRow, error) {
+	rows, err := q.db.QueryContext(ctx, exportMonths, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ExportMonthsRow
+	for rows.Next() {
+		var i ExportMonthsRow
+		if err := rows.Scan(&i.Month, &i.OpenedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getArchivedCategory = `-- name: GetArchivedCategory :one
 SELECT c.id, c.group_id FROM budget_category c
 JOIN budget_group g ON g.id = c.group_id AND g.archived_at IS NULL

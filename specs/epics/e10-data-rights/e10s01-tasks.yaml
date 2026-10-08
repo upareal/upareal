@@ -16,7 +16,7 @@ tasks:
     description: "users, budget, planning ExportUserData; completeness; isolation"
     verify: "go test -race ./users/... ./budget/... ./planning/... -run TestExportUserData"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Privacy"]}
   - id: t3
     description: "web: /conta/dados page and JSON download (attachment, no-store), linked from home"

@@ -131,3 +131,16 @@ DELETE FROM budget_group WHERE user_id = ?;
 
 -- name: DeleteUserKey :exec
 DELETE FROM budget_user_key WHERE user_id = ?;
+
+-- story: e10s01 (export: every row of the user, archived included)
+-- name: ExportGroups :many
+SELECT id, kind, name, position, archived_at, created_at FROM budget_group WHERE user_id = ? ORDER BY position, id;
+
+-- name: ExportCategories :many
+SELECT id, group_id, name, position, archived_at, created_at FROM budget_category WHERE user_id = ? ORDER BY group_id, position, id;
+
+-- name: ExportMonths :many
+SELECT month, opened_at FROM budget_month WHERE user_id = ? ORDER BY month;
+
+-- name: ExportAmounts :many
+SELECT category_id, month, amount FROM budget_amount WHERE user_id = ? ORDER BY month, category_id;

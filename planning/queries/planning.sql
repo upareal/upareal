@@ -21,3 +21,7 @@ DELETE FROM planning_mapping WHERE user_id = ? AND category_id = ?;
 -- story: e09s02
 -- name: DeleteUserMappings :exec
 DELETE FROM planning_mapping WHERE user_id = ?;
+
+-- story: e10s01
+-- name: ExportMappings :many
+SELECT account_id, category_id, updated_at FROM planning_mapping WHERE user_id = ? ORDER BY account_id;
