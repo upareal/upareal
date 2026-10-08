@@ -1,18 +1,32 @@
 story_id: e09s02
-title: Disable, enable and delete users
-status: todo
+title: "Disable, enable and delete users"
+spec: e09s02-disable-delete-users.md
+status: failing
 bcps: 5
-outcome: An admin disables (sessions revoked, sign-in blocked), re-enables or deletes a user; ADMIN_EMAILS users are protected.
+risk: P0
+outcome: Admins disable (sessions gone, sign-in refused), re-enable and delete users (all module data and keys removed); ADMIN_EMAILS users are protected.
 tasks:
-- id: t1
-  description: Disable/enable; disabled users cannot sign in; sessions deleted
-  verify: go test -race ./users/... -run TestDisableUser
-  status: todo
-- id: t2
-  description: Cross-module DeleteUserData(userID) in users, ledger, budget, planning; delete each module key (crypto-shred)
-  verify: go test -race ./... -run TestDeleteUserData
-  status: todo
-- id: t3
-  description: ADMIN_EMAILS users cannot be disabled or deleted
-  verify: go test -race ./web/... -run TestProtectedAdmins
-  status: todo
+  - id: t1
+    description: "users: disabled_at migration, DisableUser/EnableUser (sessions removed, admins protected), SignIn/UserBySession refuse disabled, DeleteUser(purge), Disabled in list"
+    verify: "go test -race ./users/... -run 'TestDisable|TestDeleteUser'"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Users", "Security"]}
+  - id: t2
+    description: "DeleteUserData in ledger, budget, planning; every table emptied for the user; other users untouched"
+    verify: "go test -race ./ledger/... ./budget/... ./planning/... -run TestDeleteUserData"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Privacy"]}
+  - id: t3
+    description: "web: admin Desativar/Reativar/Excluir (confirm), disabled sign-in message, ID-only logging"
+    verify: "go test -race ./web/... -run 'TestAdminUsers|TestDisabled'"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["UI", "Security"]}
+  - id: t4
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}

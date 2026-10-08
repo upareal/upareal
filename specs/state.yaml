@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: plan-work
-  note: e09s01 done; plan e09s02 (disable, enable, delete users)
+  next_skill: develop-tdd
+  note: e09s02 planned (4 tasks); users.DeleteUser(purge) orchestrates
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
