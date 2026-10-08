@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e08s06 all tasks passing; awaiting user UAT (spec §19); then close e08
+  next_skill: plan-work
+  note: e08 done and merged; plan e09s01 (admin lists users)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -22,12 +22,12 @@ pending:
 - 'UX candidate: after import/match, link to the register month where the lines landed (e07s03 UAT feedback)'
 - 'ledger: no way to record a refund (credit on an expense account); entry/categorize parts are positive in their natural direction. Planning nets it once
   supported.'
-active_epic: e08
+active_epic: e09
 git:
-  branch: feat/e08-planning
+  branch: feat/e09-admin
   worktree: null
-  base: main@7a8ee7d
-active_story: e08s06
+  base: main@6426a72
+active_story: e09s01
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'
