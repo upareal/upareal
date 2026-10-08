@@ -4,7 +4,7 @@
 
 ## Built
 
-The app runs locally (`make run`) and in Docker (`docker compose up --build`). All 30 stories of e01–e10 have tests and a user verification record in `specs/verifications/`.
+The app runs locally (`make run`) and in Docker (`docker compose up --build`). All 31 stories of e01–e10 and e12 have tests and a user verification record in `specs/verifications/`.
 
 | Epic | What works |
 |------|------------|
@@ -18,8 +18,9 @@ The app runs locally (`make run`) and in Docker (`docker compose up --build`). A
 | e08 planning | Account→category mapping; month view (spent, available, A distribuir); carry-over; card payment envelopes; off-budget accounts; archive, merge and restore categories |
 | e09 admin | `ADMIN_EMAILS` admins list, disable, enable and delete users, without seeing financial data |
 | e10 data rights | Export my data (JSON, all modules); delete my account (typed confirmation) |
+| e12 ux | Row saves on Orçamento, Revisão and Mapa update in place (htmx), keeping the scroll position |
 
-**Size:** 286 test functions; `go test -race ./...` across 12 packages; golangci-lint reports 0 issues.
+**Size:** 286 test functions; `go test -race ./...` across 12 packages; golangci-lint (with gofmt) reports 0 issues.
 
 ## Model (as built)
 
