@@ -186,3 +186,17 @@ JOIN ledger_transaction t ON t.id = l.transaction_id
 WHERE t.user_id = sqlc.arg(user_id) AND t.occurred_at >= sqlc.arg(from_at) AND t.occurred_at < sqlc.arg(to_at)
   AND t.deleted_at IS NULL
 GROUP BY l.account_id;
+
+-- story: e08s05
+-- name: BudgetFlows :many
+SELECT l.account_id,
+       CAST(COALESCE(SUM(CASE WHEN l.amount > 0 THEN l.amount END), 0) AS INTEGER) AS debit,
+       CAST(COALESCE(SUM(CASE WHEN l.amount < 0 THEN l.amount END), 0) AS INTEGER) AS credit
+FROM ledger_leg l
+JOIN ledger_transaction t ON t.id = l.transaction_id
+JOIN ledger_account a ON a.id = l.account_id
+WHERE t.user_id = sqlc.arg(user_id) AND t.occurred_at >= sqlc.arg(from_at) AND t.occurred_at < sqlc.arg(to_at)
+  AND t.deleted_at IS NULL AND a.on_budget = 0
+  AND EXISTS (SELECT 1 FROM ledger_leg ob JOIN ledger_account oa ON oa.id = ob.account_id
+              WHERE ob.transaction_id = t.id AND oa.on_budget = 1)
+GROUP BY l.account_id;

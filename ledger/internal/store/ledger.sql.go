@@ -128,6 +128,56 @@ func (q *Queries) BalanceBefore(ctx context.Context, arg BalanceBeforeParams) (i
 	return column_1, err
 }
 
+const budgetFlows = `-- name: BudgetFlows :many
+SELECT l.account_id,
+       CAST(COALESCE(SUM(CASE WHEN l.amount > 0 THEN l.amount END), 0) AS INTEGER) AS debit,
+       CAST(COALESCE(SUM(CASE WHEN l.amount < 0 THEN l.amount END), 0) AS INTEGER) AS credit
+FROM ledger_leg l
+JOIN ledger_transaction t ON t.id = l.transaction_id
+JOIN ledger_account a ON a.id = l.account_id
+WHERE t.user_id = ?1 AND t.occurred_at >= ?2 AND t.occurred_at < ?3
+  AND t.deleted_at IS NULL AND a.on_budget = 0
+  AND EXISTS (SELECT 1 FROM ledger_leg ob JOIN ledger_account oa ON oa.id = ob.account_id
+              WHERE ob.transaction_id = t.id AND oa.on_budget = 1)
+GROUP BY l.account_id
+`
+
+type BudgetFlowsParams struct {
+	UserID string
+	FromAt string
+	ToAt   string
+}
+
+type BudgetFlowsRow struct {
+	AccountID string
+	Debit     int64
+	Credit    int64
+}
+
+// story: e08s05
+func (q *Queries) BudgetFlows(ctx context.Context, arg BudgetFlowsParams) ([]BudgetFlowsRow, error) {
+	rows, err := q.db.QueryContext(ctx, budgetFlows, arg.UserID, arg.FromAt, arg.ToAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BudgetFlowsRow
+	for rows.Next() {
+		var i BudgetFlowsRow
+		if err := rows.Scan(&i.AccountID, &i.Debit, &i.Credit); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const countAccountLegs = `-- name: CountAccountLegs :one
 SELECT count(*) FROM ledger_leg WHERE account_id = ?
 `

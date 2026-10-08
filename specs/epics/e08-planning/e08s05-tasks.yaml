@@ -10,7 +10,7 @@ tasks:
     description: "ledger.BudgetFlows: debit/credit per non-on-budget account, only transactions touching an on-budget account"
     verify: "go test -race ./ledger/... -run TestBudgetFlows"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Ledger"]}
   - id: t2
     description: "planning: map off-budget to expense categories; tally from BudgetFlows; identity with off-budget accounts"
