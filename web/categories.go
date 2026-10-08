@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/upareal/upareal/budget"
+	"github.com/upareal/upareal/planning"
 	"github.com/upareal/upareal/users"
 )
 
@@ -21,7 +22,12 @@ func renderCategories(w http.ResponseWriter, r *http.Request, bud *budget.Servic
 		renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Não foi possível carregar as categorias.")
 		return
 	}
-	renderHTML(w, r, status, categoriesPage(groups, errMsg))
+	archived, err := bud.ArchivedCategories(r.Context(), userID)
+	if err != nil {
+		renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Não foi possível carregar as categorias.")
+		return
+	}
+	renderHTML(w, r, status, categoriesPage(groups, archived, errMsg))
 }
 
 // budgetAction runs a change from the categories page, then shows it again.
@@ -133,6 +139,10 @@ func budgetError(err error) (int, string) {
 		return http.StatusBadRequest, "Escolha Despesas ou Receitas."
 	case errors.Is(err, budget.ErrKindMismatch):
 		return http.StatusBadRequest, "A categoria só pode ir para um grupo do mesmo tipo."
+	case errors.Is(err, budget.ErrSameCategory):
+		return http.StatusBadRequest, "Escolha outra categoria para juntar."
+	case errors.Is(err, planning.ErrEnvelopeNotEmpty):
+		return http.StatusBadRequest, "Só dá para arquivar com Disponível zero. Mova o dinheiro ou junte com outra categoria."
 	case errors.Is(err, budget.ErrNotFound):
 		return http.StatusNotFound, "Não encontrado."
 	}

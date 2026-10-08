@@ -26,7 +26,7 @@ func TestArchiveMergeCategories_MergeArchiveRestore(t *testing.T) {
 		t.Fatal("category page has no Juntar com form limited to same-kind categories")
 	}
 	res, body := b.postForm(t, "/categorias/"+streaming+"/juntar", url.Values{"destino": {outras}})
-	if res.Request.URL.Path != "/categorias" || strings.Contains(body, ">Streaming<") {
+	if res.Request.URL.Path != "/categorias" || strings.Contains(body, `href="/categorias/`+streaming+`">Streaming<`) {
 		t.Errorf("after merge ended at %s; Streaming must leave the active list", res.Request.URL)
 	}
 	if _, month := b.get(t, "/orcamento?mes="+mes); !strings.Contains(month, `value="80,00"`) {

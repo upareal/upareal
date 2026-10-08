@@ -1,9 +1,9 @@
-// story: e05s01 e05s02
+// story: e05s01 e05s02 e08s06
 package web
 
 import "github.com/upareal/upareal/budget"
 
-templ categoriesPage(groups []budget.Group, errMsg string) {
+templ categoriesPage(groups []budget.Group, archived []budget.Category, errMsg string) {
 	@layout("Categorias — upareal") {
 		<p><a href="/">← Início</a></p>
 		<h1>Categorias</h1>
@@ -31,6 +31,19 @@ templ categoriesPage(groups []budget.Group, errMsg string) {
 					<label>Nova categoria <input name="nome" maxlength="100" required/></label>
 					<button type="submit">Adicionar</button>
 				</form>
+			</section>
+		}
+		if len(archived) > 0 {
+			<section class="group">
+				<h2>Arquivadas</h2>
+				<ul>
+					for _, c := range archived {
+						<li>
+							{ c.Name }
+							<form method="post" action={ templ.SafeURL("/categorias/" + c.ID + "/restaurar") } class="inline"><button type="submit">Restaurar</button></form>
+						</li>
+					}
+				</ul>
 			</section>
 		}
 		<section>
@@ -83,6 +96,27 @@ templ categoryEditPage(c budget.Category, current budget.Group, sameKind []budge
 				</select>
 			</label>
 			<button type="submit">Salvar</button>
+		</form>
+		<h2>Juntar com outra categoria</h2>
+		<p class="muted">As contas, os valores planejados e o histórico desta categoria passam para a escolhida, e esta é arquivada.</p>
+		<form method="post" action={ templ.SafeURL("/categorias/" + c.ID + "/juntar") } class="inline">
+			<select name="destino" required>
+				for _, g := range sameKind {
+					<optgroup label={ g.Name }>
+						for _, o := range g.Categories {
+							if o.ID != c.ID {
+								<option value={ o.ID }>{ o.Name }</option>
+							}
+						}
+					</optgroup>
+				}
+			</select>
+			<button type="submit">Juntar</button>
+		</form>
+		<h2>Arquivar</h2>
+		<p class="muted">Só com Disponível zero no mês atual. As contas ligadas a ela ficam sem categoria.</p>
+		<form method="post" action={ templ.SafeURL("/categorias/" + c.ID + "/arquivar") }>
+			<button type="submit">Arquivar</button>
 		</form>
 	}
 }
