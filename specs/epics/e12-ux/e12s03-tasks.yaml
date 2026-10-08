@@ -1,7 +1,7 @@
 story_id: e12s03
 title: "Logo and favicon"
 spec: e12s03-logo-favicon.md
-status: failing
+status: passing
 bcps: 1
 risk: P3
 outcome: The home page shows the logo; every page has a favicon and apple-touch-icon; /favicon.ico is served.
@@ -16,5 +16,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}

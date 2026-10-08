@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: develop-tdd
-  note: e12s03 planned (2 tasks)
+  next_skill: verify-work
+  note: e12s03 all tasks passing; awaiting user visual UAT
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
