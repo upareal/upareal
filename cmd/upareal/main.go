@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e04s01 e05s01 e08s01
+// story: e01s01 e03s01 e04s01 e05s01 e08s01 e09s01
 
 // Command upareal runs the upareal web app.
 package main
@@ -127,6 +127,6 @@ func wireModules(ctx context.Context, cfg config.Config, conn *sql.DB) (web.Deps
 		return web.Deps{}, err
 	}
 	ledg, bud := ledger.NewService(conn, kr), budget.NewService(conn, kr)
-	return web.Deps{DB: conn, Users: users.NewService(conn, kr), Ledger: ledg, Budget: bud,
+	return web.Deps{DB: conn, Users: users.NewService(conn, kr, users.AdminEmails(cfg.AdminEmails...)), Ledger: ledg, Budget: bud,
 		Planning: planning.NewService(conn, ledg, bud), Google: google}, nil
 }

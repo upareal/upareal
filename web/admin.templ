@@ -1,0 +1,30 @@
+// story: e09s01
+package web
+
+templ adminUsersPage(count string, rows []adminUserView) {
+	@layout("Admin — upareal") {
+		<p><a href="/">← Início</a></p>
+		<h1>Usuários</h1>
+		<p class="totals">{ count }</p>
+		<table>
+			<thead>
+				<tr><th>Nome</th><th>Email</th><th>Cadastro</th><th>Último acesso</th><th></th></tr>
+			</thead>
+			<tbody>
+				for _, u := range rows {
+					<tr>
+						<td>{ u.Name }</td>
+						<td>{ u.Email }</td>
+						<td>{ u.CreatedAt }</td>
+						<td>{ u.LastSeenAt }</td>
+						<td>
+							if u.Admin {
+								<span class="muted">admin</span>
+							}
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	}
+}
