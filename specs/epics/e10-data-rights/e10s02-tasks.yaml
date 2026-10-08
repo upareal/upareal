@@ -1,10 +1,20 @@
 story_id: e10s02
-title: Delete my account
-status: todo
+title: "Delete my account"
+spec: e10s02-delete-my-account.md
+status: failing
 bcps: 3
-outcome: A user confirms deletion; all data and the key are deleted and the session ends.
+risk: P0
+outcome: A signed-in non-admin user deletes their own account after typing their email; all module data goes, sessions end, signing in starts empty.
 tasks:
-- id: t1
-  description: Confirmation flow reusing DeleteUserData; database copy afterwards has no trace of the user
-  verify: go test -race ./web/... -run TestSelfDelete
-  status: todo
+  - id: t1
+    description: "web: Excluir minha conta section, POST /conta/excluir (typed email), shared purge, cookie cleared, Conta excluída page; admin and mismatch refused"
+    verify: "go test -race ./web/... -run TestDeleteMyAccount"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Privacy", "UI"]}
+  - id: t2
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}
