@@ -98,7 +98,7 @@ domain:
       - "P4 derived values (spent, available, carry-over, to be assigned, card envelopes) are computed, never stored"
     cross_module:
       - "X1 modules reference each other by ID only, no foreign keys; a deleted category or account drops its mappings (account becomes Sem categoria)"
-      - "X2 every row belongs to exactly one user; every query filters by user_id"
+      - "X2 every row belongs to exactly one user; every query filters by user_id, except the PublicStats aggregate queries (counts and sums only, no rows, nothing decrypted; e13s01)"
 
 data_conventions:
   - "IDs: UUIDv7 via github.com/google/uuid (uuid.NewV7), stored as TEXT(36); always scoped by user_id"

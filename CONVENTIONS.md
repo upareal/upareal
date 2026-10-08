@@ -116,7 +116,7 @@ DO NOT put story status in `release-plan.yaml`. Git tags are the version authori
 - Store all times in UTC. Compute day and month membership in `America/Sao_Paulo`.
 - Store date-only import lines at 00:00 `America/Sao_Paulo`.
 - IDs MUST be UUIDv7 (`uuid.NewV7()`) stored as `TEXT`.
-- Every query MUST filter by `user_id`.
+- Every query MUST filter by `user_id`. The only exception: the PublicStats aggregate queries (counts and sums across users, numbers only; e13s01).
 - SQLite connections MUST set `PRAGMA foreign_keys = ON` in the DSN.
 - NEVER edit a committed migration. Write a new migration instead.
 

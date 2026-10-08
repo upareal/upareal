@@ -66,3 +66,8 @@ epics:
   path: specs/epics/e12-ux
   wsjf_rank: 12
   bcps: 3
+- id: e13
+  slug: public-stats
+  path: specs/epics/e13-public-stats
+  wsjf_rank: 13
+  bcps: 3

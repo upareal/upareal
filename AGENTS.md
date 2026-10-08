@@ -73,7 +73,7 @@ Full decisions live in `specs/planning-context.yaml`.
 - Money MUST be `int64` centavos.
 - Store all times in UTC. Compute day and month in `America/Sao_Paulo`.
 - IDs MUST be UUIDv7 stored as `TEXT`.
-- Every query MUST filter by `user_id`.
+- Every query MUST filter by `user_id`. The only exception: the PublicStats aggregate queries (counts and sums across users, numbers only; e13s01).
 - Every ledger write MUST verify that the legs sum to zero.
 - Write sensitive text ONLY through the encryption helper in `internal/`.
 - The UI MUST use pt-BR. Code, comments, logs, commits and README MUST use English.

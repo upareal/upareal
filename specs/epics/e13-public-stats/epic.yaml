@@ -1,0 +1,10 @@
+epic_id: e13
+slug: public-stats
+goal: A public page with aggregate project numbers (counts and sums only).
+scope_items: []
+stories:
+- id: e13s01
+  title: Public stats page
+  bcps: 3
+  delta: ADDED
+bcps_total: 3
