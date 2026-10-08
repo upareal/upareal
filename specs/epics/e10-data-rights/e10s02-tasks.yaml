@@ -1,7 +1,7 @@
 story_id: e10s02
 title: "Delete my account"
 spec: e10s02-delete-my-account.md
-status: failing
+status: passing
 bcps: 3
 risk: P0
 outcome: A signed-in non-admin user deletes their own account after typing their email; all module data goes, sessions end, signing in starts empty.
@@ -16,5 +16,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
