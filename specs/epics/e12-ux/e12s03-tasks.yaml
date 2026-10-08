@@ -10,7 +10,7 @@ tasks:
     description: "static logo/favicon/apple-touch-icon; /favicon.ico route; head links; home logo"
     verify: "go test -race ./web/... -run TestBrand"
     risk: P3
-    status: failing
+    status: passing
     allure: {severity: minor, categories: ["UI"]}
   - id: t2
     description: "Full local gate green"

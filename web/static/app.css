@@ -106,3 +106,7 @@ nav.months { display: flex; justify-content: space-between; gap: 0.5rem; margin:
 /* story: e13s01 */
 dl.stats { display: grid; grid-template-columns: 1fr auto; gap: 0.25rem 1rem; margin: 0; }
 dl.stats dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* story: e12s03 */
+h1.brand { display: flex; align-items: center; gap: 0.6rem; }
+h1.brand img { border-radius: 0.9rem; }

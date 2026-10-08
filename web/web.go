@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02 e05s03 e06s01 e06s02 e06s03 e06s04 e06s05 e07s01 e07s02 e07s03 e08s01 e08s02 e08s06 e09s01 e09s02 e10s01 e10s02 e13s01
+// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02 e05s03 e06s01 e06s02 e06s03 e06s04 e06s05 e07s01 e07s02 e07s03 e08s01 e08s02 e08s06 e09s01 e09s02 e10s01 e10s02 e13s01 e12s03
 
 // Package web renders all HTML pages and HTMX fragments and wires the HTTP routes.
 package web
@@ -42,6 +42,7 @@ func NewHandler(d Deps) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", healthz(d.DB))
 	mux.Handle("GET /static/", staticHandler())
+	mux.HandleFunc("GET /favicon.ico", favicon) // browsers request it at the root
 	mux.HandleFunc("GET /{$}", home(d.Users))
 	mux.HandleFunc("GET /planejamento/mapa", mappingGet(d.Users, d.Planning, d.Budget))
 	mux.HandleFunc("POST /planejamento/mapa/{conta}", mappingPost(d.Users, d.Planning, d.Budget))
@@ -159,6 +160,11 @@ func staticHandler() http.Handler {
 		panic(err) // "static" is embedded at compile time; failure is a build bug
 	}
 	return http.StripPrefix("/static/", http.FileServerFS(sub))
+}
+
+// favicon serves the embedded icon at /favicon.ico (e12s03).
+func favicon(w http.ResponseWriter, r *http.Request) {
+	http.ServeFileFS(w, r, staticFiles, "static/favicon.ico")
 }
 
 // healthz answers 200 "ok" when SQLite runs SELECT 1, else 503.
