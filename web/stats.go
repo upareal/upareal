@@ -41,4 +41,6 @@ func publicStats(d Deps) http.HandlerFunc {
 }
 
 // count formats n with pt-BR thousands separators: 1234 → "1.234".
-func count(n int64) string { return strings.TrimSuffix(strings.TrimPrefix(money.FormatBRL(n*100), "R$ "), ",00") }
+func count(n int64) string {
+	return strings.TrimSuffix(strings.TrimPrefix(money.FormatBRL(n*100), "R$ "), ",00")
+}
