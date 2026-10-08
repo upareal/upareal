@@ -1,7 +1,7 @@
 story_id: e09s01
 title: "Admin lists users"
 spec: e09s01-admin-lists-users.md
-status: failing
+status: passing
 bcps: 3
 risk: P0
 outcome: Admins (ADMIN_EMAILS) list users with name, email, sign-up and last access, never financial data; non-admins get 404.
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
