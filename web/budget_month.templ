@@ -1,4 +1,4 @@
-// story: e05s03 e08s02 e08s03 e08s04
+// story: e05s03 e08s02 e08s03 e08s04 e12s01
 package web
 
 templ budgetMonthPage(v monthView, errMsg string) {
@@ -21,7 +21,7 @@ templ budgetMonthPage(v monthView, errMsg string) {
 				<ul>
 					for _, row := range g.Rows {
 						<li>
-							<form method="post" action={ templ.SafeURL("/orcamento/" + v.Month + "/" + row.CategoryID) } class="inline">
+							<form method="post" action={ templ.SafeURL("/orcamento/" + v.Month + "/" + row.CategoryID) } hx-post={ "/orcamento/" + v.Month + "/" + row.CategoryID } hx-target="main" hx-select="main" hx-swap="outerHTML" class="inline">
 								<label>{ row.Name } <input name="valor" value={ row.Value } inputmode="decimal" required/></label>
 								<button type="submit">Salvar</button>
 							</form>

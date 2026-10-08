@@ -1,4 +1,4 @@
-// story: e07s01 e07s02 e07s04
+// story: e07s01 e07s02 e07s04 e12s01
 package web
 
 templ importPage(v importView) {
@@ -48,7 +48,7 @@ templ reviewPage(v queueView) {
 							<td class="num">{ l.Amount }</td>
 							<td>{ l.Conta }</td>
 							<td>
-								<form method="post" action={ templ.SafeURL("/revisao/" + l.ID) } class="inline">
+								<form method="post" action={ templ.SafeURL("/revisao/" + l.ID) } hx-post={ "/revisao/" + l.ID } hx-target="main" hx-select="main" hx-swap="outerHTML" class="inline">
 									<select name="contra" required>
 										if l.Out {
 											for _, a := range v.Expenses {

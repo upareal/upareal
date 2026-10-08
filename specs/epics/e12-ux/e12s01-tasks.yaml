@@ -10,7 +10,7 @@ tasks:
     description: "hx-post/hx-target/hx-select main on the three pages' row forms; htmx-config swaps 4xx/5xx"
     verify: "go test -race ./web/... -run TestKeepPlace"
     risk: P2
-    status: failing
+    status: passing
     allure: {severity: normal, categories: ["UI"]}
   - id: t2
     description: "Full local gate green"

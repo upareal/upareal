@@ -1,4 +1,4 @@
-// story: e08s01 e08s05
+// story: e08s01 e08s05 e12s01
 package web
 
 templ mappingPage(v mappingView) {
@@ -17,7 +17,7 @@ templ mappingPage(v mappingView) {
 		<ul>
 			for _, row := range v.Rows {
 				<li>
-					<form method="post" action={ templ.SafeURL("/planejamento/mapa/" + row.AccountID) } class="inline">
+					<form method="post" action={ templ.SafeURL("/planejamento/mapa/" + row.AccountID) } hx-post={ "/planejamento/mapa/" + row.AccountID } hx-target="main" hx-select="main" hx-swap="outerHTML" class="inline">
 						<strong>{ row.Name }</strong>
 						<select name="categoria">
 							<option value="" selected?={ row.CategoryID == "" }>Sem categoria</option>
