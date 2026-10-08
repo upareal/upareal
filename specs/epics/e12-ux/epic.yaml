@@ -12,4 +12,8 @@ stories:
   title: A little color
   bcps: 1
   delta: ADDED
-bcps_total: 3
+- id: e12s03
+  title: Logo and favicon
+  bcps: 1
+  delta: ADDED
+bcps_total: 4
