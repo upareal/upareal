@@ -1,7 +1,7 @@
 story_id: e10s01
 title: "Export my data"
 spec: e10s01-export-my-data.md
-status: failing
+status: passing
 bcps: 5
 risk: P0
 outcome: A signed-in user downloads one readable JSON file with all their data from every module, and nothing of anyone else.
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
