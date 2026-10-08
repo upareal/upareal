@@ -9,6 +9,20 @@ import (
 	"context"
 )
 
+const deleteCategoryMappings = `-- name: DeleteCategoryMappings :exec
+DELETE FROM planning_mapping WHERE user_id = ? AND category_id = ?
+`
+
+type DeleteCategoryMappingsParams struct {
+	UserID     string
+	CategoryID string
+}
+
+func (q *Queries) DeleteCategoryMappings(ctx context.Context, arg DeleteCategoryMappingsParams) error {
+	_, err := q.db.ExecContext(ctx, deleteCategoryMappings, arg.UserID, arg.CategoryID)
+	return err
+}
+
 const deleteMapping = `-- name: DeleteMapping :exec
 DELETE FROM planning_mapping WHERE user_id = ? AND account_id = ?
 `
@@ -53,6 +67,29 @@ func (q *Queries) ListMappings(ctx context.Context, userID string) ([]ListMappin
 		return nil, err
 	}
 	return items, nil
+}
+
+const moveCategoryMappings = `-- name: MoveCategoryMappings :exec
+UPDATE planning_mapping SET category_id = ?1, updated_at = ?2
+WHERE user_id = ?3 AND category_id = ?4
+`
+
+type MoveCategoryMappingsParams struct {
+	TargetID  string
+	UpdatedAt string
+	UserID    string
+	SourceID  string
+}
+
+// story: e08s06
+func (q *Queries) MoveCategoryMappings(ctx context.Context, arg MoveCategoryMappingsParams) error {
+	_, err := q.db.ExecContext(ctx, moveCategoryMappings,
+		arg.TargetID,
+		arg.UpdatedAt,
+		arg.UserID,
+		arg.SourceID,
+	)
+	return err
 }
 
 const upsertMapping = `-- name: UpsertMapping :exec

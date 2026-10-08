@@ -82,7 +82,7 @@ func TestMerge_MovesAccountsAndAmountsAndKeepsEveryMonth(t *testing.T) {
 	if err := f.svc.MergeCategory(ctx, userA, mb.fuel, mb.salaryCat); !errors.Is(err, budget.ErrKindMismatch) {
 		t.Errorf("merge across kinds = %v, want budget.ErrKindMismatch", err)
 	}
-	if byName(ms)["Posto Shell"].CategoryID != mb.fuel {
+	if ms, _ = f.svc.Mappings(ctx, userA); byName(ms)["Posto Shell"].CategoryID != mb.fuel {
 		t.Error("a rejected merge moved mappings")
 	}
 }
