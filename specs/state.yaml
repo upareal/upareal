@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: develop-tdd
-  note: e13s01 planned (3 tasks); no minimum user count (user decision)
+  next_skill: verify-work
+  note: e13s01 all tasks passing; awaiting user UAT (spec §19)
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)

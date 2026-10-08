@@ -1,7 +1,7 @@
 story_id: e13s01
 title: "Public stats page"
 spec: e13s01-public-stats.md
-status: failing
+status: passing
 bcps: 3
 risk: P1
 outcome: A public /estatisticas page shows aggregate counts and the month's planned total; only PublicStats queries span users and return numbers only.
@@ -22,5 +22,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
