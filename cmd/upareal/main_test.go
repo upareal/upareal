@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"log/slog"
 	"net"
 	"net/http"
 	"path/filepath"
@@ -92,4 +93,27 @@ func waitHealthy(t *testing.T, url string) {
 		time.Sleep(20 * time.Millisecond)
 	}
 	t.Fatalf("server at %s never became healthy", url)
+}
+
+// story: BUG-001 — handlers log through slog's default logger; run() must
+// point it at the JSON log, or those records go to plain-text stderr.
+func TestRun_HandlerLogsGoToTheJSONLog(t *testing.T) {
+	ln := listen(t)
+	env := testEnv(t)
+	var logs bytes.Buffer
+	old := slog.Default()
+	t.Cleanup(func() { slog.SetDefault(old) })
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() { done <- run(ctx, func(k string) string { return env[k] }, ln, &logs) }()
+	waitHealthy(t, "http://"+ln.Addr().String()+"/healthz")
+	slog.InfoContext(ctx, "probe from a handler")
+	cancel()
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(logs.String(), `"msg":"probe from a handler"`) {
+		t.Errorf("slog default does not write to the JSON log: %s", logs.String())
+	}
 }
