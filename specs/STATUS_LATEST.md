@@ -4,7 +4,7 @@
 
 ## Built
 
-The app runs locally (`make run`) and in Docker (`docker compose up --build`). All 30 stories of e01–e10 have tests. Every story except e10s02 has a user verification record in `specs/verifications/`. e10s02 is waiting for its UAT.
+The app runs locally (`make run`) and in Docker (`docker compose up --build`). All 30 stories of e01–e10 have tests and a user verification record in `specs/verifications/`.
 
 | Epic | What works |
 |------|------------|
@@ -17,7 +17,7 @@ The app runs locally (`make run`) and in Docker (`docker compose up --build`). A
 | e07 imports | Generic CSV and OFX 1.x/2.x (Windows-1252), deduplicated per account; review queue; categorize; transfer matching |
 | e08 planning | Account→category mapping; month view (spent, available, A distribuir); carry-over; card payment envelopes; off-budget accounts; archive, merge and restore categories |
 | e09 admin | `ADMIN_EMAILS` admins list, disable, enable and delete users, without seeing financial data |
-| e10 data rights | Export my data (JSON, all modules); delete my account (typed confirmation) — **e10s02 awaiting UAT** |
+| e10 data rights | Export my data (JSON, all modules); delete my account (typed confirmation) |
 
 **Size:** 286 test functions; `go test -race ./...` across 12 packages; golangci-lint reports 0 issues.
 

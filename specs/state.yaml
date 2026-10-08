@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e10 merged (749ae74); e11 postponed by the user; consolidation docs on docs/consolidation; e10s02 UAT confirmation pending
+  next_skill: survey-context
+  note: e01-e10 done (e07s05 blocked, e11 postponed); pick from STATUS_LATEST open items
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -24,12 +24,12 @@ pending:
   supported.'
 - 'e11: wrapped per-user data keys live in the backed-up SQLite file, so backups taken before a deletion still hold the key until retention expires; true
   crypto-shredding needs keys stored outside the backup (or short retention). Decide in e11.'
-active_epic: e10
+active_epic: null
 git:
   branch: docs/consolidation
   worktree: null
   base: main@749ae74
-active_story: e10s02
+active_story: null
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'
