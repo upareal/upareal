@@ -1,4 +1,4 @@
-// story: e03s01 e03s02 e04s01 e05s01
+// story: e03s01 e03s02 e04s01 e05s01 e09s02
 package web
 
 import (
@@ -58,6 +58,10 @@ func callback(svc *users.Service, ledg *ledger.Service, bud *budget.Service, goo
 			return
 		}
 		user, err := svc.SignIn(r.Context(), id)
+		if errors.Is(err, users.ErrDisabled) { // e09s02
+			renderError(w, r, http.StatusForbidden, "Conta desativada", "Sua conta está desativada. Fale com o administrador.")
+			return
+		}
 		if errors.Is(err, users.ErrEmailNotVerified) {
 			renderError(w, r, http.StatusForbidden, "E-mail não verificado",
 				"Seu e-mail do Google ainda não foi verificado. Verifique-o no Google e tente novamente.")

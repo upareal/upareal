@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02 e05s03 e06s01 e06s02 e06s03 e06s04 e06s05 e07s01 e07s02 e07s03 e08s01 e08s02 e08s06 e09s01
+// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02 e05s03 e06s01 e06s02 e06s03 e06s04 e06s05 e07s01 e07s02 e07s03 e08s01 e08s02 e08s06 e09s01 e09s02
 
 // Package web renders all HTML pages and HTMX fragments and wires the HTTP routes.
 package web
@@ -46,6 +46,9 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("GET /planejamento/mapa", mappingGet(d.Users, d.Planning, d.Budget))
 	mux.HandleFunc("POST /planejamento/mapa/{conta}", mappingPost(d.Users, d.Planning, d.Budget))
 	mux.HandleFunc("GET /admin/usuarios", adminUsers(d.Users))
+	for _, action := range []string{"desativar", "reativar", "excluir"} {
+		mux.HandleFunc("POST /admin/usuarios/{id}/"+action, adminUserAction(d, action))
+	}
 	mux.HandleFunc("GET /orcamento", budgetMonthGet(d.Users, d.Budget, d.Planning))
 	mux.HandleFunc("POST /orcamento/{mes}/{categoria}", budgetMonthSet(d.Users, d.Budget, d.Planning))
 	mux.HandleFunc("GET /categorias", categories(d.Users, d.Budget))
