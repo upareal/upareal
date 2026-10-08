@@ -51,3 +51,31 @@ func TestMappingPage_MapAccountsAndCountSemCategoria(t *testing.T) {
 		t.Error("home has no link to the mapping page")
 	}
 }
+
+// story: e08s05
+func TestMappingPage_OffBudgetAccountMapsToExpenseAndCountsAsSpent(t *testing.T) {
+	b := newBrowser(t)
+	signIn(t, b)
+	createAccount(t, b, url.Values{"nome": {"Itaú"}, "tipo": {"asset"}, "saldo": {"2.000,00"}, "data": {"2026-01-01"}, "orcamento": {"on"}})
+	_, accounts := createAccount(t, b, url.Values{"nome": {"Investimento XP"}, "tipo": {"asset"}, "saldo": {"5.000,00"}, "data": {"2026-01-01"}})
+	itau, xp := accountID(t, accounts, "Itaú"), accountID(t, accounts, "Investimento XP")
+	_, cats := b.get(t, "/categorias")
+	invest := linkID(t, cats, "/categorias/", "Investimentos")
+
+	_, page := b.get(t, "/planejamento/mapa")
+	if row := formBlock(t, page, "Investimento XP"); !strings.Contains(row, "Investimentos") || strings.Contains(row, "Salário") {
+		t.Error("an off-budget account's picker must offer expense categories only")
+	}
+	if strings.Contains(page, ">Itaú<") {
+		t.Error("an on-budget account is listed on the map")
+	}
+	b.postForm(t, "/planejamento/mapa/"+xp, url.Values{"categoria": {invest}})
+	_, before := b.get(t, "/orcamento?mes=2026-01")
+	if !strings.Contains(before, "A distribuir: R$ 2.000,00") {
+		t.Error("the off-budget opening balance changed A distribuir")
+	}
+	b.postForm(t, "/contas/"+itau+"/transferencia", url.Values{"destino": {xp}, "valor": {"1.000,00"}, "data": {"2026-01-20"}, "hora": {"09:00"}, "descricao": {"Aporte"}})
+	if _, body := b.get(t, "/orcamento?mes=2026-01"); !strings.Contains(body, "Gasto R$ 1.000,00") {
+		t.Error("the transfer to the off-budget account is not spent in Investimentos")
+	}
+}
