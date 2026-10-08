@@ -66,6 +66,19 @@ func (q *Queries) CopyMonthAmounts(ctx context.Context, arg CopyMonthAmountsPara
 	return err
 }
 
+const countActiveCategories = `-- name: CountActiveCategories :one
+SELECT count(*) FROM budget_category WHERE archived_at IS NULL
+`
+
+// story: e13s01
+// PUBLIC STATS: aggregate across users (numbers only, the X2 exception).
+func (q *Queries) CountActiveCategories(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countActiveCategories)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countGroups = `-- name: CountGroups :one
 SELECT count(*) FROM budget_group WHERE user_id = ?
 `
@@ -835,6 +848,18 @@ type SetGroupPositionParams struct {
 func (q *Queries) SetGroupPosition(ctx context.Context, arg SetGroupPositionParams) error {
 	_, err := q.db.ExecContext(ctx, setGroupPosition, arg.Position, arg.ID, arg.UserID)
 	return err
+}
+
+const sumMonthAmounts = `-- name: SumMonthAmounts :one
+SELECT CAST(COALESCE(SUM(amount), 0) AS INTEGER) FROM budget_amount WHERE month = ?
+`
+
+// PUBLIC STATS: aggregate across users (numbers only, the X2 exception).
+func (q *Queries) SumMonthAmounts(ctx context.Context, month string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, sumMonthAmounts, month)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const upsertAmount = `-- name: UpsertAmount :exec

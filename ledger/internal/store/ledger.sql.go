@@ -189,6 +189,30 @@ func (q *Queries) CountAccountLegs(ctx context.Context, accountID string) (int64
 	return count, err
 }
 
+const countImportLines = `-- name: CountImportLines :one
+SELECT count(*) FROM ledger_import_line
+`
+
+// PUBLIC STATS: aggregate across users (numbers only, the X2 exception).
+func (q *Queries) CountImportLines(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countImportLines)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countLiveTransactions = `-- name: CountLiveTransactions :one
+SELECT count(*) FROM ledger_transaction WHERE deleted_at IS NULL
+`
+
+// PUBLIC STATS: aggregate across users (numbers only, the X2 exception).
+func (q *Queries) CountLiveTransactions(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countLiveTransactions)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countPostableAccounts = `-- name: CountPostableAccounts :one
 SELECT count(*) FROM ledger_account
 WHERE user_id = ?1 AND archived_at IS NULL AND id IN (/*SLICE:ids*/?)
@@ -213,6 +237,19 @@ func (q *Queries) CountPostableAccounts(ctx context.Context, arg CountPostableAc
 		query = strings.Replace(query, "/*SLICE:ids*/?", "NULL", 1)
 	}
 	row := q.db.QueryRowContext(ctx, query, queryParams...)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countUserAccounts = `-- name: CountUserAccounts :one
+SELECT count(*) FROM ledger_account WHERE system_role IS NULL
+`
+
+// story: e13s01
+// PUBLIC STATS: aggregate across users (numbers only, the X2 exception).
+func (q *Queries) CountUserAccounts(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUserAccounts)
 	var count int64
 	err := row.Scan(&count)
 	return count, err

@@ -144,3 +144,12 @@ SELECT month, opened_at FROM budget_month WHERE user_id = ? ORDER BY month;
 
 -- name: ExportAmounts :many
 SELECT category_id, month, amount FROM budget_amount WHERE user_id = ? ORDER BY month, category_id;
+
+-- story: e13s01
+-- PUBLIC STATS: aggregate across users (numbers only, the X2 exception).
+-- name: CountActiveCategories :one
+SELECT count(*) FROM budget_category WHERE archived_at IS NULL;
+
+-- PUBLIC STATS: aggregate across users (numbers only, the X2 exception).
+-- name: SumMonthAmounts :one
+SELECT CAST(COALESCE(SUM(amount), 0) AS INTEGER) FROM budget_amount WHERE month = ?;

@@ -241,3 +241,16 @@ FROM ledger_transaction_history WHERE user_id = ? ORDER BY changed_at, id;
 -- name: ExportImportLines :many
 SELECT id, account_id, transaction_id, raw, created_at
 FROM ledger_import_line WHERE user_id = ? ORDER BY created_at, id;
+
+-- story: e13s01
+-- PUBLIC STATS: aggregate across users (numbers only, the X2 exception).
+-- name: CountUserAccounts :one
+SELECT count(*) FROM ledger_account WHERE system_role IS NULL;
+
+-- PUBLIC STATS: aggregate across users (numbers only, the X2 exception).
+-- name: CountLiveTransactions :one
+SELECT count(*) FROM ledger_transaction WHERE deleted_at IS NULL;
+
+-- PUBLIC STATS: aggregate across users (numbers only, the X2 exception).
+-- name: CountImportLines :one
+SELECT count(*) FROM ledger_import_line;

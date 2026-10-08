@@ -10,7 +10,7 @@ tasks:
     description: "PublicStats in users, ledger, budget; numbers across two users; int64-only guard"
     verify: "go test -race ./users/... ./ledger/... ./budget/... -run TestPublicStats"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Privacy"]}
   - id: t2
     description: "web: public /estatisticas page (pt-BR numbers), footer link"

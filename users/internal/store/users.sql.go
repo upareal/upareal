@@ -28,6 +28,19 @@ func (q *Queries) AcceptTerms(ctx context.Context, arg AcceptTermsParams) (int64
 	return result.RowsAffected()
 }
 
+const countUsers = `-- name: CountUsers :one
+SELECT count(*) FROM users_user
+`
+
+// story: e13s01
+// PUBLIC STATS: aggregate across users (numbers only, the X2 exception).
+func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUsers)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createSession = `-- name: CreateSession :exec
 INSERT INTO users_session (token_hash, user_id, created_at, last_seen_at)
 VALUES (?, ?, ?, ?)

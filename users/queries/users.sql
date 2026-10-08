@@ -53,3 +53,8 @@ UPDATE users_user SET disabled_at = ? WHERE id = ?;
 
 -- name: DeleteUser :exec
 DELETE FROM users_user WHERE id = ?;
+
+-- story: e13s01
+-- PUBLIC STATS: aggregate across users (numbers only, the X2 exception).
+-- name: CountUsers :one
+SELECT count(*) FROM users_user;
