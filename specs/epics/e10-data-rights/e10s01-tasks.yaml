@@ -1,14 +1,32 @@
 story_id: e10s01
-title: Export my data
-status: todo
+title: "Export my data"
+spec: e10s01-export-my-data.md
+status: failing
 bcps: 5
-outcome: A user downloads all their data as decrypted JSON; export is rate limited.
+risk: P0
+outcome: A signed-in user downloads one readable JSON file with all their data from every module, and nothing of anyone else.
 tasks:
-- id: t1
-  description: Each module (users, ledger, budget, planning) exports its user data; web assembles one JSON download
-  verify: go test -race ./... -run TestExportUserData
-  status: todo
-- id: t2
-  description: Rate limit exports per user
-  verify: go test -race ./web/... -run TestExportRateLimit
-  status: todo
+  - id: t1
+    description: "ledger.ExportUserData: accounts, transactions+legs (incl. deleted), history, import lines; completeness over every ledger_ table; isolation"
+    verify: "go test -race ./ledger/... -run TestExportUserData"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Privacy"]}
+  - id: t2
+    description: "users, budget, planning ExportUserData; completeness; isolation"
+    verify: "go test -race ./users/... ./budget/... ./planning/... -run TestExportUserData"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Privacy"]}
+  - id: t3
+    description: "web: /conta/dados page and JSON download (attachment, no-store), linked from home"
+    verify: "go test -race ./web/... -run TestMyData"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI", "Privacy"]}
+  - id: t4
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}

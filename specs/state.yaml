@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: plan-work
-  note: e09 done and merged; plan e10s01 (export my data)
+  next_skill: develop-tdd
+  note: e10s01 planned (4 tasks); JSON export per module
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
