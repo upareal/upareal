@@ -10,7 +10,7 @@ tasks:
     description: "web: Excluir minha conta section, POST /conta/excluir (typed email), shared purge, cookie cleared, Conta excluída page; admin and mismatch refused"
     verify: "go test -race ./web/... -run TestDeleteMyAccount"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Privacy", "UI"]}
   - id: t2
     description: "Full local gate green"

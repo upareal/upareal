@@ -1,11 +1,13 @@
-// story: e10s01
+// story: e10s01 e10s02
 package web
 
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/upareal/upareal/budget"
@@ -25,7 +27,7 @@ type myDataExport struct {
 
 func myDataPage(svc *users.Service) http.HandlerFunc {
 	return signedInPage(svc, func(w http.ResponseWriter, r *http.Request, _ users.User) {
-		renderHTML(w, r, http.StatusOK, myDataTemplate())
+		renderHTML(w, r, http.StatusOK, myDataTemplate(""))
 	})
 }
 
@@ -59,5 +61,28 @@ func myDataDownload(d Deps) http.HandlerFunc {
 		w.Header().Set("Cache-Control", "no-store")
 		_, _ = w.Write(buf.Bytes())
 		slog.InfoContext(r.Context(), "exported my data", "user_id", u.ID)
+	})
+}
+
+// deleteMyAccount erases the signed-in user everywhere after they type their
+// email (LGPD art. 18, VI). The ID comes from the session, never the form.
+func deleteMyAccount(d Deps) http.HandlerFunc {
+	return signedInPage(d.Users, func(w http.ResponseWriter, r *http.Request, u users.User) {
+		if !strings.EqualFold(strings.TrimSpace(r.FormValue("confirmar")), u.Email) {
+			renderHTML(w, r, http.StatusBadRequest, myDataTemplate("Digite seu e-mail exatamente como aparece para confirmar."))
+			return
+		}
+		err := d.Users.DeleteUser(r.Context(), u.ID, purgeUserData(d))
+		switch {
+		case errors.Is(err, users.ErrProtectedUser):
+			renderHTML(w, r, http.StatusBadRequest, myDataTemplate("Administradores não podem excluir a própria conta. Remova seu e-mail de ADMIN_EMAILS antes."))
+		case err != nil:
+			slog.ErrorContext(r.Context(), "delete own account failed", "user_id", u.ID, "err", err)
+			renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Não foi possível excluir agora. Tente de novo: nada foi perdido pela metade.")
+		default:
+			clearCookie(w, sessionCookie, "/")
+			slog.InfoContext(r.Context(), "user deleted own account", "user_id", u.ID)
+			renderHTML(w, r, http.StatusOK, accountDeletedPage())
+		}
 	})
 }

@@ -1,7 +1,7 @@
-// story: e10s01
+// story: e10s01 e10s02
 package web
 
-templ myDataTemplate() {
+templ myDataTemplate(errMsg string) {
 	@layout("Meus dados — upareal") {
 		<p><a href="/">← Início</a></p>
 		<h1>Meus dados</h1>
@@ -14,5 +14,23 @@ templ myDataTemplate() {
 		</ul>
 		<p class="muted">Valores em centavos; datas em UTC. O arquivo tem dados sensíveis: guarde-o em lugar seguro.</p>
 		<p><a href="/conta/dados/exportar" download>Baixar meus dados</a></p>
+		<h2>Excluir minha conta</h2>
+		<p>Apaga para sempre seu perfil, contas, lançamentos, orçamento e ligações, e encerra suas sessões em todos os aparelhos. Não dá para desfazer: baixe seus dados antes, se quiser guardá-los.</p>
+		<p class="muted">As cópias de segurança criptografadas feitas antes da exclusão são apagadas quando expiram (até 30 dias).</p>
+		if errMsg != "" {
+			<p class="error" role="alert">{ errMsg }</p>
+		}
+		<form method="post" action="/conta/excluir">
+			<label>Digite seu e-mail para confirmar <input type="email" name="confirmar" autocomplete="off" required/></label>
+			<button type="submit">Excluir minha conta</button>
+		</form>
+	}
+}
+
+templ accountDeletedPage() {
+	@layout("Conta excluída — upareal") {
+		<h1>Conta excluída</h1>
+		<p>Seus dados foram apagados e você saiu de todos os aparelhos.</p>
+		<p><a href="/">Ir para o início</a></p>
 	}
 }
