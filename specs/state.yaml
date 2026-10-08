@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: develop-tdd
-  note: BUG-001 planned (3 tasks)
+  next_skill: validate-fix
+  note: BUG-001 fixed (all tasks passing); user re-imports the Bradesco OFX to verify
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
