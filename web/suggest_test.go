@@ -21,7 +21,7 @@ func TestReviewSuggest_UserDecides(t *testing.T) {
 		"a2;21/01/2026;;LOJA NOVA;-30,00\n")
 
 	_, page := b.get(t, "/revisao")
-	use := regexp.MustCompile(`<form method="post" action="/revisao/([0-9a-f-]{36})"[^>]*><input type="hidden" name="contra" value="` + shell + `"><button type="submit">Usar Posto Shell</button>`).FindAllStringSubmatch(page, -1)
+	use := regexp.MustCompile(`<form method="post" action="/revisao/([0-9a-f-]{36})"[^>]*><input type="hidden" name="contra" value="`+shell+`"><button type="submit">Usar Posto Shell</button>`).FindAllStringSubmatch(page, -1)
 	if len(use) != 1 {
 		t.Fatalf("want exactly one 'Usar Posto Shell' suggestion (for the posto line), got %d", len(use))
 	}
