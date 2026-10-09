@@ -169,3 +169,25 @@ func TestAmountsBefore_SumsEarlierMonthsPerCategory(t *testing.T) {
 		t.Errorf("user B = %v, %v; want empty", other, err)
 	}
 }
+
+// story: e14s01
+func TestAmounts_ReadsWithoutOpening(t *testing.T) {
+	f := seeded(t)
+	ctx := context.Background()
+	fuel := categoryNamed(t, f, "Combustível").ID
+	if err := f.svc.SetAmount(ctx, userA, fuel, month(t, "2026-01"), 30000); err != nil {
+		t.Fatal(err)
+	}
+	amounts, opened, err := f.svc.Amounts(ctx, userA, month(t, "2026-01"))
+	if err != nil || !opened || amounts[fuel] != 30000 {
+		t.Errorf("January = %v, opened %v, %v; want fuel 30000, opened", amounts, opened, err)
+	}
+	before := f.count(t, `SELECT count(*) FROM budget_month`)
+	amounts, opened, err = f.svc.Amounts(ctx, userA, month(t, "2026-03"))
+	if err != nil || opened || len(amounts) != 0 {
+		t.Errorf("unopened March = %v, opened %v, %v; want empty, not opened", amounts, opened, err)
+	}
+	if after := f.count(t, `SELECT count(*) FROM budget_month`); after != before {
+		t.Errorf("Amounts opened a month: %d → %d rows", before, after)
+	}
+}

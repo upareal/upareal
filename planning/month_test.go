@@ -120,3 +120,29 @@ func TestMonth_IsolatedPerUser(t *testing.T) {
 		}
 	}
 }
+
+// story: e14s01
+func TestPeekMonth_SameNumbersWithoutOpening(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	mb := newMonthBook(t, f) // Combustível R$ 300,00 in January (opened)
+	f.post(t, mb.itau.ID, mb.shell.ID, 12000, jan10)
+	opened, err := f.svc.Month(ctx, userA, mb.jan)
+	if err != nil {
+		t.Fatal(err)
+	}
+	peek, isOpen, err := f.svc.PeekMonth(ctx, userA, mb.jan)
+	if err != nil || !isOpen || peek.Categories[mb.fuel] != opened.Categories[mb.fuel] || peek.ToBeAssigned != opened.ToBeAssigned {
+		t.Errorf("peek January = %+v (open %v, %v); want the same as Month", peek.Categories[mb.fuel], isOpen, err)
+	}
+	var before, after int
+	_ = f.conn.QueryRow(`SELECT count(*) FROM budget_month`).Scan(&before)
+	feb, isOpen, err := f.svc.PeekMonth(ctx, userA, mb.jan.Next())
+	_ = f.conn.QueryRow(`SELECT count(*) FROM budget_month`).Scan(&after)
+	if err != nil || isOpen || after != before {
+		t.Errorf("peek February: open %v, err %v, budget_month %d → %d; want not opened, no rows created", isOpen, err, before, after)
+	}
+	if c := feb.Categories[mb.fuel]; c.Amount != 0 || c.CarryOver != 18000 || c.Available != 18000 {
+		t.Errorf("peek February Combustível = %+v; want amount 0, carry 18000, available 18000", c)
+	}
+}
