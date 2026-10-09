@@ -83,3 +83,23 @@ func (s *Service) AmountsBefore(ctx context.Context, userID string, m Month) (ma
 	}
 	return out, nil
 }
+
+// Amounts returns the amounts of userID's month m and whether it was opened,
+// without opening it (no copy, no write): for read-only views such as the
+// AI export. An unopened month returns no amounts.
+// story: e14s01
+func (s *Service) Amounts(ctx context.Context, userID string, m Month) (map[string]int64, bool, error) {
+	n, err := s.q.MonthOpened(ctx, store.MonthOpenedParams{UserID: userID, Month: m.String()})
+	if err != nil {
+		return nil, false, fmt.Errorf("budget: month opened: %w", err)
+	}
+	rows, err := s.q.MonthAmounts(ctx, store.MonthAmountsParams{UserID: userID, Month: m.String()})
+	if err != nil {
+		return nil, false, fmt.Errorf("budget: month amounts: %w", err)
+	}
+	out := make(map[string]int64, len(rows))
+	for _, r := range rows {
+		out[r.CategoryID] = r.Amount
+	}
+	return out, n > 0, nil
+}

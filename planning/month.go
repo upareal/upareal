@@ -1,4 +1,4 @@
-// story: e08s02 e08s03 e08s04 e08s05
+// story: e08s02 e08s03 e08s04 e08s05 e14s01
 package planning
 
 import (
@@ -57,6 +57,22 @@ func (s *Service) Month(ctx context.Context, userID string, m budget.Month) (Mon
 	if err != nil {
 		return MonthPlan{}, fmt.Errorf("planning: amounts: %w", err)
 	}
+	return s.month(ctx, userID, m, amounts)
+}
+
+// PeekMonth computes the same plan as Month without opening the month, so it
+// never writes: an unopened month has no planned amounts. opened reports
+// whether the month was opened in the budget (e14s01).
+func (s *Service) PeekMonth(ctx context.Context, userID string, m budget.Month) (p MonthPlan, opened bool, err error) {
+	amounts, opened, err := s.bud.Amounts(ctx, userID, m)
+	if err != nil {
+		return MonthPlan{}, false, fmt.Errorf("planning: amounts: %w", err)
+	}
+	p, err = s.month(ctx, userID, m, amounts)
+	return p, opened, err
+}
+
+func (s *Service) month(ctx context.Context, userID string, m budget.Month, amounts map[string]int64) (MonthPlan, error) {
 	before, err := s.bud.AmountsBefore(ctx, userID, m)
 	if err != nil {
 		return MonthPlan{}, fmt.Errorf("planning: earlier amounts: %w", err)

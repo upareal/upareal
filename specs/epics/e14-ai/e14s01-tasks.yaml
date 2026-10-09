@@ -10,7 +10,7 @@ tasks:
     description: "budget.Amounts and planning.PeekMonth: read a month without opening it"
     verify: "go test -race ./budget/... ./planning/... -run 'TestAmounts|TestPeekMonth'"
     risk: P0
-    status: failing
+    status: passing
     allure: {severity: critical, categories: ["Planning"]}
   - id: t1
     description: "Markdown builder + GET /conta/dados/ia: sections, plain amounts, period, optional transactions, cap, escaping, isolation, no side effects"
