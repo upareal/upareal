@@ -22,13 +22,17 @@ The user picks a period and clicks **Baixar para IA (Markdown)**.
 
 1. The form takes `meses`: 1, 3, 6 or 12. The default is 3, counted back from the current São Paulo month and including it. A checkbox, **Incluir lançamentos**, is on by default.
 2. `GET /conta/dados/ia?meses=3&lancamentos=on` answers `text/markdown; charset=utf-8`, as an attachment named `upareal-analise-AAAA-MM.md`, with `no-store`.
-3. The document is in pt-BR and uses `R$ 1.234,56` amounts. Its sections:
+3. The document is in pt-BR. **Amounts are plain numbers** (`1234.56`: dot decimal, no thousands separator, `-` for negatives), as the user decided on 2026-10-08, because LLMs add them up more reliably. Its sections:
    1. **Header:** period, export date, and an "Como ler estes dados" block. It explains the envelope model (planejado, gasto, disponível, carry-over, A distribuir, Sem categoria, card Para pagar, off-budget accounts) so the LLM interprets the numbers correctly.
    2. **Sugestões de perguntas:** 4–5 example questions the user can ask.
    3. **Contas:** a table with name, type (in pt-BR), whether the account is in the budget, and the balance at the end of the period. Archived accounts with a zero balance and system accounts are left out.
    4. **Orçamento por mês:** for each month, A distribuir, money in, and a table with grupo, categoria, planejado, do mês anterior, gasto and disponível (expense categories), followed by Recebido for income categories and the Sem categoria totals. Cards with Para pagar and Sem cobertura are listed too.
    5. **Lançamentos** (optional): a table with date, description, and how the money moved (`Itaú −R$ 120,00 → Posto Shell`, with every leg shown for splits). It's sorted by date and leaves out deleted transactions. It's capped at 2.000 rows, with a note when the list was cut.
-4. **Sources:** `planning.Month` for each month, plus `ledger.ExportUserData` (accounts and transaction legs, already decrypted) filtered to the period. No new queries, and nothing is stored.
+4. **Sources:** `planning.PeekMonth` for each month, plus `ledger.ExportUserData` (accounts and transaction legs, already decrypted) filtered to the period. Nothing is stored.
+5. **No side effects.** `planning.Month` opens the month it computes, and opening copies the previous month's amounts. An export must never change the budget, so this story adds a read-only path:
+   - `budget.Amounts(ctx, user, m)` returns the month's amounts, and whether the month was opened, without opening it;
+   - `planning.PeekMonth` is `Month` computed from those amounts.
+   Months that were never opened show "orçamento não aberto" and zero planned amounts.
 
 ## 6. Alternative flows
 
@@ -77,9 +81,10 @@ None new.
 
 ## 15. Implementation steps
 
-1. Markdown builder and route: sections, period, optional transactions, cap, escaping, isolation from other users. → verify: `go test -race ./web/... -run TestAIExport`
-2. Meus dados form, linked. → verify: `go test -race ./web/... -run TestAIExport`
-3. Full gate. → verify: `make preflight`
+1. `budget.Amounts` and `planning.PeekMonth` read a month without opening it. → verify: `go test -race ./budget/... ./planning/... -run 'TestAmounts|TestPeekMonth'`
+2. Markdown builder and route: sections, plain amounts, period, optional transactions, cap, escaping, isolation, no budget rows created. → verify: `go test -race ./web/... -run TestAIExport`
+3. Meus dados form, linked. → verify: `go test -race ./web/... -run TestAIExport`
+4. Full gate. → verify: `make preflight`
 
 ## 16. Risks
 

@@ -6,8 +6,14 @@ bcps: 3
 risk: P1
 outcome: A signed-in user downloads a pt-BR Markdown summary (model explanation, accounts, monthly envelopes, optional transactions) of 1-12 months to feed an LLM.
 tasks:
+  - id: t0
+    description: "budget.Amounts and planning.PeekMonth: read a month without opening it"
+    verify: "go test -race ./budget/... ./planning/... -run 'TestAmounts|TestPeekMonth'"
+    risk: P0
+    status: failing
+    allure: {severity: critical, categories: ["Planning"]}
   - id: t1
-    description: "Markdown builder + GET /conta/dados/ia: sections, period, optional transactions, cap, escaping, isolation"
+    description: "Markdown builder + GET /conta/dados/ia: sections, plain amounts, period, optional transactions, cap, escaping, isolation, no side effects"
     verify: "go test -race ./web/... -run TestAIExport"
     risk: P1
     status: failing
