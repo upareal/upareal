@@ -1,7 +1,7 @@
 story_id: BUG-002
 title: "Search test fails in CI between 21:00 and 24:00 São Paulo"
 spec: BUG-002-search-test-timezone.md
-status: failing
+status: passing
 risk: P1
 outcome: Tests run in a far time zone so local-vs-São-Paulo date mistakes fail every day; the search test uses São Paulo's date.
 tasks:
@@ -9,17 +9,17 @@ tasks:
     description: "make test runs with TZ=Pacific/Kiritimati (RED: exposes the search test)"
     verify: "make test"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["CI"]}
   - id: t2
     description: "search test computes 12 months ago in São Paulo"
     verify: "make test"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["CI"]}
   - id: t3
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}

@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: develop-tdd
-  note: 'BUG-002: CI red on main (timezone-dependent search test)'
+  next_skill: validate-fix
+  note: BUG-002 fixed; verify CI green on the branch, then merge
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)

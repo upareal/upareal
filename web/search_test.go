@@ -36,7 +36,7 @@ func TestSearchPage_DefaultsValidationAndNav(t *testing.T) {
 	}
 	signIn(t, b)
 	res, body := b.get(t, "/buscar")
-	from := time.Now().AddDate(-1, 0, 0).Format("2006-01-02")
+	from := time.Now().In(saoPaulo(t)).AddDate(-1, 0, 0).Format("2006-01-02") // the app counts days in São Paulo (BUG-002)
 	if res.StatusCode != http.StatusOK || !strings.Contains(body, `value="`+from+`"`) {
 		t.Errorf("default search = %d; want the range to start 12 months ago (%s)", res.StatusCode, from)
 	}
