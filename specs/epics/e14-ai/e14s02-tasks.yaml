@@ -1,7 +1,7 @@
 story_id: e14s02
 title: "Category suggestions in Revisão"
 spec: e14s02-category-suggestions.md
-status: failing
+status: passing
 bcps: 5
 risk: P1
 outcome: Revisão suggests (never applies) the counter account for queued lines from the user's similar past lines, with a reason; the select starts empty.
@@ -22,5 +22,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
