@@ -10,7 +10,7 @@ tasks:
     description: "ledger.SuggestCounters: normalization, Jaccard >= 0.5, direction, active non-system accounts, splits/queued/deleted ignored, isolation"
     verify: "go test -race ./ledger/... -run TestSuggest"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["AI", "Ledger"]}
   - id: t2
     description: "Revisão: Usar <conta> button with reason; select starts at — escolha —"

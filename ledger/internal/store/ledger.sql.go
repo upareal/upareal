@@ -1355,6 +1355,59 @@ func (q *Queries) SoftDeleteTransaction(ctx context.Context, arg SoftDeleteTrans
 	return err
 }
 
+const suggestionHistory = `-- name: SuggestionHistory :many
+SELECT t.id, t.description, l.amount, a.type, a.id AS account_id,
+       CAST(a.system_role IS NOT NULL OR a.archived_at IS NOT NULL AS INTEGER) AS excluded
+FROM ledger_transaction t
+JOIN ledger_leg l ON l.transaction_id = t.id
+JOIN ledger_account a ON a.id = l.account_id
+WHERE t.user_id = ?1 AND t.deleted_at IS NULL
+  AND t.id IN (SELECT id FROM ledger_transaction
+               WHERE user_id = ?1 AND deleted_at IS NULL
+               ORDER BY occurred_at DESC LIMIT 2000)
+ORDER BY t.id
+`
+
+type SuggestionHistoryRow struct {
+	ID          string
+	Description []byte
+	Amount      int64
+	Type        string
+	AccountID   string
+	Excluded    int64
+}
+
+// story: e14s02 (suggestions: legs of the user's 2000 most recent live transactions)
+func (q *Queries) SuggestionHistory(ctx context.Context, userID string) ([]SuggestionHistoryRow, error) {
+	rows, err := q.db.QueryContext(ctx, suggestionHistory, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SuggestionHistoryRow
+	for rows.Next() {
+		var i SuggestionHistoryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Description,
+			&i.Amount,
+			&i.Type,
+			&i.AccountID,
+			&i.Excluded,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const transactionLegs = `-- name: TransactionLegs :many
 SELECT l.account_id, l.amount, a.type, a.system_role FROM ledger_leg l
 JOIN ledger_account a ON a.id = l.account_id

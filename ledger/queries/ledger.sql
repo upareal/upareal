@@ -254,3 +254,16 @@ SELECT count(*) FROM ledger_transaction WHERE deleted_at IS NULL;
 -- PUBLIC STATS: aggregate across users (numbers only, the X2 exception).
 -- name: CountImportLines :one
 SELECT count(*) FROM ledger_import_line;
+
+-- story: e14s02 (suggestions: legs of the user's 2000 most recent live transactions)
+-- name: SuggestionHistory :many
+SELECT t.id, t.description, l.amount, a.type, a.id AS account_id,
+       CAST(a.system_role IS NOT NULL OR a.archived_at IS NOT NULL AS INTEGER) AS excluded
+FROM ledger_transaction t
+JOIN ledger_leg l ON l.transaction_id = t.id
+JOIN ledger_account a ON a.id = l.account_id
+WHERE t.user_id = sqlc.arg(user_id) AND t.deleted_at IS NULL
+  AND t.id IN (SELECT id FROM ledger_transaction
+               WHERE user_id = sqlc.arg(user_id) AND deleted_at IS NULL
+               ORDER BY occurred_at DESC LIMIT 2000)
+ORDER BY t.id;
