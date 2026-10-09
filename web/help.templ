@@ -1,0 +1,111 @@
+// story: e15s01
+package web
+
+// helpPage wraps every help page with the back link to the index.
+templ helpPage(title string) {
+	@layout(title + " — Ajuda — upareal") {
+		<p><a href="/ajuda">← Ajuda</a></p>
+		<h1>{ title }</h1>
+		{ children... }
+	}
+}
+
+templ helpIndexPage() {
+	@layout("Ajuda — upareal") {
+		<p><a href="/">← Início</a></p>
+		<h1>Ajuda</h1>
+		<p>O upareal guarda cada real que você tem ou deve e ajuda você a decidir, todo mês, para onde vai cada real. Comece por <strong>Primeiros passos</strong>.</p>
+		<ul>
+			<li><a href="/ajuda/primeiros-passos">Primeiros passos</a>: do primeiro acesso ao primeiro orçamento.</li>
+			<li><a href="/ajuda/contas">Contas e lançamentos</a>: tipos de conta, saldos, lançamentos, divisões e transferências.</li>
+			<li><a href="/ajuda/importar">Importar extratos e Revisão</a>: trazer o extrato do banco e categorizar.</li>
+			<li><a href="/ajuda/orcamento">Orçamento</a>: envelopes, A distribuir, Disponível e cartões de crédito.</li>
+			<li><a href="/ajuda/dados">Seus dados e privacidade</a>: criptografia, exportação e exclusão da conta.</li>
+		</ul>
+	}
+}
+
+templ helpStartPage() {
+	@helpPage("Primeiros passos") {
+		<ol>
+			<li><strong>Entre com Google.</strong> Na primeira vez, aceite os termos. Você já recebe categorias de orçamento prontas, que pode mudar depois.</li>
+			<li><strong>Crie suas contas</strong> em <a href="/contas">Contas</a>: a conta corrente, a carteira, cada cartão de crédito. Informe o saldo de hoje (ou o valor devido, no cartão).</li>
+			<li><strong>Crie contas de despesa e receita</strong>, como "Mercado", "Combustível" ou "Salário". Elas dizem para onde o dinheiro foi e de onde veio.</li>
+			<li><strong>Ligue as despesas e receitas às categorias</strong> no <a href="/planejamento/mapa">Mapa</a>. Várias contas podem ir para a mesma categoria.</li>
+			<li><strong>Distribua o dinheiro</strong> em <a href="/orcamento">Orçamento</a>: dê um valor a cada categoria até "A distribuir" chegar a zero.</li>
+			<li><strong>Registre o dia a dia</strong>: lance à mão na conta ou <a href="/ajuda/importar">importe o extrato</a> do banco.</li>
+		</ol>
+		<p>Dica: no início, não tente acertar tudo. Ajuste os valores do orçamento ao longo do mês.</p>
+	}
+}
+
+templ helpAccountsPage() {
+	@helpPage("Contas e lançamentos") {
+		<h2>Tipos de conta</h2>
+		<ul>
+			<li><strong>Conta ou dinheiro</strong>: conta corrente, poupança, carteira, investimentos.</li>
+			<li><strong>Cartão ou dívida</strong>: cartões de crédito, empréstimos, financiamentos. Marque "É cartão de crédito" nos cartões.</li>
+			<li><strong>Despesa</strong> e <strong>Receita</strong>: para onde o dinheiro vai e de onde vem.</li>
+		</ul>
+		<p><strong>No orçamento</strong>: desmarque em contas que não entram no planejamento do mês, como investimentos.</p>
+		<h2>Saldos</h2>
+		<p>O saldo de uma conta é sempre a soma dos seus lançamentos; nada é digitado direto no saldo. Se o saldo do app não bate com o do banco, use <strong>Ajustar</strong> em Contas e informe o saldo real: o app cria o lançamento da diferença.</p>
+		<h2>Lançamentos</h2>
+		<p>Abra uma conta para ver os lançamentos do mês e o saldo linha a linha. Em <strong>Novo lançamento</strong>, escolha a despesa ou receita, o valor, a data e a descrição.</p>
+		<ul>
+			<li><strong>Dividido</strong>: uma compra que cobre várias categorias (mercado e farmácia na mesma nota).</li>
+			<li><strong>Transferência</strong>: dinheiro entre suas contas, como pagar a fatura do cartão com a conta corrente. Não é despesa.</li>
+			<li>Clique na descrição para <strong>editar</strong> ou <strong>excluir</strong> um lançamento. Use <a href="/buscar">Buscar</a> para achar lançamentos antigos.</li>
+		</ul>
+		<h2>Arquivar e excluir</h2>
+		<p>Arquive contas que você não usa mais: elas somem das listas, mas o histórico fica. Só é possível excluir uma conta sem lançamentos.</p>
+	}
+}
+
+templ helpImportPage() {
+	@helpPage("Importar extratos e Revisão") {
+		<h2>Importar</h2>
+		<p>Abra a conta, clique em <strong>Importar extrato</strong> e envie o arquivo <strong>OFX</strong> do seu banco ou um CSV no formato do upareal. Veja os <a href="/ajuda/csv">formatos de importação</a>.</p>
+		<p>Pode importar o mesmo período de novo: linhas já importadas são reconhecidas e ignoradas.</p>
+		<h2>Revisão</h2>
+		<p>Cada linha importada entra em <a href="/revisao">Revisão</a> esperando uma despesa ou receita.</p>
+		<ul>
+			<li>Escolha a conta na lista e clique em <strong>Salvar</strong>.</li>
+			<li>Quando você já categorizou lançamentos parecidos, aparece o botão <strong>Usar ⟨conta⟩</strong>, com quantos lançamentos parecidos existem. Nada é salvo até você clicar.</li>
+			<li>Para dividir uma linha em várias contas, clique na descrição.</li>
+			<li>Se a linha é um pagamento entre suas contas (a fatura do cartão, por exemplo), marque como <strong>transferência</strong> na tela do lançamento. O app procura a linha correspondente na outra conta para juntar as duas.</li>
+		</ul>
+	}
+}
+
+templ helpBudgetPage() {
+	@helpPage("Orçamento") {
+		<p>O orçamento usa <strong>envelopes</strong>: todo real que entra recebe uma função. Cada categoria é um envelope com o valor que você decidiu para o mês.</p>
+		<h2>Na tela</h2>
+		<ul>
+			<li><strong>A distribuir</strong>: dinheiro recebido que ainda não foi para nenhuma categoria. A meta é zero. Se ficar negativo, você distribuiu mais do que tem.</li>
+			<li><strong>Gasto</strong>: soma das contas de despesa ligadas à categoria no <a href="/planejamento/mapa">Mapa</a>.</li>
+			<li><strong>Disponível</strong>: o valor do mês, mais o que sobrou do mês anterior, menos o gasto.</li>
+			<li><strong>Do mês anterior</strong>: sobras e estouros passam para o mês seguinte na mesma categoria. Um estouro (valor em vermelho) precisa ser coberto tirando de outra categoria.</li>
+		</ul>
+		<p>Um mês novo começa com os mesmos valores do mês anterior. Ajuste o que mudar.</p>
+		<h2>Cartões de crédito</h2>
+		<p>Gastar no cartão já tira o dinheiro da categoria e o separa para pagar a fatura. O app mostra quanto está separado em <strong>Para pagar</strong>. Se aparecer <strong>Sem cobertura</strong>, seu dinheiro não cobre toda a fatura.</p>
+		<h2>Sem categoria</h2>
+		<p>Gastos de contas que não estão ligadas a nenhuma categoria, e lançamentos ainda em Revisão. Ligue as contas no Mapa ou revise os lançamentos.</p>
+		<p>Organize grupos e categorias em <a href="/categorias">Categorias</a>: criar, renomear, mover, juntar duas categorias ou arquivar.</p>
+	}
+}
+
+templ helpDataPage() {
+	@helpPage("Seus dados e privacidade") {
+		<ul>
+			<li><strong>Criptografia</strong>: nomes e descrições são guardados criptografados, com uma chave só sua. Ninguém lê seus dados direto no banco de dados, nem o administrador.</li>
+			<li><strong>Exportar</strong>: em <a href="/conta/dados">Meus dados</a>, baixe uma cópia de todos os seus dados em um arquivo JSON. Guarde-o em lugar seguro.</li>
+			<li><strong>Análise com IA</strong>: também em Meus dados, baixe um resumo em Markdown para enviar à IA que você escolher. O upareal não envia nada a ninguém; ao enviar o arquivo, você compartilha seus dados com aquele serviço.</li>
+			<li><strong>Excluir minha conta</strong>: apaga sua conta e todos os seus dados. Não tem volta.</li>
+			<li><strong>Sair de todos os dispositivos</strong>: encerra todas as sessões abertas, por exemplo se você esqueceu a conta aberta em outro computador.</li>
+		</ul>
+		<p>Veja também a <a href="/privacidade">Política de Privacidade</a>.</p>
+	}
+}
