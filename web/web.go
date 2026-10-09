@@ -1,4 +1,4 @@
-// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02 e05s03 e06s01 e06s02 e06s03 e06s04 e06s05 e07s01 e07s02 e07s03 e08s01 e08s02 e08s06 e09s01 e09s02 e10s01 e10s02 e13s01 e12s03
+// story: e01s01 e03s01 e03s02 e03s03 e04s01 e04s02 e04s03 e05s01 e05s02 e05s03 e06s01 e06s02 e06s03 e06s04 e06s05 e07s01 e07s02 e07s03 e08s01 e08s02 e08s06 e09s01 e09s02 e10s01 e10s02 e13s01 e12s03 e14s01
 
 // Package web renders all HTML pages and HTMX fragments and wires the HTTP routes.
 package web
@@ -49,6 +49,7 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("GET /conta/dados", myDataPage(d.Users))
 	mux.HandleFunc("GET /conta/dados/exportar", myDataDownload(d))
 	mux.HandleFunc("POST /conta/excluir", deleteMyAccount(d))
+	mux.HandleFunc("GET /conta/dados/ia", aiExport(d))
 	mux.HandleFunc("GET /admin/usuarios", adminUsers(d.Users))
 	for _, action := range []string{"desativar", "reativar", "excluir"} {
 		mux.HandleFunc("POST /admin/usuarios/{id}/"+action, adminUserAction(d, action))

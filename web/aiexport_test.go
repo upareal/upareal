@@ -58,6 +58,7 @@ func TestAIExport_MarkdownForTheLLM(t *testing.T) {
 		"## Lançamentos",
 		"| " + mes + "-01 | Gasolina | Itaú | Posto Shell | 120.00 |",
 		`Pão \| leite`,
+		"Nenhuma categoria de despesa com valores neste mês.", // the earlier, unopened months
 	} {
 		if !strings.Contains(md, want) {
 			t.Errorf("export missing %q", want)

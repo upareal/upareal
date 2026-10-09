@@ -16,13 +16,13 @@ tasks:
     description: "Markdown builder + GET /conta/dados/ia: sections, plain amounts, period, optional transactions, cap, escaping, isolation, no side effects"
     verify: "go test -race ./web/... -run TestAIExport"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["AI", "Privacy"]}
   - id: t2
     description: "Meus dados: Análise com IA form with privacy note"
     verify: "go test -race ./web/... -run TestAIExport"
     risk: P2
-    status: failing
+    status: passing
     allure: {severity: normal, categories: ["UI"]}
   - id: t3
     description: "Full local gate green"
