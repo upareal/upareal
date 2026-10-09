@@ -4,7 +4,7 @@
 
 ## Built
 
-The app runs locally (`make run`) and in Docker (`docker compose up --build`). All 34 stories of e01–e10, e12 and e13 have tests and a user verification record in `specs/verifications/`.
+The app runs locally (`make run`) and in Docker (`docker compose up --build`). All 35 stories of e01–e10 and e12–e14 have tests and a user verification record in `specs/verifications/`.
 
 | Epic | What works |
 |------|------------|
@@ -19,6 +19,7 @@ The app runs locally (`make run`) and in Docker (`docker compose up --build`). A
 | e09 admin | `ADMIN_EMAILS` admins list, disable, enable and delete users, without seeing financial data |
 | e10 data rights | Export my data (JSON, all modules); delete my account (typed confirmation) |
 | e12 ux | Row saves on Orçamento, Revisão and Mapa update in place (htmx), keeping the scroll position; soft color palette (CSS variables, WCAG AA text); logo on the home page and favicon |
+| e14 ai | Markdown export of 1–12 months (model explanation, accounts, envelopes, transactions; plain amounts, read-only) to feed an LLM |
 | e13 public stats | Public `/estatisticas`: users, accounts, transactions, imported lines, categories, planned this month (aggregates only; the X2 exception) |
 
 **Size:** 286 test functions; `go test -race ./...` across 12 packages; golangci-lint (with gofmt) reports 0 issues.

@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: e14s01 all tasks passing; awaiting user UAT (spec §19)
+  next_skill: survey-context
+  note: e01-e10, e12, e13, e14s01 done (e07s05 blocked, e11 postponed); e14 open for more AI stories
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
@@ -25,12 +25,12 @@ pending:
   supported.'
 - 'e11: wrapped per-user data keys live in the backed-up SQLite file, so backups taken before a deletion still hold the key until retention expires; true
   crypto-shredding needs keys stored outside the backup (or short retention). Decide in e11.'
-active_epic: e14
+active_epic: null
 git:
-  branch: feat/e14-ai
+  branch: main
   worktree: null
   base: main@a1a7a39
-active_story: e14s01
+active_story: null
 discovery_e03s01:
 - 'x/oauth2 v0.37.0: GenerateVerifier, S256ChallengeOption, VerifierOption (PKCE)'
 - 'go-oidc v3.21.0: IDToken.Nonce/Subject/Claims, oidc.Config{ClientID, Now}'
