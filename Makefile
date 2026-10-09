@@ -1,4 +1,4 @@
-# story: e01s01 e03s01
+# story: e01s01 e03s01 BUG-002
 .PHONY: gen run build test lint preflight
 
 gen:
@@ -11,8 +11,10 @@ run: gen
 build: gen
 	CGO_ENABLED=0 go build -o bin/upareal ./cmd/upareal
 
+# A far time zone (UTC+14): its local date differs from São Paulo's 17h a day,
+# so tests that confuse "local today" with "São Paulo today" fail (BUG-002).
 test:
-	go test -race ./...
+	TZ=Pacific/Kiritimati go test -race ./...
 
 lint:
 	golangci-lint run

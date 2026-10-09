@@ -5,3 +5,9 @@
   status: verified
   found: 2026-10-08
   doc: specs/bugs/BUG-001-bradesco-ofx-dtserver.md
+- id: BUG-002
+  title: Search test fails in CI between 21:00 and 24:00 São Paulo (local-zone date in the test)
+  severity: medium
+  status: fixing
+  found: 2026-10-08
+  doc: specs/bugs/BUG-002-search-test-timezone.md
