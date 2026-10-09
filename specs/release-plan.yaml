@@ -71,3 +71,8 @@ epics:
   path: specs/epics/e13-public-stats
   wsjf_rank: 13
   bcps: 3
+- id: e14
+  slug: ai
+  path: specs/epics/e14-ai
+  wsjf_rank: 14
+  bcps: 3
