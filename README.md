@@ -89,6 +89,8 @@ SQLite means exactly one instance. Do not scale horizontally.
 
 ## Contributing
 
+Start with [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/architecture.md`](docs/architecture.md). In short:
+
 1. Read [`AGENTS.md`](AGENTS.md) and [`CONVENTIONS.md`](CONVENTIONS.md).
 2. Create a feature branch. Never commit directly to `main`.
 3. Use [Conventional Commits](https://www.conventionalcommits.org/) with a module scope, e.g. `feat(ledger): add split transactions`.
