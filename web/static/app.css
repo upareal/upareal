@@ -109,4 +109,3 @@ dl.stats dd { margin: 0; font-weight: 600; text-align: right; font-variant-numer
 
 /* story: e12s03 */
 h1.brand { display: flex; align-items: center; gap: 0.6rem; }
-h1.brand img { border-radius: 0.9rem; }

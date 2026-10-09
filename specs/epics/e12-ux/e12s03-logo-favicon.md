@@ -12,7 +12,8 @@ The user supplied `logo.png` (1254×1254, 1.1 MB). The app shows the logo on the
 - **Derived files** live in `web/static/` and are generated from the source:
   - transparent margins are cropped to the tile;
   - the image is shrunk with an area-averaging filter in premultiplied alpha;
-  - the outputs are `logo.png` (192 px), `apple-touch-icon.png` (180 px) and `favicon.ico` (PNG entries at 16, 32 and 48 px), about 60 KB in total.
+  - the outputs are `logo.png` (192 px), `apple-touch-icon.png` (180 px) and `favicon.ico` (PNG entries at 16, 32 and 48 px), about 55 KB in total.
+  - **The page logo is the symbol only.** The cream tile (#F7F3EB) is nearly the page's areia (#F4F0E6), so on the page it looked like a washed-out box. For `logo.png`, pixels within colour distance 24 of the tile become transparent and pixels beyond 60 stay opaque, with the foreground colour recovered in between. Pixels that aren't opaque in the source (the tile rim) are dropped. The result is cropped to the symbol. The icons keep the tile, which reads well on any browser or OS background.
 - **Layout:** every page links `rel="icon"` → `/favicon.ico` and `rel="apple-touch-icon"` → `/static/apple-touch-icon.png`.
 - **Root favicon:** `GET /favicon.ico` serves the embedded icon, because browsers request that path on their own (it used to return 404).
 - **Home page:** the 56 px logo sits next to the "upareal" title. App pages are unchanged, so there's no extra header.
