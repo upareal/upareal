@@ -1,7 +1,7 @@
 story_id: e14s01
 title: "Markdown export for LLM analysis"
 spec: e14s01-markdown-export.md
-status: failing
+status: passing
 bcps: 3
 risk: P1
 outcome: A signed-in user downloads a pt-BR Markdown summary (model explanation, accounts, monthly envelopes, optional transactions) of 1-12 months to feed an LLM.
@@ -28,5 +28,5 @@ tasks:
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
