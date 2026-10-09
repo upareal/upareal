@@ -1,0 +1,26 @@
+story_id: e15s01
+title: "Public pt-BR help pages at /ajuda"
+spec: e15s01-user-help.md
+status: todo
+bcps: 2
+risk: P2
+outcome: Anyone opens /ajuda from the footer and reads short pt-BR pages on getting started, accounts, imports, budget and data.
+tasks:
+  - id: t1
+    description: "Help index + five pages, public, linked to each other; 404 for unknown pages"
+    verify: "go test -race ./web/... -run TestHelp"
+    risk: P2
+    status: todo
+    allure: {severity: normal, categories: ["UI", "Docs"]}
+  - id: t2
+    description: "Footer Ajuda link on every page"
+    verify: "go test -race ./web/... -run TestHelp"
+    risk: P2
+    status: todo
+    allure: {severity: normal, categories: ["UI"]}
+  - id: t3
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: todo
+    allure: {severity: high, categories: ["Preflight"]}

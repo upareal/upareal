@@ -1,0 +1,15 @@
+epic_id: e15
+slug: docs
+goal: First version of the documentation. Users learn to use the app from public pt-BR help pages at /ajuda.
+  Developers learn to contribute from English Markdown docs in the repository.
+scope_items: []
+stories:
+- id: e15s01
+  title: Public pt-BR help pages at /ajuda
+  bcps: 2
+  delta: ADDED
+- id: e15s02
+  title: English contributor docs in the repository
+  bcps: 1
+  delta: ADDED
+bcps_total: 3

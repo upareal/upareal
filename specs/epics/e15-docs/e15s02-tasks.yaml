@@ -1,0 +1,20 @@
+story_id: e15s02
+title: "English contributor docs in the repository"
+spec: e15s02-contributor-docs.md
+status: todo
+bcps: 1
+risk: P3
+outcome: A developer goes README → CONTRIBUTING.md → docs/architecture.md and can set up, follow the workflow and respect the module rules.
+tasks:
+  - id: t1
+    description: "CONTRIBUTING.md + docs/architecture.md, linked from README"
+    verify: "test -s CONTRIBUTING.md && test -s docs/architecture.md && grep -q CONTRIBUTING.md README.md"
+    risk: P3
+    status: todo
+    allure: {severity: minor, categories: ["Docs"]}
+  - id: t2
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: todo
+    allure: {severity: high, categories: ["Preflight"]}
