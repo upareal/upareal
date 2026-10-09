@@ -1,0 +1,26 @@
+story_id: e14s02
+title: "Category suggestions in Revisão"
+spec: e14s02-category-suggestions.md
+status: failing
+bcps: 5
+risk: P1
+outcome: Revisão suggests (never applies) the counter account for queued lines from the user's similar past lines, with a reason; the select starts empty.
+tasks:
+  - id: t1
+    description: "ledger.SuggestCounters: normalization, Jaccard >= 0.5, direction, active non-system accounts, splits/queued/deleted ignored, isolation"
+    verify: "go test -race ./ledger/... -run TestSuggest"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["AI", "Ledger"]}
+  - id: t2
+    description: "Revisão: Usar <conta> button with reason; select starts at — escolha —"
+    verify: "go test -race ./web/... -run TestReviewSuggest"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["UI"]}
+  - id: t3
+    description: "Full local gate green"
+    verify: "make preflight"
+    risk: P1
+    status: failing
+    allure: {severity: high, categories: ["Preflight"]}

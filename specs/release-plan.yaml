@@ -75,4 +75,4 @@ epics:
   slug: ai
   path: specs/epics/e14-ai
   wsjf_rank: 14
-  bcps: 3
+  bcps: 8

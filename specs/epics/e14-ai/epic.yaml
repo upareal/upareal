@@ -1,10 +1,15 @@
 epic_id: e14
 slug: ai
-goal: Features that use AI (LLMs) to help the user understand and plan their money. upareal itself calls no AI service unless a story decides so explicitly.
+goal: Features that use AI (LLMs) to help the user understand and plan their money.
+  upareal itself calls no AI service unless a story decides so explicitly.
 scope_items: []
 stories:
 - id: e14s01
   title: Markdown export for LLM analysis
   bcps: 3
   delta: ADDED
-bcps_total: 3
+- id: e14s02
+  title: Category suggestions in Revisão
+  bcps: 5
+  delta: ADDED
+bcps_total: 8
