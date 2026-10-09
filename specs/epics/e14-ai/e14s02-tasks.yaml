@@ -16,7 +16,7 @@ tasks:
     description: "Revisão: Usar <conta> button with reason; select starts at — escolha —"
     verify: "go test -race ./web/... -run TestReviewSuggest"
     risk: P1
-    status: failing
+    status: passing
     allure: {severity: high, categories: ["UI"]}
   - id: t3
     description: "Full local gate green"

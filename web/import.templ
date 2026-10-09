@@ -1,4 +1,4 @@
-// story: e07s01 e07s02 e07s04 e12s01
+// story: e07s01 e07s02 e07s04 e12s01 e14s02
 package web
 
 templ importPage(v importView) {
@@ -48,8 +48,13 @@ templ reviewPage(v queueView) {
 							<td class="num">{ l.Amount }</td>
 							<td>{ l.Conta }</td>
 							<td>
+								if l.SuggestID != "" {
+									<form method="post" action={ templ.SafeURL("/revisao/" + l.ID) } hx-post={ "/revisao/" + l.ID } hx-target="main" hx-select="main" hx-swap="outerHTML" class="inline"><input type="hidden" name="contra" value={ l.SuggestID }/><button type="submit">Usar { l.SuggestName }</button></form>
+									<span class="muted">{ l.SuggestWhy }</span>
+								}
 								<form method="post" action={ templ.SafeURL("/revisao/" + l.ID) } hx-post={ "/revisao/" + l.ID } hx-target="main" hx-select="main" hx-swap="outerHTML" class="inline">
 									<select name="contra" required>
+										<option value="" selected>— escolha —</option>
 										if l.Out {
 											for _, a := range v.Expenses {
 												<option value={ a.ID }>{ a.Name }</option>

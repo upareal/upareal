@@ -1,4 +1,4 @@
-// story: e07s01 e07s02 e07s04 BUG-001
+// story: e07s01 e07s02 e07s04 BUG-001 e14s02
 package web
 
 import (
@@ -31,6 +31,7 @@ type queueView struct {
 
 type queueLineView struct {
 	ID, Link, When, Account, Description, Amount, Conta string
+	SuggestID, SuggestName, SuggestWhy                  string // e14s02: a suggestion, never applied
 	Out                                                 bool // money left: offer expense accounts
 }
 
@@ -140,8 +141,21 @@ func renderReview(w http.ResponseWriter, r *http.Request, ledg *ledger.Service, 
 			v.Incomes = append(v.Incomes, a)
 		}
 	}
+	suggestions, err := ledg.SuggestCounters(r.Context(), userID, queue)
+	if err != nil {
+		renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Não foi possível carregar a revisão.")
+		return
+	}
 	for _, l := range queue {
+		sg := suggestions[l.TransactionID]
+		why := ""
+		if sg.Matches == 1 {
+			why = "1 lançamento parecido"
+		} else if sg.Matches > 1 {
+			why = fmt.Sprintf("%d lançamentos parecidos", sg.Matches)
+		}
 		v.Lines = append(v.Lines, queueLineView{
+			SuggestID: sg.AccountID, SuggestName: sg.AccountName, SuggestWhy: why,
 			ID: l.TransactionID, Link: "/lancamentos/" + l.TransactionID + "?conta=" + l.AccountID,
 			When: l.At.In(saoPaulo).Format("02/01/2006 15:04"), Account: l.AccountName,
 			Description: orNoDescription(l.Description), Amount: money.FormatBRL(l.Amount), Conta: l.Conta, Out: l.Amount < 0,
