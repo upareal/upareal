@@ -1,7 +1,7 @@
 story_id: e16s01
 title: "Savings targets (metas) for expense categories"
 spec: e16s01-category-targets.md
-status: in_progress
+status: passing
 bcps: 5
 risk: P1
 outcome: An expense category gets a meta (amount by a due month); Orçamento shows how much to put in this month, the progress and the status, and suggests the amount.
@@ -10,23 +10,23 @@ tasks:
     description: "budget: budget_target migration; SetTarget/RemoveTarget/Targets with B5 checks; merge drops the source meta; delete and export include metas; isolation"
     verify: "go test -race ./budget/... -run TestTarget"
     risk: P1
-    status: todo
+    status: passing
     allure: {severity: high, categories: ["Budget"]}
   - id: t2
     description: "planning: TargetPlan (needed rounded up, progress 0-100, status Atingida/Vencida/No ritmo/Abaixo do ritmo)"
     verify: "go test -race ./planning/... -run TestTarget"
     risk: P1
-    status: todo
+    status: passing
     allure: {severity: high, categories: ["Planning"]}
   - id: t3
     description: "web: Meta section on the expense category page; Orçamento meta line, status, Usar sugestão; /ajuda/orcamento Metas section"
     verify: "go test -race ./web/... -run TestTarget"
     risk: P2
-    status: todo
+    status: passing
     allure: {severity: normal, categories: ["UI"]}
   - id: t4
     description: "Full local gate green"
     verify: "make preflight"
     risk: P1
-    status: todo
+    status: passing
     allure: {severity: high, categories: ["Preflight"]}
