@@ -1,4 +1,4 @@
-// story: e09s02
+// story: e09s02 e16s01
 package budget
 
 import (
@@ -13,7 +13,7 @@ import (
 func (s *Service) DeleteUserData(ctx context.Context, userID string) error {
 	return s.inTx(ctx, func(q *store.Queries) error {
 		for _, del := range []func(context.Context, string) error{
-			q.DeleteUserAmounts, q.DeleteUserMonths, q.DeleteUserCategories,
+			q.DeleteUserTargets, q.DeleteUserAmounts, q.DeleteUserMonths, q.DeleteUserCategories,
 			q.DeleteUserGroups, q.DeleteUserKey,
 		} {
 			if err := del(ctx, userID); err != nil {

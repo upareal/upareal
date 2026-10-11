@@ -153,3 +153,22 @@ SELECT count(*) FROM budget_category WHERE archived_at IS NULL;
 -- PUBLIC STATS: aggregate across users (numbers only, the X2 exception).
 -- name: SumMonthAmounts :one
 SELECT CAST(COALESCE(SUM(amount), 0) AS INTEGER) FROM budget_amount WHERE month = ?;
+
+-- story: e16s01
+-- name: UpsertTarget :exec
+INSERT INTO budget_target (user_id, category_id, amount, due_month, created_at) VALUES (?, ?, ?, ?, ?)
+ON CONFLICT (category_id) DO UPDATE SET amount = excluded.amount, due_month = excluded.due_month;
+
+-- name: DeleteTarget :exec
+DELETE FROM budget_target WHERE user_id = ? AND category_id = ?;
+
+-- name: ListActiveTargets :many
+SELECT t.category_id, t.amount, t.due_month FROM budget_target t
+JOIN budget_category c ON c.id = t.category_id
+WHERE t.user_id = ? AND c.archived_at IS NULL;
+
+-- name: DeleteUserTargets :exec
+DELETE FROM budget_target WHERE user_id = ?;
+
+-- name: ExportTargets :many
+SELECT category_id, amount, due_month, created_at FROM budget_target WHERE user_id = ? ORDER BY due_month, category_id;

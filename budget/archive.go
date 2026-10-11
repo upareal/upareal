@@ -1,4 +1,4 @@
-// story: e08s06
+// story: e08s06 e16s01
 package budget
 
 import (
@@ -68,7 +68,7 @@ func (s *Service) ArchivedCategories(ctx context.Context, userID string) ([]Cate
 }
 
 // MergeCategory adds every monthly amount of source to target (same kind,
-// both active), deletes source's amounts and archives source, atomically.
+// both active), deletes source's amounts and meta and archives source, atomically.
 func (s *Service) MergeCategory(ctx context.Context, userID, sourceID, targetID string) error {
 	if sourceID == targetID {
 		return ErrSameCategory
@@ -90,6 +90,10 @@ func (s *Service) MergeCategory(ctx context.Context, userID, sourceID, targetID 
 		}
 		if err := q.DeleteCategoryAmounts(ctx, store.DeleteCategoryAmountsParams{UserID: userID, CategoryID: sourceID}); err != nil {
 			return fmt.Errorf("budget: delete merged amounts: %w", err)
+		}
+		// e16s01: the merge target keeps its own meta; the source's is dropped.
+		if err := q.DeleteTarget(ctx, store.DeleteTargetParams{UserID: userID, CategoryID: sourceID}); err != nil {
+			return fmt.Errorf("budget: delete merged target: %w", err)
 		}
 		return q.SetCategoryArchived(ctx, store.SetCategoryArchivedParams{ArchivedAt: sql.NullString{String: stamp(s.now()), Valid: true}, ID: sourceID, UserID: userID})
 	})

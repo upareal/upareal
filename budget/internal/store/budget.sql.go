@@ -169,6 +169,20 @@ func (q *Queries) DeleteCategoryAmounts(ctx context.Context, arg DeleteCategoryA
 	return err
 }
 
+const deleteTarget = `-- name: DeleteTarget :exec
+DELETE FROM budget_target WHERE user_id = ? AND category_id = ?
+`
+
+type DeleteTargetParams struct {
+	UserID     string
+	CategoryID string
+}
+
+func (q *Queries) DeleteTarget(ctx context.Context, arg DeleteTargetParams) error {
+	_, err := q.db.ExecContext(ctx, deleteTarget, arg.UserID, arg.CategoryID)
+	return err
+}
+
 const deleteUserAmounts = `-- name: DeleteUserAmounts :exec
 DELETE FROM budget_amount WHERE user_id = ?
 `
@@ -212,6 +226,15 @@ DELETE FROM budget_month WHERE user_id = ?
 
 func (q *Queries) DeleteUserMonths(ctx context.Context, userID string) error {
 	_, err := q.db.ExecContext(ctx, deleteUserMonths, userID)
+	return err
+}
+
+const deleteUserTargets = `-- name: DeleteUserTargets :exec
+DELETE FROM budget_target WHERE user_id = ?
+`
+
+func (q *Queries) DeleteUserTargets(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteUserTargets, userID)
 	return err
 }
 
@@ -367,6 +390,45 @@ func (q *Queries) ExportMonths(ctx context.Context, userID string) ([]ExportMont
 	return items, nil
 }
 
+const exportTargets = `-- name: ExportTargets :many
+SELECT category_id, amount, due_month, created_at FROM budget_target WHERE user_id = ? ORDER BY due_month, category_id
+`
+
+type ExportTargetsRow struct {
+	CategoryID string
+	Amount     int64
+	DueMonth   string
+	CreatedAt  string
+}
+
+func (q *Queries) ExportTargets(ctx context.Context, userID string) ([]ExportTargetsRow, error) {
+	rows, err := q.db.QueryContext(ctx, exportTargets, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ExportTargetsRow
+	for rows.Next() {
+		var i ExportTargetsRow
+		if err := rows.Scan(
+			&i.CategoryID,
+			&i.Amount,
+			&i.DueMonth,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getArchivedCategory = `-- name: GetArchivedCategory :one
 SELECT c.id, c.group_id FROM budget_category c
 JOIN budget_group g ON g.id = c.group_id AND g.archived_at IS NULL
@@ -505,6 +567,41 @@ func (q *Queries) ListActiveCategories(ctx context.Context, userID string) ([]Li
 			&i.CategoryID,
 			&i.CategoryName,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listActiveTargets = `-- name: ListActiveTargets :many
+SELECT t.category_id, t.amount, t.due_month FROM budget_target t
+JOIN budget_category c ON c.id = t.category_id
+WHERE t.user_id = ? AND c.archived_at IS NULL
+`
+
+type ListActiveTargetsRow struct {
+	CategoryID string
+	Amount     int64
+	DueMonth   string
+}
+
+func (q *Queries) ListActiveTargets(ctx context.Context, userID string) ([]ListActiveTargetsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveTargets, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListActiveTargetsRow
+	for rows.Next() {
+		var i ListActiveTargetsRow
+		if err := rows.Scan(&i.CategoryID, &i.Amount, &i.DueMonth); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -880,6 +977,31 @@ func (q *Queries) UpsertAmount(ctx context.Context, arg UpsertAmountParams) erro
 		arg.CategoryID,
 		arg.Month,
 		arg.Amount,
+	)
+	return err
+}
+
+const upsertTarget = `-- name: UpsertTarget :exec
+INSERT INTO budget_target (user_id, category_id, amount, due_month, created_at) VALUES (?, ?, ?, ?, ?)
+ON CONFLICT (category_id) DO UPDATE SET amount = excluded.amount, due_month = excluded.due_month
+`
+
+type UpsertTargetParams struct {
+	UserID     string
+	CategoryID string
+	Amount     int64
+	DueMonth   string
+	CreatedAt  string
+}
+
+// story: e16s01
+func (q *Queries) UpsertTarget(ctx context.Context, arg UpsertTargetParams) error {
+	_, err := q.db.ExecContext(ctx, upsertTarget,
+		arg.UserID,
+		arg.CategoryID,
+		arg.Amount,
+		arg.DueMonth,
+		arg.CreatedAt,
 	)
 	return err
 }

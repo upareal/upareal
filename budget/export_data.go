@@ -1,4 +1,4 @@
-// story: e10s01
+// story: e10s01 e16s01
 package budget
 
 import (
@@ -13,6 +13,7 @@ type Export struct {
 	Categories []ExportCategory `json:"categories"`
 	Months     []ExportMonth    `json:"months"`
 	Amounts    []ExportAmount   `json:"amounts"`
+	Targets    []ExportTarget   `json:"targets"`
 }
 
 // ExportGroup is one group, archived ones included.
@@ -48,9 +49,17 @@ type ExportAmount struct {
 	AmountCentavos int64  `json:"amount_centavos"`
 }
 
+// ExportTarget is a category's savings target (e16s01).
+type ExportTarget struct {
+	CategoryID     string `json:"category_id"`
+	AmountCentavos int64  `json:"amount_centavos"`
+	DueMonth       string `json:"due_month"`
+	CreatedAt      string `json:"created_at"`
+}
+
 // ExportUserData returns every budget row of userID, decrypted.
 func (s *Service) ExportUserData(ctx context.Context, userID string) (Export, error) {
-	ex := Export{Groups: []ExportGroup{}, Categories: []ExportCategory{}, Months: []ExportMonth{}, Amounts: []ExportAmount{}}
+	ex := Export{Groups: []ExportGroup{}, Categories: []ExportCategory{}, Months: []ExportMonth{}, Amounts: []ExportAmount{}, Targets: []ExportTarget{}}
 	dk, err := s.existingKey(ctx, userID)
 	if err != nil || dk == nil {
 		return ex, err
@@ -93,6 +102,13 @@ func (s *Service) ExportUserData(ctx context.Context, userID string) (Export, er
 	}
 	for _, a := range amounts {
 		ex.Amounts = append(ex.Amounts, ExportAmount{CategoryID: a.CategoryID, Month: a.Month, AmountCentavos: a.Amount})
+	}
+	targets, err := s.q.ExportTargets(ctx, userID)
+	if err != nil {
+		return fail("targets", err)
+	}
+	for _, t := range targets {
+		ex.Targets = append(ex.Targets, ExportTarget{CategoryID: t.CategoryID, AmountCentavos: t.Amount, DueMonth: t.DueMonth, CreatedAt: t.CreatedAt})
 	}
 	return ex, nil
 }

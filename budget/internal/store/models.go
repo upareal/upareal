@@ -41,6 +41,14 @@ type BudgetMonth struct {
 	OpenedAt string
 }
 
+type BudgetTarget struct {
+	UserID     string
+	CategoryID string
+	Amount     int64
+	DueMonth   string
+	CreatedAt  string
+}
+
 type BudgetUserKey struct {
 	UserID    string
 	DataKey   []byte
