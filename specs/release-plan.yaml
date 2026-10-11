@@ -81,3 +81,8 @@ epics:
   path: specs/epics/e15-docs
   wsjf_rank: 15
   bcps: 3
+- id: e16
+  slug: targets
+  path: specs/epics/e16-targets
+  wsjf_rank: 16
+  bcps: 5

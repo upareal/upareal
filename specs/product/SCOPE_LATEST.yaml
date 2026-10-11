@@ -135,7 +135,7 @@ out_of_scope:
   - item: Memos per transaction leg
     why: 'Deferred: one description per transaction is enough for v1.'
   - item: Goals and savings targets
-    why: 'Deferred: envelope carry-over covers saving in v1.'
+    why: 'Deferred in v1; savings targets per expense category (amount by a due month, no repeat) pulled into e16 on 2026-10-10.'
   - item: Notifications (email, push)
     why: 'Deferred: no email provider in v1.'
   - item: Offline use (PWA offline mode)

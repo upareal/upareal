@@ -1,0 +1,12 @@
+epic_id: e16
+slug: targets
+goal: Savings targets. The user reserves money every month for a known future expense (annual taxes, insurance) and the
+  budget shows how much to put in to reach it on time.
+scope_items:
+- Goals and savings targets
+stories:
+- id: e16s01
+  title: Savings targets (metas) for expense categories
+  bcps: 5
+  delta: ADDED
+bcps_total: 5

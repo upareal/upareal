@@ -91,6 +91,7 @@ domain:
       - "B2 a category kind (expense|income) matches its group kind"
       - "B3 at most one amount per (category, month); months are calendar months in America/Sao_Paulo"
       - "B4 amounts are int64 centavos >= 0"
+      - "B5 at most one target (meta) per category; expense categories only; amount int64 centavos > 0; due month in America/Sao_Paulo; never repeats (e16s01)"
     planning:
       - "P1 a ledger account maps to at most one category"
       - "P2 kinds match: income account -> income category, expense account -> expense category"
