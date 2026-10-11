@@ -78,7 +78,8 @@ templ groupEditPage(g budget.Group, errMsg string) {
 }
 
 // categoryEditPage offers only groups of the same kind (B2).
-templ categoryEditPage(c budget.Category, current budget.Group, sameKind []budget.Group, errMsg string) {
+// e16s01: expense categories get a Meta section; target is nil without one.
+templ categoryEditPage(c budget.Category, current budget.Group, sameKind []budget.Group, target *budget.Target, errMsg string) {
 	@layout("Editar categoria — upareal") {
 		<p><a href="/categorias">← Categorias</a></p>
 		<h1>Editar categoria</h1>
@@ -97,6 +98,27 @@ templ categoryEditPage(c budget.Category, current budget.Group, sameKind []budge
 			</label>
 			<button type="submit">Salvar</button>
 		</form>
+		if current.Kind == "expense" {
+			<section id="meta">
+				<h2>Meta</h2>
+				<p class="muted">Guarde um pouco todo mês para uma despesa futura, como IPVA ou IPTU. O Orçamento mostra quanto colocar a cada mês.</p>
+				<form method="post" action={ templ.SafeURL("/categorias/" + c.ID + "/meta") }>
+					if target != nil {
+						<label>Valor <input name="valor" value={ brlInput(target.Amount) } inputmode="decimal" required/></label>
+						<label>Até o mês <input type="month" name="mes" value={ target.Due.String() } required/></label>
+					} else {
+						<label>Valor <input name="valor" inputmode="decimal" placeholder="2.400,00" required/></label>
+						<label>Até o mês <input type="month" name="mes" placeholder="AAAA-MM" required/></label>
+					}
+					<button type="submit">Salvar meta</button>
+				</form>
+				if target != nil {
+					<form method="post" action={ templ.SafeURL("/categorias/" + c.ID + "/meta/remover") }>
+						<button type="submit">Remover meta</button>
+					</form>
+				}
+			</section>
+		}
 		<h2>Juntar com outra categoria</h2>
 		<p class="muted">As contas, os valores planejados e o histórico desta categoria passam para a escolhida, e esta é arquivada.</p>
 		<form method="post" action={ templ.SafeURL("/categorias/" + c.ID + "/juntar") } class="inline">

@@ -1,4 +1,4 @@
-// story: e05s01 e05s02
+// story: e05s01 e05s02 e16s01
 package web
 
 import (
@@ -110,7 +110,16 @@ func renderCategoryEdit(w http.ResponseWriter, r *http.Request, bud *budget.Serv
 					sameKind = append(sameKind, o)
 				}
 			}
-			renderHTML(w, r, status, categoryEditPage(c, g, sameKind, errMsg))
+			targets, err := bud.Targets(r.Context(), userID)
+			if err != nil {
+				renderError(w, r, http.StatusInternalServerError, "Erro inesperado", "Não foi possível carregar as categorias.")
+				return
+			}
+			var target *budget.Target
+			if t, ok := targets[id]; ok {
+				target = &t
+			}
+			renderHTML(w, r, status, categoryEditPage(c, g, sameKind, target, errMsg))
 			return
 		}
 	}

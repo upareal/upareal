@@ -1,4 +1,4 @@
-// story: e05s03 e08s02 e08s03 e08s04
+// story: e05s03 e08s02 e08s03 e08s04 e16s01
 package web
 
 import (
@@ -45,6 +45,10 @@ type monthRowView struct {
 	CarryOver               string // expense; "" when zero
 	CarriedOverspent        bool
 	Received                string // income
+	// e16s01: savings target; Target is "" without one
+	Target, TargetStatus, TargetNeeded string
+	TargetAlert                        bool   // overdue or behind
+	TargetSuggest                      string // amount for Usar sugestão; "" for no button
 }
 
 func budgetMonthGet(svc *users.Service, bud *budget.Service, plan *planning.Service) http.HandlerFunc {
@@ -109,6 +113,9 @@ func renderBudgetMonth(w http.ResponseWriter, r *http.Request, bud *budget.Servi
 				Overspent: cp.Available < 0, Received: money.FormatBRL(cp.Received), CarriedOverspent: cp.CarryOver < 0})
 			if cp.CarryOver != 0 {
 				gv.Rows[len(gv.Rows)-1].CarryOver = money.FormatBRL(cp.CarryOver)
+			}
+			if cp.Target != nil {
+				targetRow(&gv.Rows[len(gv.Rows)-1], cp.Target)
 			}
 		}
 		gv.Total = money.FormatBRL(total)

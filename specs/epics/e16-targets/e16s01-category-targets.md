@@ -28,14 +28,14 @@ The user sets a meta on the category page (`/categorias/{id}`) and opens Orçame
      - **Atingida** when Disponível ≥ X;
      - otherwise **Vencida** when *m* is after the due month;
      - otherwise **No ritmo** when the month's amount ≥ needed, else **Abaixo do ritmo**.
-   - a **Usar sugestão** button when the status is No ritmo or Abaixo do ritmo and the month's amount differs from needed. It posts the needed amount to the existing amount route (`POST /orcamento/{mes}/{categoria}`). Nothing changes until the user clicks.
+   - a **Usar sugestão** button when the status is Abaixo do ritmo (putting in more than needed is the user's choice, so No ritmo shows no button). It posts the needed amount to the existing amount route (`POST /orcamento/{mes}/{categoria}`). Nothing changes until the user clicks.
 3. A meta never repeats. After the due month it stays on the page as **Vencida** until the user edits or removes it.
 
 ## 6. Alternative flows
 
 - **6a. Income category:** no Meta section; the service rejects it.
 - **6b. Due month before the current month when saving:** rejected with "Escolha o mês atual ou um mês futuro."
-- **6c. Amount ≤ 0 or malformed, or malformed month:** rejected with a pt-BR message; nothing changes.
+- **6c. Amount ≤ 0 or malformed** ("Informe um valor maior que zero."), **or malformed month** ("Informe o mês (AAAA-MM)."): rejected with 400; nothing changes.
 - **6d. Merge:** the source category's meta is deleted with its amounts. The target keeps its own meta.
 - **6e. Archived category:** its meta is kept but not shown; restoring the category brings it back.
 

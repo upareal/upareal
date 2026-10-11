@@ -1,4 +1,4 @@
-// story: e05s03 e08s02 e08s03 e08s04 e12s01
+// story: e05s03 e08s02 e08s03 e08s04 e12s01 e16s01
 package web
 
 templ budgetMonthPage(v monthView, errMsg string) {
@@ -33,6 +33,17 @@ templ budgetMonthPage(v monthView, errMsg string) {
 								}
 								<span class="muted">Gasto { row.Spent }</span>
 								<span class={ templ.KV("negative", row.Overspent) }>Disponível { row.Available }</span>
+							}
+							if row.Target != "" {
+								<br/>
+								<a class="muted" href={ templ.SafeURL("/categorias/" + row.CategoryID + "#meta") }>{ row.Target }</a>
+								<span class={ templ.KV("negative", row.TargetAlert) }>{ row.TargetStatus }</span>
+								if row.TargetNeeded != "" {
+									<span class="muted">{ row.TargetNeeded }</span>
+								}
+								if row.TargetSuggest != "" {
+									<form method="post" action={ templ.SafeURL("/orcamento/" + v.Month + "/" + row.CategoryID) } hx-post={ "/orcamento/" + v.Month + "/" + row.CategoryID } hx-target="main" hx-select="main" hx-swap="outerHTML" class="inline"><input type="hidden" name="valor" value={ row.TargetSuggest }/><button type="submit">Usar sugestão</button></form>
+								}
 							}
 						</li>
 					}

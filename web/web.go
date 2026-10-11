@@ -63,6 +63,8 @@ func NewHandler(d Deps) http.Handler {
 	}))
 	mux.HandleFunc("GET /categorias/{id}", categoryEditGet(d.Users, d.Budget))
 	mux.HandleFunc("POST /categorias/{id}", categoryEditPost(d.Users, d.Budget))
+	mux.HandleFunc("POST /categorias/{id}/meta", targetSet(d.Users, d.Budget))
+	mux.HandleFunc("POST /categorias/{id}/meta/remover", targetRemove(d.Users, d.Budget))
 	mux.HandleFunc("POST /categorias/{id}/mover", budgetAction(d.Users, d.Budget, func(r *http.Request, userID string) error {
 		return d.Budget.MoveCategory(r.Context(), userID, r.PathValue("id"), r.URL.Query().Get("dir") == "up")
 	}))
