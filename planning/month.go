@@ -1,4 +1,4 @@
-// story: e08s02 e08s03 e08s04 e08s05 e14s01
+// story: e08s02 e08s03 e08s04 e08s05 e14s01 e16s01
 package planning
 
 import (
@@ -13,11 +13,12 @@ import (
 // CategoryPlan is one category in a month. Expense categories use Spent,
 // CarryOver and Available; income categories use Received.
 type CategoryPlan struct {
-	Amount    int64 // planned (budget)
-	CarryOver int64 // expense: Σ (amount - spent) of earlier months; negative = overspent (e08s03)
-	Spent     int64 // expense: activity on mapped accounts; refunds lower it
-	Available int64 // expense: Amount + CarryOver - Spent
-	Received  int64 // income: money in on mapped accounts
+	Amount    int64       // planned (budget)
+	CarryOver int64       // expense: Σ (amount - spent) of earlier months; negative = overspent (e08s03)
+	Spent     int64       // expense: activity on mapped accounts; refunds lower it
+	Available int64       // expense: Amount + CarryOver - Spent
+	Received  int64       // income: money in on mapped accounts
+	Target    *TargetPlan // expense with a savings target; nil otherwise (e16s01)
 }
 
 // MonthPlan is the computed envelope view of a month (P4: never stored).
@@ -81,6 +82,10 @@ func (s *Service) month(ctx context.Context, userID string, m budget.Month, amou
 	if err != nil {
 		return MonthPlan{}, fmt.Errorf("planning: categories: %w", err)
 	}
+	targets, err := s.bud.Targets(ctx, userID)
+	if err != nil {
+		return MonthPlan{}, fmt.Errorf("planning: targets: %w", err)
+	}
 	accounts, err := s.allAccounts(ctx, userID)
 	if err != nil {
 		return MonthPlan{}, err
@@ -122,6 +127,9 @@ func (s *Service) month(ctx context.Context, userID string, m budget.Month, amou
 			c.Spent = now.byCategory[id]
 			c.Available = c.Amount + c.CarryOver - c.Spent
 			p.Assigned += before[id] + amounts[id]
+			if t, ok := targets[id]; ok {
+				c.Target = planTarget(t, c, m)
+			}
 		}
 		p.Categories[id] = c
 	}
