@@ -14,7 +14,7 @@ import (
 // due `months` months after the current month (both included: months+1 left).
 type targetBook struct {
 	shell, itau, fuel string
-	cur              budget.Month
+	cur               budget.Month
 }
 
 func newTargetBook(t *testing.T, f fixture, amount int64, months int) targetBook {
