@@ -29,6 +29,7 @@ func TestExportUserData_EveryBudgetRowOfTheUser(t *testing.T) {
 	covered := map[string]int{
 		"budget_group": len(ex.Groups), "budget_category": len(ex.Categories),
 		"budget_month": len(ex.Months), "budget_amount": len(ex.Amounts),
+		"budget_target": len(ex.Targets),
 		"budget_user_key": -1, // security material, not exported
 	}
 	for table, n := range dbtest.UserRows(t, f.conn, "budget_", userA) {
