@@ -1,7 +1,7 @@
 workflow_mode: solo-git
 handoff:
-  next_skill: verify-work
-  note: 'e16s01 all tasks passing; awaiting user UAT (spec §19)'
+  next_skill: release-branch
+  note: 'e16 verified (UAT confirmed by the user); merge feat/e16-targets into main locally'
 environment:
   checked_at: '2026-10-07'
   host: WSL 2 (Linux amd64)
